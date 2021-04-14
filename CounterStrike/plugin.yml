@@ -1,0 +1,17 @@
+name: CSMC
+main: dev.danablend.counterstrike.CounterStrike
+author: danablend, barpec12
+version: 0.5.2
+api-version: 1.13
+depend: [HolographicDisplays]
+softdepend: [QualityArmory]
+commands:
+  csmc:
+    description: Admin command for the CounterStrike plugin.
+    aliases: [cs, counterstrike]
+    permission: 'cs.admin'
+    permission-message: '§4You do not have permission to do that!'
+#  test:
+#    description: Test commands for the plugin.
+#    permission: 'cs.admin'
+#    permission-message: '§4You do not have permission to do that!'

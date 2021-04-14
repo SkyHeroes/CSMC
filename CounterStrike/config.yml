@@ -1,0 +1,241 @@
+##################################
+# Counter Strike - CS:GO         #
+# Made by Danablend and barpec12 #
+##################################
+# Whether the plugin will start games or not.
+enabled: true
+# Whether the plugin should send debug messages to console or not.
+debug: false
+# The minimum amount of players needed to start a game.
+min-players: 5
+# The maximum amount of players allowed into a game.
+max-players: 10
+# The amount of rounds team should won to win the whole game. 
+rounds-to-win: 16
+# The amount of maximum rounds in a single game.
+max-rounds: 30
+# The money that each player will get when the first round starts.
+starting-money: 800
+# The money that each player on the winning team will get after a victory.
+money-on-win-reward: 3000
+# The money that each player on the losing team will get after a loss.
+money-on-loss-reward: 2000
+# The block material you can plant the bomb on.
+bomb-material: BEDROCK
+# The amount of seconds it should take for the bomb to explode.
+bomb-timer: 45
+# The amount of seconds players have, to buy items from the shop in start of each round.
+shop-phase-duration: 15
+# The amount of seconds every round will take (Counter Terrorists win if this timer runs out, and the bomb stops the timer if planted).
+match-duration: 120
+# The level of speed effect applied to player when holding a knife
+knife-speed: 2
+# If true, this will allow team mates to shoot each other with their weapons.
+friendly-fire-enabled: false
+# If true, this will shake the screen whenever a player shoots.
+recoil-animation-enabled: true
+# Configuration for weapons: 
+# Damage is how many half-hearts each shot will do (So setting it to 2, will make it do 1 full heart of damage).
+# Cost is how much money the weapon will cost to be purchased.
+# Ammunition is how many bullets a weapon can shoot before having to reload.
+# Reloadspeed is the time it takes to reload the weapon. (So for example 2.5 would be 2s and 500ms reload time)
+weapons:
+  ak47:
+    name: ak47
+    display-name: '&e&lAK-47 Rifle'
+    material: INK_SAC
+    damage: 7
+    cost: 2700
+    magazine-capacity: 30
+    magazines: 3
+    reload-speed: 2.5
+    weapon-type: RIFLE
+    team: TERRORISTS
+  vz58:
+    name: vz58
+    display-name: '&e&lGalil-AR Rifle'
+    material: WHEAT
+    damage: 5
+    cost: 2000
+    magazine-capacity: 35
+    magazines: 3
+    reload-speed: 3.0
+    weapon-type: RIFLE
+    team: TERRORISTS
+  t-pistol-default:
+    name: glock
+    display-name: '&e&lGlock-18 Pistol'
+    material: GOLD_NUGGET
+    damage: 6
+    cost: 400
+    magazine-capacity: 20
+    magazines: 3
+    reload-speed: 2.2
+    weapon-type: PISTOL
+    team: TERRORISTS
+  m4a1s:
+    name: m4a1s
+    display-name: '&e&lM4A1s Rifle'
+    material: GLOWSTONE_DUST
+    damage: 6
+    cost: 3100
+    magazine-capacity: 25
+    magazines: 3
+    reload-speed: 3.1
+    weapon-type: RIFLE
+    team: COUNTER_TERRORISTS
+  famas:
+    name: famas
+    display-name: '&e&lFamas Rifle'
+    material: GUNPOWDER
+    damage: 5
+    cost: 2250
+    magazine-capacity: 25
+    magazines: 3
+    reload-speed: 3.3
+    weapon-type: RIFLE
+    team: COUNTER_TERRORISTS
+  ct-pistol-default:
+    name: p30silenced
+    display-name: '&e&lUSP-S Pistol'
+    material: GHAST_TEAR
+    damage: 7
+    cost: 400
+    magazine-capacity: 12
+    magazines: 3
+    reload-speed: 2.2
+    weapon-type: PISTOL
+    team: COUNTER_TERRORISTS
+  deagle:
+    name: deagle
+    display-name: '&e&lDeagle Pistol'
+    material: GOLDEN_CARROT
+    damage: 12.6
+    cost: 700
+    magazine-capacity: 7
+    magazines: 5
+    reload-speed: 2.2
+    weapon-type: PISTOL
+    team: COUNTER_TERRORISTS
+  p30:
+    name: p30
+    display-name: '&e&lFive-SeveN'
+    material: MAGMA_CREAM
+    damage: 6.4
+    cost: 700
+    magazine-capacity: 20
+    magazines: 5
+    reload-speed: 2.2
+    weapon-type: PISTOL
+    team: COUNTER_TERRORISTS
+  t-mp5k:
+    name: mp5k
+    display-name: '&e&lMP5'
+    material: FERMENTED_SPIDER_EYE
+    damage: 5.4
+    cost: 1500
+    magazine-capacity: 30
+    magazines: 4
+    reload-speed: 2.97
+    weapon-type: RIFLE
+    team: TERRORISTS
+  ct-mp5k:
+    name: mp5k
+    display-name: '&e&lMP5'
+    material: BLAZE_POWDER
+    damage: 5.4
+    cost: 1500
+    magazine-capacity: 30
+    magazines: 4
+    reload-speed: 2.97
+    weapon-type: RIFLE
+    team: COUNTER_TERRORISTS
+  sg553:
+    name: sg553
+    display-name: '&e&lSG 553'
+    material: PHANTOM_MEMBRANE
+    damage: 6
+    cost: 3000
+    magazine-capacity: 30
+    magazines: 3
+    reload-speed: 2.77
+    weapon-type: RIFLE
+    team: TERRORISTS
+  t-awp:
+    name: awp
+    display-name: '&e&lAWP'
+    material: SUGAR_CANE
+    damage: 23
+    cost: 4750
+    magazine-capacity: 10
+    magazines: 3
+    reload-speed: 3.7
+    weapon-type: RIFLE
+    team: TERRORISTS
+  ct-awp:
+    name: awp
+    display-name: '&e&lAWP'
+    material: SUGAR_CANE
+    damage: 23
+    cost: 4750
+    magazine-capacity: 10
+    magazines: 3
+    reload-speed: 3.7
+    weapon-type: RIFLE
+    team: COUNTER_TERRORISTS
+  t-grenade:
+    name: grenade
+    display-name: '&e&lGRENADE'
+    material: RED_DYE
+    cost: 300
+    weapon-type: GRENADE
+    team: TERRORISTS
+  ct-grenade:
+    name: grenade
+    display-name: '&e&lGRENADE'
+    material: RED_DYE
+    cost: 300
+    weapon-type: GRENADE
+    team: COUNTER_TERRORISTS
+  t-incendarygrenade:
+    name: incendarygrenade
+    display-name: '&e&lMolotov'
+    material: GLISTERING_MELON_SLICE
+    cost: 400
+    weapon-type: GRENADE
+    team: TERRORISTS
+  ct-incendarygrenade:
+    name: incendarygrenade
+    display-name: '&e&lINCENDARY GRENADE'
+    material: GLISTERING_MELON_SLICE
+    cost: 600
+    weapon-type: GRENADE
+    team: COUNTER_TERRORISTS
+  t-smokegrenade:
+    name: smokegrenade
+    display-name: '&e&lSMOKE GRENADE'
+    material: PINK_DYE
+    cost: 300
+    weapon-type: GRENADE
+    team: TERRORISTS
+  ct-smokegrenade:
+    name: smokegrenade
+    display-name: '&e&lSMOKE GRENADE'
+    material: PINK_DYE
+    cost: 300
+    weapon-type: GRENADE
+    team: COUNTER_TERRORISTS
+  t-flashbang:
+    name: flashbang
+    display-name: '&e&lFLASHBANG'
+    material: LIME_DYE
+    cost: 200
+    weapon-type: GRENADE
+    team: TERRORISTS
+  ct-flashbang:
+    name: flashbang
+    display-name: '&e&lFLASHBANG'
+    material: LIME_DYE
+    cost: 200
+    weapon-type: GRENADE
+    team: COUNTER_TERRORISTS

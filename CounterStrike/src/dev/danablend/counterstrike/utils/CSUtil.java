@@ -20,73 +20,76 @@ import dev.danablend.counterstrike.runnables.Bomb;
 
 public class CSUtil {
 
-	public static ItemStack getBombItem() {
-		List<String> lore = new ArrayList<>();
-		lore.add(ChatColor.YELLOW + "Plant the bomb on a bomb site.");
-		lore.add(ChatColor.YELLOW + "After planting, the bomb will");
-		lore.add(ChatColor.YELLOW + "start ticking for about a minute");
-		lore.add(ChatColor.YELLOW + "before it explodes for a victory.");
-		ItemStack bomb = new ItemStack(Material.TNT);
-		ItemMeta meta = bomb.getItemMeta();
-		meta.setDisplayName(ChatColor.RED + "C4-Explosive Bomb");
-		meta.setLore(lore);
-		bomb.setItemMeta(meta);
-		return bomb;
-	}
+    public static ItemStack getBombItem() {
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.YELLOW + "Plant the bomb on a bomb site.");
+        lore.add(ChatColor.YELLOW + "After planting, the bomb will");
+        lore.add(ChatColor.YELLOW + "start ticking for about a minute");
+        lore.add(ChatColor.YELLOW + "before it explodes for a victory.");
+        ItemStack bomb = new ItemStack(Material.TNT);
+        ItemMeta meta = bomb.getItemMeta();
+        meta.setDisplayName(ChatColor.RED + "C4-Explosive Bomb");
+        meta.setLore(lore);
+        bomb.setItemMeta(meta);
+        return bomb;
+    }
 
-	public static boolean isHeadShot(Projectile bullet, Player player) {
-		double projectile_height = bullet.getLocation().getY();
-		double player_bodyheight = player.getLocation().getY() + 1.60;
-		System.out.println("Body height = " + player_bodyheight);
-		System.out.println("Projectile height = " + projectile_height);
-		if (projectile_height > player_bodyheight) {
-			System.out.println();
-			return true;
-		}
-		return false;
-	}
+    public static boolean isHeadShot(Projectile bullet, Player player) {
+        double projectile_height = bullet.getLocation().getY();
+        double player_bodyheight = player.getLocation().getY() + 1.60;
+        System.out.println("Body height = " + player_bodyheight);
+        System.out.println("Projectile height = " + projectile_height);
+        if (projectile_height > player_bodyheight) {
+            System.out.println();
+            return true;
+        }
+        return false;
+    }
 
-	public static void checkForDead() {
-		int dead = 0;
-		for (CSPlayer csplayer : CounterStrike.i.getCounterTerrorists()) {
-			if (csplayer.getPlayer().isDead() || csplayer.getPlayer().getGameMode().equals(GameMode.SPECTATOR) || (!csplayer.getPlayer().isOnline())) {
-				dead++;
-			}
-		}
-		if (dead >= CounterStrike.i.getCounterTerrorists().size()) {
-			CounterStrike.i.restartGame(CounterStrike.i.getTerroristsTeam());
-			return;
-		}
-		dead = 0;
-		for (CSPlayer csplayer : CounterStrike.i.getTerrorists()) {
-			if (csplayer.getPlayer().isDead() || csplayer.getPlayer().getGameMode().equals(GameMode.SPECTATOR) || (!csplayer.getPlayer().isOnline())) {
-				dead++;
-			}
-		}
-		if (dead >= CounterStrike.i.getTerrorists().size()) {
-			if(Bomb.bomb == null)
-				CounterStrike.i.restartGame(CounterStrike.i.getCounterTerroristsTeam());
-		}
-	}
+    public static void checkForDead() {
+        int dead = 0;
+        for (CSPlayer csplayer : CounterStrike.i.getCounterTerrorists()) {
+            if (csplayer.getPlayer().isDead() || csplayer.getPlayer().getGameMode().equals(GameMode.SPECTATOR) || (!csplayer.getPlayer().isOnline())) {
+                dead++;
+            }
+        }
 
-	public static boolean isOutOfShopZone(Player player) {
-		CSPlayer csplayer = CounterStrike.i.getCSPlayer(player);
-		if (csplayer.getTeam().equals(TeamEnum.TERRORISTS)) {
-			Location spawn = CounterStrike.i.getTerroristSpawn();
-			Location pLoc = player.getLocation();
-			if ((pLoc.getX() <= spawn.getX() + Config.SPAWN_RADIUS_X && pLoc.getY() <= spawn.getY() + Config.SPAWN_RADIUS_Y && pLoc.getZ() <= spawn.getZ() + Config.SPAWN_RADIUS_Z) 
-			 && (pLoc.getX() >= spawn.getX() - Config.SPAWN_RADIUS_X && pLoc.getY() >= spawn.getY() - Config.SPAWN_RADIUS_Y && pLoc.getZ() >= spawn.getZ() - Config.SPAWN_RADIUS_Z)) {
-				return false;
-			}
-		} else {
-			Location spawn = CounterStrike.i.getCounterTerroristSpawn();
-			Location pLoc = player.getLocation();
-			if ((pLoc.getX() <= spawn.getX() + Config.SPAWN_RADIUS_X && pLoc.getY() <= spawn.getY() + Config.SPAWN_RADIUS_Y && pLoc.getZ() <= spawn.getZ() + Config.SPAWN_RADIUS_Z) 
-			 && (pLoc.getX() >= spawn.getX() - Config.SPAWN_RADIUS_X && pLoc.getY() >= spawn.getY() - Config.SPAWN_RADIUS_Y && pLoc.getZ() >= spawn.getZ() - Config.SPAWN_RADIUS_Z)) {
-				return false;
-			}
-		}
-		return true;
-	}
+        if (dead >= CounterStrike.i.getCounterTerrorists().size() && Bomb.detonated == false) { //was launching twice
+            CounterStrike.i.restartGame(CounterStrike.i.getTerroristsTeam());
+            return;
+        }
+        dead = 0;
+        for (CSPlayer csplayer : CounterStrike.i.getTerrorists()) {
+            if (csplayer.getPlayer().isDead() || csplayer.getPlayer().getGameMode().equals(GameMode.SPECTATOR) || (!csplayer.getPlayer().isOnline())) {
+                dead++;
+            }
+        }
+        if (dead >= CounterStrike.i.getTerrorists().size()) {
+            if (Bomb.bomb == null)
+                CounterStrike.i.restartGame(CounterStrike.i.getCounterTerroristsTeam());
+        }
+    }
+
+
+    public static boolean isOutOfShopZone(Player player) {
+        CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
+
+        if (csplayer.getTeam().equals(TeamEnum.TERRORISTS)) {
+            Location spawn = CounterStrike.i.getTerroristSpawn(false);
+            Location pLoc = player.getLocation();
+            if ((pLoc.getX() <= spawn.getX() + Config.SPAWN_RADIUS_X && pLoc.getZ() <= spawn.getZ() + Config.SPAWN_RADIUS_Z)
+                    && (pLoc.getX() >= spawn.getX() - Config.SPAWN_RADIUS_X && pLoc.getZ() >= spawn.getZ() - Config.SPAWN_RADIUS_Z)) {
+                return false;
+            }
+        } else {
+            Location spawn = CounterStrike.i.getCounterTerroristSpawn(false);
+            Location pLoc = player.getLocation();
+            if ((pLoc.getX() <= spawn.getX() + Config.SPAWN_RADIUS_X && pLoc.getZ() <= spawn.getZ() + Config.SPAWN_RADIUS_Z)
+                    && (pLoc.getX() >= spawn.getX() - Config.SPAWN_RADIUS_X && pLoc.getZ() >= spawn.getZ() - Config.SPAWN_RADIUS_Z)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
 }

@@ -1,129 +1,110 @@
 package dev.danablend.counterstrike.listeners;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.entity.EntityType;
+import dev.danablend.counterstrike.CounterStrike;
+import dev.danablend.counterstrike.GameState;
+import dev.danablend.counterstrike.csplayer.CSPlayer;
+import dev.danablend.counterstrike.csplayer.TeamEnum;
+import dev.danablend.counterstrike.runnables.Bomb;
+import dev.danablend.counterstrike.utils.PacketUtils;
+import dev.danablend.counterstrike.database.Mundos;
+import org.bukkit.ChatColor;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Snowball;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.Vector;
 
-import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.csplayer.CSPlayer;
-import dev.danablend.counterstrike.csplayer.TeamEnum;
-import dev.danablend.counterstrike.enums.Weapon;
-import dev.danablend.counterstrike.enums.WeaponType;
-import dev.danablend.counterstrike.events.WeaponFireEvent;
-import dev.danablend.counterstrike.runnables.Bomb;
-import dev.danablend.counterstrike.runnables.Gunfire;
-import dev.danablend.counterstrike.shop.Shop;
-import dev.danablend.counterstrike.utils.PlayerUtils;
+import static dev.danablend.counterstrike.Config.MAX_PLAYERS;
+import static dev.danablend.counterstrike.Config.MAX_ROUNDS;
 
 public class PlayerInteractListener implements Listener {
 
-	private HashMap<UUID, Long> firing;
-	private Set<UUID> pistolCD;
+    public PlayerInteractListener() {
+    }
 
-	public PlayerInteractListener() {
-		this.firing = new HashMap<UUID, Long>();
-		this.pistolCD = new HashSet<UUID>();
-	}
-	
-	@EventHandler
-	public void playerDefuseEvent(PlayerInteractEvent event) {
-		Player player = event.getPlayer();
-		CSPlayer csplayer = CounterStrike.i.getCSPlayer(player);
-		if(Bomb.bomb == null) {
-			return;
-		}
-		if(event.getAction() != Action.RIGHT_CLICK_BLOCK) {
-			return;
-		}
-		if(csplayer.getTeam() != TeamEnum.COUNTER_TERRORISTS) {
-			return;
-		}
-		
-		Bomb bomb = Bomb.bomb;
-		
-		bomb.defuse(csplayer);
-		
-	}
+    @EventHandler
+    public void playerDefuseEvent(PlayerInteractEvent event) {
 
-	@EventHandler
-	public void playerInteractEvent(PlayerInteractEvent event) {
-		Player player = event.getPlayer();
-		PlayerInventory inv = player.getInventory();
-		if(player.getGameMode().equals(GameMode.SPECTATOR)) {
-			event.setCancelled(true);
-			return;
-		}
-		if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
-			CSPlayer csplayer = CounterStrike.i.getCSPlayer(player);
-			// Gun checker
-			ItemStack gunItem = inv.getItemInMainHand();
-			if (Weapon.isWeapon(gunItem)) {
-				Weapon gun = Weapon.getByItem(inv.getItemInMainHand());
-				if (gun.getWeaponType() == WeaponType.RIFLE) {
-					CounterStrike.i.removePlayerFromFiring(player, 5, firing);
-					if (gunItem.getAmount() - 1 <= 0) {
-						return;
-					}
-					firing.put(player.getUniqueId(), System.currentTimeMillis());
-					new Gunfire(firing, player, gun).runTaskTimer(CounterStrike.getInstance(), 0L, 6L);
-				}
-				else {
-					shoot(player, gun);
-				}
-			}
-			// Shop Item Checker
-			if (inv.getItemInMainHand().equals(CounterStrike.i.getShopItem())) {
-				if (csplayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
-					Shop.getShop().openCounterTerroristShop(player);
-				} else {
-					Shop.getShop().openTerroristShop(player);
-				}
-			}
-		}
-		if(!event.getPlayer().getInventory().getItemInMainHand().getType().equals(Material.TNT))
-			event.setCancelled(true);
-	}
+        Player player = event.getPlayer();
+        String mundo = player.getWorld().getName();
 
-	private void shoot(Player player, Weapon gun) {
-		if(pistolCD.contains(player.getUniqueId())) {
-			return;
-		}
-		ItemStack gunItem = player.getInventory().getItemInMainHand();
-		if(gunItem.getAmount() - 1 <= 0) {
-			return;
-		}
-		Vector playerDir = player.getLocation().getDirection();
-		Vector dirVel = playerDir.multiply(5);
-		Snowball bullet = (Snowball) player.getWorld().spawnEntity(PlayerUtils.getRightHeadLocation(player), EntityType.SNOWBALL);
-		bullet.setVelocity(dirVel);
-		bullet.setShooter(player);
-		bullet.setBounce(false);
-		player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_SHOOT, 1, 1);
-		PlayerUtils.shakeScreen(player, 2);
-		WeaponFireEvent calledEvent = new WeaponFireEvent(player, gun, bullet);
-		Bukkit.getPluginManager().callEvent(calledEvent);
-		pistolCD.add(player.getUniqueId());
-		new BukkitRunnable() {
-			public void run() {
-				pistolCD.remove(player.getUniqueId());
-			}
-		}.runTaskLater(CounterStrike.i, 5L);
-	}
+        //if has generalP loaded
+        if (CounterStrike.i.HashWorlds != null) {
+            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+
+            if (md != null && !md.modoCs) {
+                return;
+            }
+        }
+
+        CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
+
+        if (CounterStrike.i.getCSPlayers().size() >= MAX_PLAYERS && csplayer == null) {
+            PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "We are sorry", ChatColor.GREEN + "The game is full, please try again later.", 1, 4, 1);
+            return;
+        }
+
+        if (csplayer == null && event.getAction() == Action.LEFT_CLICK_BLOCK) {
+
+            if (CounterStrike.i.getGameState().equals(GameState.RUN)) {
+                dev.danablend.counterstrike.csplayer.Team myTeam = CounterStrike.i.getTerroristsTeam();
+
+                PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "Wait for the end of the current round to join", ChatColor.GREEN + "Current round: " + (myTeam.getLosses() + myTeam.getWins() + 1) + " of " + MAX_ROUNDS + ". Estimated time for new " + CounterStrike.i.getGameTimer().returnTimetoEnd() + "secs", 1, 4, 1);
+                return;
+            }
+
+            Block blockUnder = player.getLocation().getBlock().getRelative(BlockFace.DOWN);
+
+            String materialColour = blockUnder.getBlockData().getMaterial().toString();
+
+            if (materialColour.contains("CYAN") || materialColour.contains("BLUE")) {
+                materialColour = "BLUE";
+            } else if (materialColour.contains("RED") || materialColour.contains("PINK")) {
+                materialColour = "RED";
+            } else if (materialColour.contains("GREEN") || materialColour.contains("LIME")) {
+                materialColour = "GREEN";
+            } else if (materialColour.contains("YELLOW")) {
+                materialColour = "YELLOW";
+            } else {
+                player.sendMessage("You have to choose one of the floors with colour");
+                return;
+            }
+
+            csplayer = CounterStrike.i.getCSPlayer(player, true, materialColour);
+
+            String corAdversaria;
+
+            if (!csplayer.returStatus()) {
+                player.sendMessage("You have to choose another colour/team");
+                csplayer.clear();
+                return;
+            }
+
+            if (csplayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
+                corAdversaria = CounterStrike.i.getTerroristsTeam().getColour();
+            } else {
+                corAdversaria = CounterStrike.i.getCounterTerroristsTeam().getColour();
+            }
+
+            csplayer.setColourOpponent(corAdversaria);
+            return;
+        }
+
+        if (Bomb.bomb == null) {
+            return;
+        }
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+        if (csplayer == null || csplayer.getTeam() != TeamEnum.COUNTER_TERRORISTS) {
+            return;
+        }
+
+        Bomb bomb = Bomb.bomb;
+
+        bomb.defuse(csplayer);
+    }
+
 }

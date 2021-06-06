@@ -13,10 +13,18 @@ public class WeaponFireListener implements Listener {
 	
 	@EventHandler
 	public void weaponFireEvent(WeaponFireEvent event) {
+
+		System.out.println("######################   ###############   fire event??");
+
 		Player player = event.getPlayer();
 		ItemStack gunItem = player.getInventory().getItemInMainHand();
+
 		if(gunItem.getAmount() - 1 <= 0) {
-			CSPlayer csplayer = CounterStrike.i.getCSPlayer(event.getPlayer());
+			CSPlayer csplayer = CounterStrike.i.getCSPlayer(event.getPlayer(),false, null);
+
+			if (csplayer == null) {
+				return;
+			}
 			csplayer.reload(event.getPlayer().getInventory().getItemInMainHand());
 			return;
 		}

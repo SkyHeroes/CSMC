@@ -22,45 +22,15 @@ public class Reloader extends BukkitRunnable {
 		this.ticksTilExperience = (int) Math.round((duration * 20) / 7);
 		this.item = player.getInventory().getItemInMainHand();
 		this.runTaskTimer(CounterStrike.i, ticksTilExperience, ticksTilExperience);
-		
-		// Disabled the action bar text because it overlaps with the timers
-		
-/*		new BukkitRunnable() {
-			int count = 0;
-			public void run() {
-				count++;
-				
-				switch(count) {
-				case 1:
-					PacketUtils.sendActionBar(player, ChatColor.GREEN + "Reloading.", 1);
-					break;
-				case 2:
-					PacketUtils.sendActionBar(player, ChatColor.GREEN + "Reloading..", 1);
-					break;
-				case 3:
-					PacketUtils.sendActionBar(player, ChatColor.GREEN + "Reloading...", 1);
-					break;
-				case 4:
-					PacketUtils.sendActionBar(player, ChatColor.GREEN + "Reloading....", 1);
-					break;
-				case 5:
-					PacketUtils.sendActionBar(player, ChatColor.GREEN + "Reloading.....", 1);
-					count = 0;
-					break;
-				}
-				if(player.getLevel() >= 1) {
-					PacketUtils.sendActionBar(player, ChatColor.GREEN + "Reloaded!", 1);
-					this.cancel();
-				}
-			}
-		}.runTaskTimer(CounterStrike.i, 0L, 5L);
-		*/
 	}
 	
 	public void run() {
 		player.giveExp(1);
 		if(player.getLevel() >= 1) {
 			item.setAmount(gun.getAmmunition());
+
+			System.out.println(gun.getAmmunition() + " reload gun " + gun.getMagazineCapacity());
+
 			player.setExp(0);
 			player.setLevel(0);
 			this.cancel();

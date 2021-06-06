@@ -1,5 +1,7 @@
 package dev.danablend.counterstrike.listeners;
 
+import dev.danablend.counterstrike.CounterStrike;
+import dev.danablend.counterstrike.database.Mundos;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemDamageEvent;
@@ -10,11 +12,21 @@ public class PlayerItemDamageListener implements Listener {
 	
 	@EventHandler
 	public void playerItemDamageEvent(PlayerItemDamageEvent event) {
+
+		String mundo = event.getPlayer().getWorld().getName();
+
+		if (CounterStrike.i.HashWorlds != null) {
+			Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+
+			if (md != null && !md.modoCs) {
+				return;
+			}
+		}
+
 		event.setCancelled(true);
 		Damageable meta = (Damageable) event.getItem().getItemMeta();
-		meta.setDamage(meta.getDamage() - 1);
+		meta.setDamage(meta.getDamage() - 2);
 		event.getItem().setItemMeta((ItemMeta) meta);
-//		event.getPlayer().getInventory().getItemInHand().setDurability((short) (event.getPlayer().getInventory().getItemInHand().getDurability() - 1));
 	}
 	
 }

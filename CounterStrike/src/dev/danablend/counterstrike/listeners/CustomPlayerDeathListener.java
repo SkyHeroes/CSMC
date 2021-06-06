@@ -19,7 +19,12 @@ public class CustomPlayerDeathListener implements Listener {
 	public void playerDeathEvent(CustomPlayerDeathEvent event) {
 		Player victim = event.getVictim();
 		Player killer = event.getKiller();
-		CSPlayer csKiller = CounterStrike.i.getCSPlayer(killer);
+		CSPlayer csKiller = CounterStrike.i.getCSPlayer(killer,false, null);
+
+		if (csKiller == null) {
+			return;
+		}
+
 		csKiller.setMoney(csKiller.getMoney() + 300);
 		killer.sendMessage(ChatColor.GREEN + "+ $300");
 		victim.setHealth(victim.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());

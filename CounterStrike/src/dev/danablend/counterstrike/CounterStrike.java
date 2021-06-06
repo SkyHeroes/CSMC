@@ -1,21 +1,24 @@
 package dev.danablend.counterstrike;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
+import dev.danablend.counterstrike.database.Mundos;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.GameMode;
-import org.bukkit.GameRule;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import dev.danablend.counterstrike.commands.CounterStrikeCommand;
+import dev.danablend.counterstrike.csplayer.CSPlayer;
+import dev.danablend.counterstrike.csplayer.Team;
+import dev.danablend.counterstrike.csplayer.TeamEnum;
+import dev.danablend.counterstrike.database.SQLiteConnection;
+import dev.danablend.counterstrike.enums.Weapon;
+import dev.danablend.counterstrike.listeners.*;
+import dev.danablend.counterstrike.runnables.*;
+import dev.danablend.counterstrike.shop.Shop;
+import dev.danablend.counterstrike.shop.ShopListener;
+import dev.danablend.counterstrike.tests.TestCommand;
+import dev.danablend.counterstrike.utils.CSUtil;
+import dev.danablend.counterstrike.utils.PacketUtils;
+import dev.danablend.counterstrike.utils.Utils;
+
+import me.zombie_striker.qg.guns.Gun;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
@@ -25,457 +28,733 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
-import dev.danablend.counterstrike.commands.CounterStrikeCommand;
-import dev.danablend.counterstrike.csplayer.CSPlayer;
-import dev.danablend.counterstrike.csplayer.Team;
-import dev.danablend.counterstrike.csplayer.TeamEnum;
-import dev.danablend.counterstrike.enums.Weapon;
-import dev.danablend.counterstrike.listeners.AsyncPlayerPreLoginListener;
-import dev.danablend.counterstrike.listeners.BlockBreakListener;
-import dev.danablend.counterstrike.listeners.BlockIgniteListener;
-import dev.danablend.counterstrike.listeners.BlockPlaceListener;
-import dev.danablend.counterstrike.listeners.BulletHitListener;
-import dev.danablend.counterstrike.listeners.CustomPlayerDeathListener;
-import dev.danablend.counterstrike.listeners.EntityDamageByEntityListener;
-import dev.danablend.counterstrike.listeners.EntityPickupItemListener;
-import dev.danablend.counterstrike.listeners.FoodLevelChangeListener;
-import dev.danablend.counterstrike.listeners.InventoryClickListener;
-import dev.danablend.counterstrike.listeners.PlayerDeathListener;
-import dev.danablend.counterstrike.listeners.PlayerDropItemListener;
-import dev.danablend.counterstrike.listeners.PlayerInteractListener;
-import dev.danablend.counterstrike.listeners.PlayerItemDamageListener;
-import dev.danablend.counterstrike.listeners.PlayerJoinListener;
-import dev.danablend.counterstrike.listeners.PlayerQuitListener;
-import dev.danablend.counterstrike.listeners.PlayerRespawnListener;
-import dev.danablend.counterstrike.listeners.WeaponFireListener;
-import dev.danablend.counterstrike.recoil.RecoilUtil;
-import dev.danablend.counterstrike.recoil.RecoilUtil_1_13_R2;
-import dev.danablend.counterstrike.recoil.RecoilUtil_1_14_R1;
-import dev.danablend.counterstrike.recoil.RecoilUtil_1_15_R1;
-import dev.danablend.counterstrike.recoil.RecoilUtil_1_16_R3;
-import dev.danablend.counterstrike.recoil.RecoilUtil_Legacy;
-import dev.danablend.counterstrike.runnables.Bomb;
-import dev.danablend.counterstrike.runnables.GameCounter;
-import dev.danablend.counterstrike.runnables.GameTimer;
-import dev.danablend.counterstrike.runnables.PlayerUpdater;
-import dev.danablend.counterstrike.runnables.PlayerUpdaterSlow;
-import dev.danablend.counterstrike.runnables.ShopPhaseManager;
-import dev.danablend.counterstrike.shop.Shop;
-import dev.danablend.counterstrike.shop.ShopListener;
-import dev.danablend.counterstrike.tests.TestCommand;
-import dev.danablend.counterstrike.utils.CSUtil;
-import dev.danablend.counterstrike.utils.PacketUtils;
-import dev.danablend.counterstrike.utils.Utils;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.*;
+
+import static dev.danablend.counterstrike.Config.MAX_ROUNDS;
+import static dev.danablend.counterstrike.Config.ROUNDS_TO_WIN;
+
 
 public class CounterStrike extends JavaPlugin {
 
-	public GameState gameState = GameState.LOBBY;
+    public GameState gameState = GameState.LOBBY;
 
-	Collection<CSPlayer> csPlayers = new ArrayList<CSPlayer>();
-	Collection<CSPlayer> counterTerrorists = new ArrayList<CSPlayer>();
-	Collection<CSPlayer> terrorists = new ArrayList<CSPlayer>();
-	Set<TestCommand> testCommands = new HashSet<TestCommand>();
-	
-	PluginManager pm = Bukkit.getPluginManager();
-	
-	private RecoilUtil recoilUtil;
-	
-	ItemStack shopItem;
-	
-	GameTimer timer;
+    Collection<CSPlayer> csPlayers = new ArrayList<>();
+    Collection<CSPlayer> counterTerrorists = new ArrayList<CSPlayer>();
+    Collection<CSPlayer> terrorists = new ArrayList<CSPlayer>();
+    Collection<CSPlayer> tempPlayerList = new ArrayList<CSPlayer>();
+    Set<TestCommand> testCommands = new HashSet<TestCommand>();
 
-	private Team counterTerroristsTeam;
-	private Team terroristsTeam;
+    PluginManager pm = Bukkit.getPluginManager();
 
-	public static CounterStrike i;
+    ItemStack shopItem;
+    private GameTimer timer;
+    public ShopPhaseManager Shop;
+    public GameCounter gameCount;
 
-	public void onEnable() {
-		i = this;
-		setup();
-	}
+    private Team counterTerroristsTeam;
+    private Team terroristsTeam;
+    public static CounterStrike i;
 
-	public void onDisable() {
-		
-	}
+    private SQLiteConnection sqlite = null;
+    public Hashtable HashWorlds = null;
+    public Hashtable ResourseHash = new Hashtable();
+    private dev.danablend.counterstrike.runnables.PlayerUpdater pUpdate;
+    public String Map = "";
+    private String SpawnTerrorists;
+    private String SpawnCounterTerrorists;
+    private String Lobby;
 
-	public static final CounterStrike getInstance() {
-		return i;
-	}
-	public boolean usingQualityArmory() {
-		return Bukkit.getPluginManager().isPluginEnabled("QualityArmory");
-	}
-	public void setup() {
-		Utils.debug("Setting up...");
-		this.terroristsTeam = new Team(TeamEnum.TERRORISTS, terrorists);
-		this.counterTerroristsTeam = new Team(TeamEnum.COUNTER_TERRORISTS, counterTerrorists);
-		saveDefaultConfig();
-		new GameCounter(this).runTaskTimer(this, 200L, 200L);
-		new PlayerUpdater(this).runTaskTimer(this, 0L, 5L);
-		new PlayerUpdaterSlow().runTaskTimer(this, 0L, 100L);
-		pm.registerEvents(new AsyncPlayerPreLoginListener(this), this);
-		pm.registerEvents(new BlockPlaceListener(), this);
-		pm.registerEvents(new BlockBreakListener(), this);
-		pm.registerEvents(new FoodLevelChangeListener(), this);
-		pm.registerEvents(new PlayerInteractListener(), this);
-		pm.registerEvents(new PlayerItemDamageListener(), this);
-		pm.registerEvents(new PlayerDropItemListener(), this);
-		pm.registerEvents(new PlayerJoinListener(), this);
-		pm.registerEvents(new PlayerQuitListener(), this);
-		pm.registerEvents(new PlayerDeathListener(), this);
-		pm.registerEvents(new CustomPlayerDeathListener(), this);
-		pm.registerEvents(new PlayerRespawnListener(), this);
-		pm.registerEvents(new EntityDamageByEntityListener(), this);
-		pm.registerEvents(new WeaponFireListener(), this);
-		pm.registerEvents(new BulletHitListener(), this);
-		pm.registerEvents(new ShopListener(), this);
-		pm.registerEvents(new BlockIgniteListener(), this);
-		pm.registerEvents(new EntityPickupItemListener(), this);
-		pm.registerEvents(new InventoryClickListener(), this);
 
-		getCommand("csmc").setExecutor(new CounterStrikeCommand(this));
-		
-		for(World w : Bukkit.getWorlds()) {
-			w.setGameRule(GameRule.NATURAL_REGENERATION, false);
-			w.setGameRule(GameRule.KEEP_INVENTORY, false);
-		}
-		Utils.debug("Creating shop item...");
-		shopItem = new ItemStack(Material.CHEST);
-		ItemMeta meta = shopItem.getItemMeta();
-		meta.setDisplayName(ChatColor.YELLOW + "(Right click to open shop)");
-		shopItem.setItemMeta(meta);
-		// Register test commands
-//		getCommand("test").setExecutor(new TestCommandExecutor());
-		//new HelloTest();
-		
-		Config c = new Config();
-		c.loadWeapons();
-		
-		new Shop();
-		
-		if(!usingQualityArmory()) {
-			try {
-				String version = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
-				switch(version) {
-				case "v1_16_R3":
-					recoilUtil = new RecoilUtil_1_16_R3();
-					break;
-				case "v1_15_R1":
-					recoilUtil = new RecoilUtil_1_15_R1();
-					break;
-				case "v_14_R1":
-					recoilUtil = new RecoilUtil_1_14_R1();
-					break;
-				case "v_13_R2":
-					recoilUtil = new RecoilUtil_1_13_R2();
-					break;
-				default:
-					recoilUtil = new RecoilUtil_Legacy();
-					break;
-				}
-			} catch (ArrayIndexOutOfBoundsException ex) {
-				recoilUtil = new RecoilUtil_Legacy();
-			}
-			if(recoilUtil instanceof RecoilUtil_Legacy) {
-				Bukkit.getLogger().warning("This minecraft version is not fully supported by CS:MC. Switching to legacy (worse) recoil system.");
-				Bukkit.getLogger().warning("You can install Quality Armory or newer version of CS:MC to fix this error.");
-			}
-		}
-		Utils.debug("Finished setting up...");
-	}
+    public void onEnable() {
+        i = this;
+        setup();
+    }
 
-	public RecoilUtil getRecoilUtil() {
-		return this.recoilUtil;
-	}
-	
+    public void onDisable() {
+    }
 
-	public ItemStack getKnife() {
-		Utils.debug("Getting knife...");
-		ItemStack knife = new ItemStack(Material.IRON_AXE);
-		ItemMeta meta = knife.getItemMeta();
-		meta.setDisplayName(ChatColor.GRAY + "Standard Knife");
-		knife.setItemMeta(meta);
-		return knife;
-	}
 
-	public ItemStack getShopItem() {
-		return shopItem;
-	}
+    public boolean usingQualityArmory() {
+        return Bukkit.getPluginManager().isPluginEnabled("QualityArmory");
+    }
 
-	public Set<TestCommand> getTestCommands() {
-		Utils.debug("Getting test commands...");
-		return testCommands;
-	}
+    public void setup() {
 
-	public void startGame() {
-		Utils.debug("Starting game initiated...");
-		gameState = GameState.STARTED;
-		this.getTerroristSpawn().getWorld().getEntities().stream().filter(Item.class::isInstance).forEach(Entity::remove); // remove tnt from ground
-		for (CSPlayer csPlayer : counterTerrorists) {
-			Player p = csPlayer.getPlayer();
-			p.teleport(getCounterTerroristSpawn());
-			if(p.getInventory().getItem(1) == null) {
-				p.getInventory().setItem(1, Weapon.getByName("ct-pistol-default").getItem());
-			}
-			giveEquipment(csPlayer);
-		}
-		for (CSPlayer csPlayer : terrorists) {
-			Player p = csPlayer.getPlayer();
-			p.teleport(getTerroristSpawn());
-			if(p.getInventory().getItem(1) == null) {
-				p.getInventory().setItem(1, Weapon.getByName("t-pistol-default").getItem());
-			}
-			giveEquipment(csPlayer);
-		}
-		for (Player player : Bukkit.getOnlinePlayers()) {
-			player.setGameMode(GameMode.SURVIVAL);
-			player.setFlying(false);
-			player.setAllowFlight(false);
-			player.getInventory().setItem(2, getKnife());
-			player.getInventory().setItem(8, getShopItem());
-			player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40);
-			player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
-			if(!this.usingQualityArmory()) {
-				for(ItemStack it : player.getInventory().getContents()) {
-					Weapon g = Weapon.getByItem(it);
-					if(g != null) {
-						it.setAmount(g.getMagazineCapacity());
-					}
-				}
-			}else {
-				CSPlayer cp = this.getCSPlayer(player);
-				Weapon rifle = cp.getRifle();
-				Weapon pistol = cp.getPistol();
-				if(rifle != null) {
-					ItemStack ammo = me.zombie_striker.qg.api.QualityArmory.getGunByName(rifle.getName()).getAmmoType().getItemStack().clone();
-					ammo.setAmount((rifle.getMagazines()-1)*rifle.getMagazineCapacity());
-					player.getInventory().setItem(6, ammo);
-				}
-				if(pistol != null) {
-					ItemStack ammo = me.zombie_striker.qg.api.QualityArmory.getGunByName(pistol.getName()).getAmmoType().getItemStack().clone();
-					ammo.setAmount((pistol.getMagazines()-1)*pistol.getMagazineCapacity());
-					player.getInventory().setItem(7, ammo);
-				}
-//				Iterator<me.zombie_striker.qg.ammo.Ammo> it = me.zombie_striker.qg.api.QualityArmory.getAmmo();
-//				while(it.hasNext()) {
-//					player.getInventory().remove(it.next().getItemStack());
-//				}
-				
-			}
-			player.getInventory().remove(Material.TNT);
-		}
-		if (!terrorists.isEmpty()) {
-			CSPlayer playerWithBomb = (CSPlayer) terrorists.toArray()[new Random().nextInt(terrorists.toArray().length)];
-			playerWithBomb.getPlayer().getInventory().setItem(4, CSUtil.getBombItem());
-		}
-		pm.registerEvents(new ShopPhaseManager(), this);
-		Utils.debug("Game successfully started...");
-	}
+        Utils.debug("Setting up...");
 
-	public void restartGame(Team winnerTeam) {
-		Utils.debug("Restarting game initiated...");
-		gameState = GameState.LOBBY;
-		Bomb.cleanUp();
-		Team loserTeam = (winnerTeam.getTeam().equals(TeamEnum.TERRORISTS)) ? getCounterTerroristsTeam() : getTerroristsTeam();
-		for (CSPlayer csplayer : loserTeam.getCsPlayers()) {
-			csplayer.getPlayer().setGameMode(GameMode.SPECTATOR);
-			csplayer.setMoney(csplayer.getMoney() + Config.MONEY_ON_LOSS);
-			csplayer.getPlayer().sendMessage(ChatColor.GREEN + "+ $" + Config.MONEY_ON_LOSS);
-		}
-		for (CSPlayer csplayer : winnerTeam.getCsPlayers()) {
-			csplayer.getPlayer().setGameMode(GameMode.SPECTATOR);
-			csplayer.setMoney(csplayer.getMoney() + Config.MONEY_ON_VICTORY);
-			csplayer.getPlayer().sendMessage(ChatColor.GREEN + "+ $" + Config.MONEY_ON_VICTORY);
-		}
-//		for (Player player : Bukkit.getOnlinePlayers()) {
-//			player.getInventory().clear();
-//		}
-		winnerTeam.addVictory();
-		loserTeam.addLoss();
-		String winnerText = (winnerTeam.getTeam().equals(TeamEnum.TERRORISTS)) ? ChatColor.RED + "Terrorists win." : ChatColor.BLUE + "Counter Terrorists win.";
+        if (!CounterStrike.i.usingQualityArmory()) {
+            System.out.println("#####  QualityArmory not loaded... Disabling CSMC");
+            return;
+        }
 
-		if(winnerTeam.getWins() + winnerTeam.getLosses() == 16) { //TODO swap teams
-			
-		}
-		if(winnerTeam.getWins() == 16) {
-			PacketUtils.sendTitleAndSubtitleToAll(winnerText, ChatColor.YELLOW + "They also won the whole game! Restarting.", 0, 5, 1);
-			for(Player p : Bukkit.getOnlinePlayers()) {
-				getCSPlayer(p).clear();
-				new CSPlayer(this, p);
-				p.getInventory().clear();
-			}
-			winnerTeam.setLosses(0);
-			winnerTeam.setWins(0);
-			loserTeam.setLosses(0);
-			loserTeam.setWins(0);
-		}else {
-			PacketUtils.sendTitleAndSubtitleToAll(winnerText, ChatColor.YELLOW + "The next round will start shortly.", 0, 3, 1);
-		}
-		PacketUtils.sendActionBarToAll(winnerText, 2);
-		for (Player player : Bukkit.getOnlinePlayers()) {
-			player.teleport(getLobbyLocation());
-		}
-		new GameCounter(this).runTaskTimer(this, 0L, 200L);
-		Utils.debug("Game successfully restarted...");
-	}
+        LoadCOnfigs();
 
-	public GameTimer getGameTimer() {
-		Utils.debug("Getting game timer...");
-		return timer;
-	}
+        me.Tontito.GeneralP.Main generalP;
+        generalP = ((me.Tontito.GeneralP.Main) getServer().getPluginManager().getPlugin("GeneralP"));
 
-	public void setGameTimer(GameTimer gametimer) {
-		Utils.debug("Setting game timer...");
-		this.timer = gametimer;
-	}
+        if (generalP != null && generalP.isEnabled()) {
+            sqlite = new SQLiteConnection(generalP.getDataFolder(), "GeneralP.db");
 
-	public CSPlayer getCSPlayer(Player player) {
-		Utils.debug("Getting CSPlayer...");
-		for (CSPlayer csPlayer : csPlayers) {
-			if (csPlayer.getPlayer().getUniqueId().equals(player.getUniqueId())) {
-				Utils.debug("Returning existing CSPlayer...");
-				return csPlayer;
-			}
-		}
-		Utils.debug("Returning a new CSPlayer...");
-		return new CSPlayer(this, player);
-	}
+            Hashtable tmpHashWorlds = generalP.getTrackingMethods().GetMundos();
+            Hashtable HashWorlds = new Hashtable();
 
-	public Collection<CSPlayer> getCSPlayers() {
-		Utils.debug("Getting CSPlayers...");
-		return csPlayers;
-	}
+            Enumeration enu = tmpHashWorlds.elements();
 
-	public Collection<CSPlayer> getCounterTerrorists() {
-		Utils.debug("Getting Counter Terrorists...");
-		return counterTerrorists;
-	}
+            while (enu.hasMoreElements()) {
+                me.Tontito.GeneralP.Mundos md = (me.Tontito.GeneralP.Mundos)HashWorlds.get(enu.nextElement());
+                Mundos newMD = new Mundos(md.id,md.nome,md.modoCs);
 
-	public Collection<CSPlayer> getTerrorists() {
-		Utils.debug("Getting Terrorists...");
-		return terrorists;
-	}
+                HashWorlds.put(enu.nextElement(),newMD);
+            }
+            System.out.println("Loaded mundos from generalp! ");
 
-	public Team getCounterTerroristsTeam() {
-		Utils.debug("Getting CT Team...");
-		return counterTerroristsTeam;
-	}
+        } else {
+            sqlite = new SQLiteConnection(this.getDataFolder(), "CSMC.db");
 
-	public Team getTerroristsTeam() {
-		Utils.debug("Getting T Team...");
-		return terroristsTeam;
-	}
+            try (Connection conn = sqlite.connect();
+                 Statement stmt = conn.createStatement();
+                 ResultSet rs = stmt.executeQuery("select id, nome, ifnull(modoCs,false) modoCs from mundos;")) {
+                HashWorlds = new Hashtable();
 
-	public GameState getGameState() {
-		Utils.debug("Getting GameState...");
-		return gameState;
-	}
+                while (rs.next()) {
+                    String mundo = rs.getString("nome");
+                    Mundos md = new dev.danablend.counterstrike.database.Mundos(rs.getInt("id"), mundo, Boolean.parseBoolean(rs.getString("modoCs")));
+                    HashWorlds.put(mundo, md);
+                }
+                System.out.println("Loaded mundos! ");
+            } catch (SQLException e) {
+                System.out.println("Exception loading mundos " + e.getMessage());
+            }
+        }
 
-	public Location getLobbyLocation() {
-		Utils.debug("Getting Lobby Location...");
-		String locRaw = getConfig().getString("lobby-location");
-		String[] locList = locRaw.split(",");
-		World world = Bukkit.getWorld(locList[0]);
-		double x = Double.parseDouble(locList[1]);
-		double y = Double.parseDouble(locList[2]);
-		double z = Double.parseDouble(locList[3]);
-		float yaw = Float.parseFloat(locList[4]);
-		float pitch = Float.parseFloat(locList[5]);
-		return new Location(world, x, y, z, yaw, pitch);
-	}
+        this.terroristsTeam = new Team(TeamEnum.TERRORISTS, terrorists);
+        this.counterTerroristsTeam = new Team(TeamEnum.COUNTER_TERRORISTS, counterTerrorists);
+        saveDefaultConfig();
+        gameCount = new GameCounter(this);
+        gameCount.runTaskTimer(this, 40L, 200L);
+        pUpdate = new PlayerUpdater(this);
+        pUpdate.runTaskTimer(this, 0L, 20L);
+        pm.registerEvents(new BlockPlaceListener(), this);
+        pm.registerEvents(new BlockBreakListener(), this);
+        pm.registerEvents(new FoodLevelChangeListener(), this);
+        pm.registerEvents(new PlayerInteractListener(), this);
+        pm.registerEvents(new PlayerItemDamageListener(), this);
+        pm.registerEvents(new PlayerDropItemListener(), this);
+        pm.registerEvents(new PlayerJoinListener(), this);
+        pm.registerEvents(new PlayerDeathListener(), this);
+        pm.registerEvents(new CustomPlayerDeathListener(), this);
+        pm.registerEvents(new PlayerRespawnListener(), this);
+        pm.registerEvents(new EntityDamageByEntityListener(), this);
+        pm.registerEvents(new WeaponFireListener(), this);
+        pm.registerEvents(new BulletHitListener(), this);
+        pm.registerEvents(new ShopListener(this), this);
+        pm.registerEvents(new BlockIgniteListener(), this);
+        pm.registerEvents(new EntityPickupItemListener(), this);
+        pm.registerEvents(new InventoryClickListener(), this);
 
-	public Location getTerroristSpawn() {
-		Utils.debug("Getting Terrorist spawn...");
-		String locRaw = getConfig().getString("spawn-locations.terrorist");
-		String[] locList = locRaw.split(",");
-		World world = Bukkit.getWorld(locList[0]);
-		double x = Double.parseDouble(locList[1]);
-		double y = Double.parseDouble(locList[2]);
-		double z = Double.parseDouble(locList[3]);
-		float yaw = Float.parseFloat(locList[4]);
-		float pitch = Float.parseFloat(locList[5]);
-		return new Location(world, x, y, z, yaw, pitch);
-	}
+        getCommand("csmc").setExecutor(new CounterStrikeCommand(this));
 
-	public Location getCounterTerroristSpawn() {
-		Utils.debug("Getting Counter Terrorist spawn...");
-		String locRaw = getConfig().getString("spawn-locations.counterterrorist");
-		String[] locList = locRaw.split(",");
-		World world = Bukkit.getWorld(locList[0]);
-		double x = Double.parseDouble(locList[1]);
-		double y = Double.parseDouble(locList[2]);
-		double z = Double.parseDouble(locList[3]);
-		float yaw = Float.parseFloat(locList[4]);
-		float pitch = Float.parseFloat(locList[5]);
-		return new Location(world, x, y, z, yaw, pitch);
-	}
+        for (World w : Bukkit.getWorlds()) {
 
-	public void removePlayerFromFiring(Player player, int ticksDelay, HashMap<UUID, Long> firing) {
-		Utils.debug("Started removing player from firing...");
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				firing.remove(player.getUniqueId());
-				Utils.debug("Removed player from firing!");
-			}
-		}.runTaskLater(CounterStrike.getInstance(), ticksDelay);
-	}
+            if (HashWorlds != null) {
+                Object obj = HashWorlds.get(w.getName());
 
-	public void giveEquipment(CSPlayer csPlayer) {
-		Utils.debug("Giving equipment to csplayer...");
-		if (csPlayer.getTeam().equals(TeamEnum.TERRORISTS)) {
-			ItemStack helmet = new ItemStack(Material.LEATHER_HELMET);
-			LeatherArmorMeta helmetMeta = (LeatherArmorMeta) helmet.getItemMeta();
-			helmetMeta.setColor(Color.fromRGB(255, 0, 0));
-			helmet.setItemMeta(helmetMeta);
+                //if hasn't generalP loaded
+                if (obj != null) {
+                    Mundos md = (Mundos) obj;
 
-			ItemStack chestplate = new ItemStack(Material.LEATHER_CHESTPLATE);
-			LeatherArmorMeta chestplateMeta = (LeatherArmorMeta) chestplate.getItemMeta();
-			chestplateMeta.setColor(Color.fromRGB(255, 0, 0));
-			chestplate.setItemMeta(chestplateMeta);
+                    if (!md.modoCs) { //se explicitamente nao tem modcs salta
+                        w.setGameRule(GameRule.NATURAL_REGENERATION, true);
+                        continue;
+                    }
+                }
+            }
 
-			ItemStack leggings = new ItemStack(Material.LEATHER_LEGGINGS);
-			LeatherArmorMeta leggingsMeta = (LeatherArmorMeta) leggings.getItemMeta();
-			leggingsMeta.setColor(Color.fromRGB(255, 0, 0));
-			leggings.setItemMeta(leggingsMeta);
+            w.setGameRule(GameRule.NATURAL_REGENERATION, false);
+            w.setGameRule(GameRule.KEEP_INVENTORY, false);
+        }
 
-			ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
-			LeatherArmorMeta bootsMeta = (LeatherArmorMeta) boots.getItemMeta();
-			bootsMeta.setColor(Color.fromRGB(255, 0, 0));
-			boots.setItemMeta(bootsMeta);
+        Utils.debug("Creating shop item...");
+        shopItem = new ItemStack(Material.CHEST);
+        ItemMeta meta = shopItem.getItemMeta();
+        meta.setDisplayName(ChatColor.YELLOW + "(Right click to open shop)");
+        shopItem.setItemMeta(meta);
 
-			Player player = csPlayer.getPlayer();
-			player.getInventory().setHelmet(helmet);
-			player.getInventory().setChestplate(chestplate);
-			player.getInventory().setLeggings(leggings);
-			player.getInventory().setBoots(boots);
-		} else if (csPlayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
-			ItemStack helmet = new ItemStack(Material.LEATHER_HELMET);
-			LeatherArmorMeta helmetMeta = (LeatherArmorMeta) helmet.getItemMeta();
-			helmetMeta.setColor(Color.fromRGB(0, 0, 255));
-			helmet.setItemMeta(helmetMeta);
+        Config c = new Config();
+        c.loadWeapons();
 
-			ItemStack chestplate = new ItemStack(Material.LEATHER_CHESTPLATE);
-			LeatherArmorMeta chestplateMeta = (LeatherArmorMeta) chestplate.getItemMeta();
-			chestplateMeta.setColor(Color.fromRGB(0, 0, 255));
-			chestplate.setItemMeta(chestplateMeta);
+        new Shop();
 
-			ItemStack leggings = new ItemStack(Material.LEATHER_LEGGINGS);
-			LeatherArmorMeta leggingsMeta = (LeatherArmorMeta) leggings.getItemMeta();
-			leggingsMeta.setColor(Color.fromRGB(0, 0, 255));
-			leggings.setItemMeta(leggingsMeta);
+        Utils.debug("Finished setting up...");
+    }
 
-			ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
-			LeatherArmorMeta bootsMeta = (LeatherArmorMeta) boots.getItemMeta();
-			bootsMeta.setColor(Color.fromRGB(0, 0, 255));
-			boots.setItemMeta(bootsMeta);
+    public void SaveDBCOnfig(String Map, String Conf, String location) {
+        String result;
 
-			Player player = csPlayer.getPlayer();
-			player.getInventory().setHelmet(helmet);
-			player.getInventory().setChestplate(chestplate);
-			player.getInventory().setLeggings(leggings);
-			player.getInventory().setBoots(boots);
-		}
-	}
+        //if has generalP loaded
+        if (sqlite != null) {
+            result = sqlite.select("select id from CSMaps where descr = '" + Map + "'");
+
+            if (result == null || result.equals("")) {
+                sqlite.checkLock("update mundos set modocs = 'true' where nome = '" + location.split(",")[0] + "'");
+
+                Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(location.split(",")[0]);
+
+                if (md != null && !md.modoCs) {
+                    md.modoCs = true;
+                }
+
+                sqlite.checkLock("insert into CSMaps (descr) values ('" + Map + "')");
+                result = sqlite.select("select id from CSMaps where descr = '" + Map + "'");
+            }
+
+            if (Conf.equals("Lobby")) {
+                sqlite.checkLock("update csMaps set SpawnLobby = '" + location + "' where id = " + result);
+
+            } else if (Conf.equals("Terrorist")) {
+                sqlite.checkLock("update csMaps set SpawnTerrorists = '" + location + "' where id = " + result);
+
+            } else if (Conf.equals("Counter")) {
+                sqlite.checkLock("update csMaps set SpawnCounter = '" + location + "' where id = " + result);
+            }
+        }
+    }
+
+    public void LoadDBRandomConfigs() {
+
+        if (sqlite != null) {
+
+            String result = sqlite.select("select max(id) from CSMaps");
+
+            Long Rand;
+
+            while (true) {
+                Rand = Math.round(1 + Math.random() * Integer.parseInt(result));
+
+                String result1 = sqlite.select("select descr from CSMaps where id = " + Rand);
+
+                if (result1 != null && !result1.equals("")) {
+                    Map = result1;
+                    broadcastMessage(ChatColor.RED + "Map " + result1 + " was randomly chosen");
+                    break;
+                }
+
+                try {
+                    Thread.sleep(1000);
+                } catch (Exception e) {
+                }
+            }
+
+            Lobby = sqlite.select("select SpawnLobby from CSMaps where id = " + Rand);
+            SpawnTerrorists = sqlite.select("select SpawnTerrorists from CSMaps where id = " + Rand);
+            SpawnCounterTerrorists = sqlite.select("select SpawnCounter from CSMaps where id = " + Rand);
+
+            return;
+        }
+
+        Lobby = getConfig().getString("lobby-location");
+        SpawnTerrorists = getConfig().getString("spawn-locations.terrorist");
+        SpawnCounterTerrorists = getConfig().getString("spawn-locations.counterterrorist");
+    }
+
+    public void LoadCOnfigs() {
+        Lobby = getConfig().getString("lobby-location");
+        SpawnTerrorists = getConfig().getString("spawn-locations.terrorist");
+        SpawnCounterTerrorists = getConfig().getString("spawn-locations.counterterrorist");
+    }
+
+    public ItemStack getKnife() {
+        Utils.debug("Getting knife...");
+        ItemStack knife = new ItemStack(Material.IRON_AXE);
+        ItemMeta meta = knife.getItemMeta();
+        meta.setDisplayName(ChatColor.GRAY + "Standard Knife");
+        knife.setItemMeta(meta);
+        return knife;
+    }
+
+    public ItemStack getShopItem() {
+        return shopItem;
+    }
+
+    public Set<TestCommand> getTestCommands() {
+        Utils.debug("Getting test commands...");
+        return testCommands;
+    }
+
+
+    public void startGame() {
+        Utils.debug("Starting game initiated...");
+        System.out.println(" starting game ");
+
+        gameState = GameState.STARTING;
+
+        try {
+            this.getTerroristSpawn(false).getWorld().getEntities().stream().filter(Item.class::isInstance).forEach(Entity::remove); // remove tnt from ground
+        } catch (Exception e) {
+        }
+
+        for (CSPlayer csPlayer : terrorists) {
+            Player p = csPlayer.getPlayer();
+
+            csPlayer.setColourOpponent(counterTerroristsTeam.getColour());
+
+            //Coloca na base
+            p.teleport(getTerroristSpawn(true));
+            if (p.getInventory().getItem(1) == null) {
+                p.getInventory().setItem(1, Weapon.getByName("t-pistol-default").getItem());
+            }
+            giveEquipment(csPlayer);
+            csPlayer.settempMVP(0);
+        }
+
+        for (CSPlayer csPlayer : counterTerrorists) {
+            Player p = csPlayer.getPlayer();
+
+            csPlayer.setColourOpponent(terroristsTeam.getColour());
+
+            //Coloca na base
+            p.teleport(getCounterTerroristSpawn(true));
+            if (p.getInventory().getItem(1) == null) {
+                p.getInventory().setItem(1, Weapon.getByName("ct-pistol-default").getItem());
+            }
+            giveEquipment(csPlayer);
+            csPlayer.settempMVP(0);
+        }
+
+        for (CSPlayer csplayer : getCSPlayers()) {
+            Player player = csplayer.getPlayer();
+
+            //#### trying to hide name???
+            player.setCustomNameVisible(false);
+
+            player.setGameMode(GameMode.SURVIVAL);
+            player.setFlying(false);
+            player.setAllowFlight(false);
+            player.getInventory().setItem(2, getKnife());
+            player.getInventory().setItem(8, getShopItem());
+
+            player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40);
+            player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+
+            CSPlayer cp = this.getCSPlayer(player, false, null);
+            Weapon rifle = cp.getRifle();
+            Weapon pistol = cp.getPistol();
+
+            if (rifle != null) {
+                me.zombie_striker.qg.guns.Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(rifle.getName());
+                // gun.reload(player);
+                Gun.updateAmmo(gun, player.getInventory().getItem(0).getItemMeta(), rifle.getMagazineCapacity());
+
+                ItemStack ammo = gun.getAmmoType().getItemStack().clone();
+                ammo.setAmount((rifle.getMagazines() - 1) * rifle.getMagazineCapacity());
+                player.getInventory().setItem(6, ammo);
+            }
+
+            if (pistol != null) {
+                me.zombie_striker.qg.guns.Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(pistol.getName());
+                //gun.reload(player);
+                Gun.updateAmmo(gun, player.getInventory().getItem(1).getItemMeta(), pistol.getMagazineCapacity());
+
+                ItemStack ammo = gun.getAmmoType().getItemStack().clone();
+                ammo.setAmount((pistol.getMagazines() - 1) * pistol.getMagazineCapacity());
+                player.getInventory().setItem(7, ammo);
+            }
+
+            player.getInventory().remove(Material.TNT);
+        }
+        if (!terrorists.isEmpty()) {
+            CSPlayer playerWithBomb = (CSPlayer) terrorists.toArray()[new Random().nextInt(terrorists.toArray().length)];
+            playerWithBomb.getPlayer().getInventory().setItem(4, CSUtil.getBombItem());
+        }
+
+        if (Shop == null) {
+            Shop = new ShopPhaseManager(this);
+            pm.registerEvents(Shop, this);
+        } else {
+            System.out.println(" ###### avoided duplication thread to Shop ");
+        }
+        Utils.debug("Game successfully started...");
+    }
+
+    public void restartGame(Team winnerTeam) {
+        Utils.debug("Restarting game initiated...");
+        Team loserTeam = (winnerTeam.getTeam().equals(TeamEnum.TERRORISTS)) ? getCounterTerroristsTeam() : getTerroristsTeam();
+
+        Bomb.cleanUp();
+        Integer MVPscore = 0;
+        Integer Delay = 1;
+
+        String MVPPlayer = "";
+        CSPlayer csMVPPlayer = null;
+
+        for (CSPlayer csplayer : loserTeam.getCsPlayers()) {
+            csplayer.setMoney(csplayer.getMoney() + Config.MONEY_ON_LOSS);
+            csplayer.getPlayer().sendMessage(ChatColor.GREEN + "+ $" + Config.MONEY_ON_LOSS);
+        }
+        for (CSPlayer csplayer : winnerTeam.getCsPlayers()) {
+            csplayer.setMoney(csplayer.getMoney() + Config.MONEY_ON_VICTORY);
+            csplayer.getPlayer().sendMessage(ChatColor.GREEN + "+ $" + Config.MONEY_ON_VICTORY);
+
+            if (csplayer.gettempMVP() > MVPscore) {
+                MVPscore = csplayer.gettempMVP();
+                csMVPPlayer = csplayer;
+            }
+        }
+
+        if (csMVPPlayer != null) {
+            csMVPPlayer.setMVP(csMVPPlayer.getMVP() + 1);
+            MVPPlayer = ChatColor.AQUA + " Round's MVP " + csMVPPlayer.getPlayer().getName();
+        }
+        winnerTeam.addVictory();
+        loserTeam.addLoss();
+
+        String winnerText = ChatColor.valueOf(winnerTeam.getColour()) + "Team " + winnerTeam.getColour() + " wins." + MVPPlayer;
+
+        if (winnerTeam.getWins() == ROUNDS_TO_WIN) {
+
+            gameState = GameState.LOBBY;
+
+            PacketUtils.sendTitleAndSubtitleToInGame(winnerText, ChatColor.YELLOW + "They also won the whole game! (Left click to join new game)", 0, 10, 1);
+            PacketUtils.sendActionBarToInGame(winnerText, 5);
+
+            Delay = 15;
+
+            winnerTeam.setLosses(0);
+            winnerTeam.setWins(0);
+            winnerTeam.setColour("WHITE");
+            loserTeam.setLosses(0);
+            loserTeam.setWins(0);
+            loserTeam.setColour("WHITE");
+
+            for (Player player : Bukkit.getOnlinePlayers()) {
+
+                //Clears coulors
+                player.setPlayerListName(ChatColor.WHITE + player.getName());
+
+                CSPlayer csplayer = getCSPlayer(player, false, null);
+
+                if (csplayer != null) {
+                    player.getInventory().clear();
+                    csplayer.clear();
+                }
+
+                String mundo = player.getWorld().getName();
+
+                if (CounterStrike.i.HashWorlds != null) {
+                    Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+
+                    if (md != null && !md.modoCs) {
+                        continue;
+                    }
+                }
+
+                player.teleport(getLobbyLocation());
+                player.setGameMode(GameMode.SURVIVAL);
+            }
+
+            if (gameCount == null) {
+                gameCount = new GameCounter(this);
+                gameCount.runTaskTimer(this, Delay * 20L, 200L);
+            }
+            return; //stops game
+
+        } else {
+            PacketUtils.sendTitleAndSubtitleToInGame(winnerText, ChatColor.YELLOW + "The next round will start shortly.", 0, 6, 1);
+        }
+
+        gameState = GameState.LOBBY;
+
+        PacketUtils.sendActionBarToInGame(winnerText, 5);
+
+        if (winnerTeam.getWins() + winnerTeam.getLosses() == (Math.round(MAX_ROUNDS / 2))) {
+
+            Delay = 5;
+
+            System.out.println("################################# swap teams ##################################");
+
+            if (winnerTeam.getTeam().equals(TeamEnum.TERRORISTS)) {
+                winnerTeam.setTeam(TeamEnum.COUNTER_TERRORISTS);
+                loserTeam.setTeam(TeamEnum.TERRORISTS);
+
+                this.counterTerroristsTeam = winnerTeam;
+                this.terroristsTeam = loserTeam;
+
+                for (CSPlayer csplayer : loserTeam.getCsPlayers()) {
+                    csplayer.setTeam(TeamEnum.TERRORISTS);
+                }
+
+                for (CSPlayer csplayer : winnerTeam.getCsPlayers()) {
+                    csplayer.setTeam(TeamEnum.COUNTER_TERRORISTS);
+                }
+
+            } else {
+                winnerTeam.setTeam(TeamEnum.TERRORISTS);
+                loserTeam.setTeam(TeamEnum.COUNTER_TERRORISTS);
+
+                this.counterTerroristsTeam = loserTeam;
+                this.terroristsTeam = winnerTeam;
+
+                for (CSPlayer csplayer : loserTeam.getCsPlayers()) {
+                    csplayer.setTeam(TeamEnum.COUNTER_TERRORISTS);
+                }
+
+                for (CSPlayer csplayer : winnerTeam.getCsPlayers()) {
+                    csplayer.setTeam(TeamEnum.TERRORISTS);
+                }
+            }
+
+            tempPlayerList = counterTerrorists;
+            counterTerrorists = terrorists;
+            terrorists = tempPlayerList;
+
+            for (CSPlayer csplayer : loserTeam.getCsPlayers()) {
+                csplayer.setMoney(Config.STARTING_MONEY);
+
+                if (csplayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
+                    PacketUtils.sendTitleAndSubtitle(csplayer.getPlayer(), ChatColor.YELLOW + "You are NOW a " + ChatColor.BLUE + "Counter Terrorist", ChatColor.BLUE + "Defend the sites from terrorists, defuse the bomb.", 1, 5, 1);
+                } else {
+                    PacketUtils.sendTitleAndSubtitle(csplayer.getPlayer(), ChatColor.YELLOW + "You are NOW a " + ChatColor.RED + "Terrorist", ChatColor.RED + "Plant the bomb on the sites, have it explode.", 1, 5, 1);
+                }
+            }
+
+            for (CSPlayer csplayer : winnerTeam.getCsPlayers()) {
+                csplayer.setMoney(Config.STARTING_MONEY);
+
+                if (csplayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
+                    PacketUtils.sendTitleAndSubtitle(csplayer.getPlayer(), ChatColor.YELLOW + "You are NOW a " + ChatColor.BLUE + "Counter Terrorist", ChatColor.BLUE + "Defend the sites from terrorists, defuse the bomb.", 1, 5, 1);
+                } else {
+                    PacketUtils.sendTitleAndSubtitle(csplayer.getPlayer(), ChatColor.YELLOW + "You are NOW a " + ChatColor.RED + "Terrorist", ChatColor.RED + "Plant the bomb on the sites, have it explode.", 1, 5, 1);
+                }
+            }
+
+            for (CSPlayer csplayer : getCSPlayers()) {
+                Player player = csplayer.getPlayer();
+                player.getInventory().clear();
+            }
+        }
+
+
+        for (Player player : Bukkit.getOnlinePlayers()) {   //quem estiver no mundo de cs é teleportado
+
+            String mundo = player.getWorld().getName();
+
+            if (CounterStrike.i.HashWorlds != null) {
+                Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+
+                if (md != null && !md.modoCs) {
+                    continue;
+                }
+            }
+
+            player.teleport(getLobbyLocation());
+        }
+
+        if (gameCount == null) {
+            gameCount = new GameCounter(this);
+            gameCount.runTaskTimer(this, Delay * 40L, 200L);
+        }
+
+        Utils.debug("Game successfully restarted...");
+    }
+
+    public GameTimer getGameTimer() {
+        Utils.debug("Getting game timer...");
+        return timer;
+    }
+
+    public void setGameTimer(GameTimer gametimer) {
+        Utils.debug("Setting game timer...");
+        this.timer = gametimer;
+    }
+
+    public CSPlayer getCSPlayer(Player player, boolean cria, String colour) {
+        Utils.debug("Getting CSPlayer...");
+        for (CSPlayer csPlayer : csPlayers) {
+            if (csPlayer.getPlayer().getUniqueId().equals(player.getUniqueId())) {
+                Utils.debug("Returning existing CSPlayer...");
+                return csPlayer;
+            }
+        }
+
+        if (cria) {
+            Utils.debug("Returning a new CSPlayer...");
+            return new CSPlayer(this, player, colour);
+        } else {
+            return null;
+        }
+    }
+
+    public Collection<CSPlayer> getCSPlayers() {
+        Utils.debug("Getting CSPlayers...");
+        return csPlayers;
+    }
+
+    public Collection<CSPlayer> getCounterTerrorists() {
+        Utils.debug("Getting Counter Terrorists...");
+        return counterTerrorists;
+    }
+
+    public Collection<CSPlayer> getTerrorists() {
+        Utils.debug("Getting Terrorists...");
+        return terrorists;
+    }
+
+    public Team getCounterTerroristsTeam() {
+        Utils.debug("Getting CT Team...");
+        return counterTerroristsTeam;
+    }
+
+    public Team getTerroristsTeam() {
+        Utils.debug("Getting T Team...");
+        return terroristsTeam;
+    }
+
+    public GameState getGameState() {
+        Utils.debug("Getting GameState...");
+        return gameState;
+    }
+
+    public Location getLobbyLocation() {
+        Utils.debug("Getting Lobby Location...");
+        String locRaw = Lobby;
+        String[] locList = locRaw.split(",");
+        World world = Bukkit.getWorld(locList[0]);
+        double x = Double.parseDouble(locList[1]);
+        double y = Double.parseDouble(locList[2]);
+        double z = Double.parseDouble(locList[3]);
+        float yaw = Float.parseFloat(locList[4]);
+        float pitch = Float.parseFloat(locList[5]);
+
+        Double init = Math.random();
+
+        if (init > 0.5) {
+            init = -1.0;
+        } else {
+            init = 1.0;
+        }
+
+        x = x + (init * 2.0 * Math.random());
+        z = z + (init * 2.0 * Math.random());
+
+        return new Location(world, x, y, z, yaw, pitch);
+    }
+
+    public Location getTerroristSpawn(boolean rand) {
+        Utils.debug("Getting Terrorist spawn...");
+        String locRaw = SpawnTerrorists;
+        String[] locList = locRaw.split(",");
+        World world = Bukkit.getWorld(locList[0]);
+        double x = Double.parseDouble(locList[1]);
+        double y = Double.parseDouble(locList[2]);
+        double z = Double.parseDouble(locList[3]);
+        float yaw = Float.parseFloat(locList[4]);
+        float pitch = Float.parseFloat(locList[5]);
+
+        if (rand) {
+            Double init = Math.random();
+
+            if (init > 0.5) {
+                init = -1.0;
+            } else {
+                init = 1.0;
+            }
+
+            x = x + (init * 2.0 * Math.random());
+            z = z + (init * 2.0 * Math.random());
+        }
+
+        return new Location(world, x, y, z, yaw, pitch);
+    }
+
+    public Location getCounterTerroristSpawn(boolean rand) {
+        Utils.debug("Getting Counter Terrorist spawn...");
+        String locRaw = SpawnCounterTerrorists;
+        String[] locList = locRaw.split(",");
+        World world = Bukkit.getWorld(locList[0]);
+        double x = Double.parseDouble(locList[1]);
+        double y = Double.parseDouble(locList[2]);
+        double z = Double.parseDouble(locList[3]);
+        float yaw = Float.parseFloat(locList[4]);
+        float pitch = Float.parseFloat(locList[5]);
+
+        if (rand) {
+            Double init = Math.random();
+
+            if (init > 0.5) {
+                init = -1.0;
+            } else {
+                init = 1.0;
+            }
+
+            x = x + (init * 2.0 * Math.random());
+            z = z + (init * 2.0 * Math.random());
+        }
+
+        return new Location(world, x, y, z, yaw, pitch);
+    }
+
+    public void giveEquipment(CSPlayer csPlayer) {
+
+        if (true) {
+            return;
+        }
+
+        Utils.debug("Giving equipment to csplayer...");
+
+        Color mycolor;
+
+        if (csPlayer.getColour().equals("RED")) {
+            mycolor = Color.RED;
+        } else if (csPlayer.getColour().equals("BLUE")) {
+            mycolor = Color.BLUE;
+        } else if (csPlayer.getColour().equals("GREEN")) {
+            mycolor = Color.GREEN;
+        } else if (csPlayer.getColour().equals("AQUA")) {
+            mycolor = Color.AQUA;
+        } else {
+            mycolor = Color.YELLOW;
+        }
+
+        ItemStack helmet = new ItemStack(Material.LEATHER_HELMET);
+        LeatherArmorMeta helmetMeta = (LeatherArmorMeta) helmet.getItemMeta();
+        helmetMeta.setColor(mycolor);
+        helmet.setItemMeta(helmetMeta);
+
+        ItemStack chestplate = new ItemStack(Material.LEATHER_CHESTPLATE);
+        LeatherArmorMeta chestplateMeta = (LeatherArmorMeta) chestplate.getItemMeta();
+        chestplateMeta.setColor(mycolor);
+        chestplate.setItemMeta(chestplateMeta);
+
+        ItemStack leggings = new ItemStack(Material.LEATHER_LEGGINGS);
+        LeatherArmorMeta leggingsMeta = (LeatherArmorMeta) leggings.getItemMeta();
+        leggingsMeta.setColor(mycolor);
+        leggings.setItemMeta(leggingsMeta);
+
+        ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
+        LeatherArmorMeta bootsMeta = (LeatherArmorMeta) boots.getItemMeta();
+        bootsMeta.setColor(mycolor);
+        boots.setItemMeta(bootsMeta);
+
+        Player player = csPlayer.getPlayer();
+        player.getInventory().setHelmet(helmet);
+        player.getInventory().setChestplate(chestplate);
+        player.getInventory().setLeggings(leggings);
+        player.getInventory().setBoots(boots);
+    }
+
+    public dev.danablend.counterstrike.runnables.PlayerUpdater getPlayerUpdater() {
+        return pUpdate;
+    }
+
+    //Broadcast to current players
+    public void broadcastMessage(String message) {
+        for (CSPlayer csplayer : CounterStrike.i.getCSPlayers()) {
+            csplayer.getPlayer().sendMessage(message);
+        }
+    }
 }

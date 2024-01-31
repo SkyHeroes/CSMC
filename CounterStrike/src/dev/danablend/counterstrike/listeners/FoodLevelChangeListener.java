@@ -7,21 +7,21 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 
 public class FoodLevelChangeListener implements Listener {
-	
-	@EventHandler
-	public void foodLevelChangeEvent(FoodLevelChangeEvent event) {
 
-		String mundo = event.getEntity().getWorld().getName();
+    @EventHandler
+    public void foodLevelChangeEvent(FoodLevelChangeEvent event) {
 
-		if (CounterStrike.i.HashWorlds != null) {
-			Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+        String mundo = event.getEntity().getWorld().getName();
 
-			if (md != null && !md.modoCs) {
-				return;
-			}
-		}
+        if (CounterStrike.i.HashWorlds != null) {
+            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
 
-		event.setCancelled(true);
-	}
-	
+            if (md != null && !md.modoCs) {
+                return;
+            }
+        }
+
+        event.setCancelled(true);
+    }
+
 }

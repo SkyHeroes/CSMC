@@ -7,29 +7,29 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerDropItemEvent;
 
 public class PlayerDropItemListener implements Listener {
-	
-	@EventHandler
-	public void playerItemDropEvent(PlayerDropItemEvent event) {
 
-		String mundo = event.getPlayer().getWorld().getName();
+    @EventHandler
+    public void playerItemDropEvent(PlayerDropItemEvent event) {
 
-		if (CounterStrike.i.HashWorlds != null) {
-			Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+        String mundo = event.getPlayer().getWorld().getName();
 
-			if (md != null && !md.modoCs) {
-				return;
-			}
-		}
+        if (CounterStrike.i.HashWorlds != null) {
+            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
 
-		if(!event.getPlayer().isOp()) {
-			int currentSlot = event.getPlayer().getInventory().getHeldItemSlot();
+            if (md != null && !md.modoCs) {
+                return;
+            }
+        }
 
-			if(currentSlot == 0 || currentSlot == 1) {
-				return;
-			}
+        if (!event.getPlayer().isOp()) {
+            int currentSlot = event.getPlayer().getInventory().getHeldItemSlot();
 
-			event.setCancelled(true);
-		}
-	}
-	
+            if (currentSlot == 0 || currentSlot == 1) {
+                return;
+            }
+
+            event.setCancelled(true);
+        }
+    }
+
 }

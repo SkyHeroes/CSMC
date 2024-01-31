@@ -1,10 +1,9 @@
 package dev.danablend.counterstrike.enums;
 
+import dev.danablend.counterstrike.csplayer.TeamEnum;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-
-import dev.danablend.counterstrike.csplayer.TeamEnum;
 
 /**
  * @author barpec12

@@ -1,18 +1,16 @@
 package dev.danablend.counterstrike.listeners;
 
+import dev.danablend.counterstrike.Config;
+import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.database.Mundos;
-import net.md_5.bungee.api.ChatColor;
+import dev.danablend.counterstrike.runnables.Bomb;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
-
-import dev.danablend.counterstrike.Config;
-import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.GameState;
-import dev.danablend.counterstrike.runnables.Bomb;
 
 public class BlockPlaceListener implements Listener {
 
@@ -49,13 +47,18 @@ public class BlockPlaceListener implements Listener {
             }
 
             event.getPlayer().getInventory().getItemInMainHand().setType(Material.AIR);
-            new Bomb(CounterStrike.i.getGameTimer(), Config.BOMB_TIMER, block.getLocation()).runTaskTimer(CounterStrike.i, 20, 20);
+
+            // new Bomb(CounterStrike.i.getGameTimer(), Config.BOMB_TIMER, block.getLocation()).runTaskTimer(CounterStrike.i, 20, 20);
+
+            Object task = null;
+            Bomb bomb = new Bomb(CounterStrike.i.getGameTimer(), Config.BOMB_TIMER, block.getLocation());
+            task = CounterStrike.i.myBukkit.runTaskTimer(null, null, null, () -> bomb.run(), 20L, 20L);
+            bomb.setScheduledTask(task);
+
             return;
         }
 
-        if (CounterStrike.i.getGameState().equals(GameState.RUN) || !event.getPlayer().isOp()) {
-            event.setCancelled(true);
-        }
+        event.setCancelled(true);
     }
 
 }

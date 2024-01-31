@@ -1,8 +1,10 @@
 package dev.danablend.counterstrike.utils;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import dev.danablend.counterstrike.Config;
+import dev.danablend.counterstrike.CounterStrike;
+import dev.danablend.counterstrike.csplayer.CSPlayer;
+import dev.danablend.counterstrike.csplayer.TeamEnum;
+import dev.danablend.counterstrike.runnables.Bomb;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -12,11 +14,8 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import dev.danablend.counterstrike.Config;
-import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.csplayer.CSPlayer;
-import dev.danablend.counterstrike.csplayer.TeamEnum;
-import dev.danablend.counterstrike.runnables.Bomb;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CSUtil {
 

@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="CSMC">
+    <output-path>$PROJECT_DIR$/out/</output-path>
+    <root id="archive" name="CSMC.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="module-output" name="CSMC" />
+      <element id="file-copy" path="$PROJECT_DIR$/CounterStrike/plugin.yml" />
+      <element id="file-copy" path="$PROJECT_DIR$/CounterStrike/config.yml" />
+    </root>
+  </artifact>
+</component>

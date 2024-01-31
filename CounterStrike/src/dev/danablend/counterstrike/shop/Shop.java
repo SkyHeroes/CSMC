@@ -1,15 +1,5 @@
 package dev.danablend.counterstrike.shop;
 
-import java.util.Collection;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.Material;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-
 import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
@@ -17,7 +7,16 @@ import dev.danablend.counterstrike.csplayer.TeamEnum;
 import dev.danablend.counterstrike.enums.Weapon;
 import dev.danablend.counterstrike.enums.WeaponType;
 import dev.danablend.counterstrike.utils.Utils;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Color;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+
+import java.util.Collection;
 
 public class Shop {
 
@@ -30,6 +29,11 @@ public class Shop {
         shop = this;
         this.terroristGuns = Weapon.getAllWeaponsByTeam(TeamEnum.TERRORISTS);
         this.counterTerroristGuns = Weapon.getAllWeaponsByTeam(TeamEnum.COUNTER_TERRORISTS);
+    }
+
+    public static Shop getShop() {
+        Utils.debug("Getting Shop...");
+        return shop;
     }
 
     public void openCounterTerroristShop(Player player) {
@@ -64,9 +68,8 @@ public class Shop {
         Utils.debug("Purchase of an item has been initiated...");
         CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
-        if (csplayer == null) {
-            return;
-        }
+        if (csplayer == null) return;
+        if (player == null) return;
 
         Color mycolor;
 
@@ -81,7 +84,6 @@ public class Shop {
         } else {
             mycolor = Color.YELLOW;
         }
-
 
         int money = csplayer.getMoney();
         int slot = -1;
@@ -120,12 +122,19 @@ public class Shop {
                     return;
                 }
 
-                LeatherArmorMeta helmetMeta = (LeatherArmorMeta) gun.loadItem().getItemMeta();
-                helmetMeta.setColor(mycolor);
-                ItemStack helm = gun.loadItem();
-                helm.setItemMeta(helmetMeta);
-
-                player.getInventory().setHelmet(helm);
+                try {
+                    LeatherArmorMeta helmetMeta = (LeatherArmorMeta) gun.loadItem().getItemMeta();
+                    try {
+                        helmetMeta.setColor(mycolor);
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage() + " ########### Erro em Item111 " + gun.loadItem());
+                    }
+                    ItemStack helm = gun.loadItem();
+                    helm.setItemMeta(helmetMeta);
+                    player.getInventory().setHelmet(helm);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage() + " ########### Erro em Item " + gun.loadItem());
+                }
                 break;
 
             case ARMOUR:
@@ -160,11 +169,6 @@ public class Shop {
 
         player.sendMessage(ChatColor.GREEN + "You have purchased " + gun.getDisplayName());
         Utils.debug("Purchase of an item has been completed...");
-    }
-
-    public static Shop getShop() {
-        Utils.debug("Getting Shop...");
-        return shop;
     }
 
     public int getInventorySize(int amountOfItems) {

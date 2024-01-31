@@ -9,24 +9,24 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public class PlayerItemDamageListener implements Listener {
-	
-	@EventHandler
-	public void playerItemDamageEvent(PlayerItemDamageEvent event) {
 
-		String mundo = event.getPlayer().getWorld().getName();
+    @EventHandler
+    public void playerItemDamageEvent(PlayerItemDamageEvent event) {
 
-		if (CounterStrike.i.HashWorlds != null) {
-			Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+        String mundo = event.getPlayer().getWorld().getName();
 
-			if (md != null && !md.modoCs) {
-				return;
-			}
-		}
+        if (CounterStrike.i.HashWorlds != null) {
+            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
 
-		event.setCancelled(true);
-		Damageable meta = (Damageable) event.getItem().getItemMeta();
-		meta.setDamage(meta.getDamage() - 2);
-		event.getItem().setItemMeta((ItemMeta) meta);
-	}
-	
+            if (md != null && !md.modoCs) {
+                return;
+            }
+        }
+
+        event.setCancelled(true);
+        Damageable meta = (Damageable) event.getItem().getItemMeta();
+        meta.setDamage(meta.getDamage() - 2);
+        event.getItem().setItemMeta((ItemMeta) meta);
+    }
+
 }

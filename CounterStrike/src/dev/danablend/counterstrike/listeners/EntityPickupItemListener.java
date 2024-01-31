@@ -1,18 +1,17 @@
 package dev.danablend.counterstrike.listeners;
 
+import dev.danablend.counterstrike.CounterStrike;
+import dev.danablend.counterstrike.csplayer.CSPlayer;
+import dev.danablend.counterstrike.csplayer.TeamEnum;
 import dev.danablend.counterstrike.database.Mundos;
+import dev.danablend.counterstrike.enums.Weapon;
+import dev.danablend.counterstrike.utils.CSUtil;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
-
-import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.csplayer.CSPlayer;
-import dev.danablend.counterstrike.csplayer.TeamEnum;
-import dev.danablend.counterstrike.enums.Weapon;
-import dev.danablend.counterstrike.utils.CSUtil;
 
 /**
  * @author barpec12

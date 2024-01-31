@@ -1,7 +1,9 @@
 package dev.danablend.counterstrike.commands;
 
+import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.GameState;
-import dev.danablend.counterstrike.utils.JSONMessage;
+import dev.danablend.counterstrike.csplayer.CSPlayer;
+import dev.danablend.counterstrike.shop.Shop;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -11,11 +13,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
-import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.csplayer.CSPlayer;
-import dev.danablend.counterstrike.shop.Shop;
-
-import java.awt.*;
 
 public class CounterStrikeCommand implements CommandExecutor {
 
@@ -72,36 +69,7 @@ public class CounterStrikeCommand implements CommandExecutor {
                 CSPlayer csplayer = CounterStrike.i.getCSPlayer((Player) sender, false, null);
 
                 if (csplayer != null) {
-
-                    JSONMessage.create("Overpass")
-                            .color(ChatColor.GREEN)
-                            .tooltip("Click to select map")
-                            .runCommand("/csmc LoadMap Overpass")
-
-                            .then(" or ")
-                            .color(ChatColor.GRAY)
-                            .style(ChatColor.BOLD)
-                            .then("Dust2")
-                            .color(ChatColor.LIGHT_PURPLE)
-                            .tooltip("Click to select map")
-                            .runCommand("/csmc LoadMap Dust2")
-
-                            .then(" or ")
-                            .color(ChatColor.GRAY)
-                            .style(ChatColor.BOLD)
-                            .then("Mirage")
-                            .color(ChatColor.AQUA)
-                            .tooltip("Click to join TR")
-                            .runCommand("/csmc LoadMap Mirage")
-
-                            .then(" or ")
-                            .color(ChatColor.GRAY)
-                            .style(ChatColor.BOLD)
-                            .then("Nuke")
-                            .color(ChatColor.GOLD)
-                            .tooltip("Click to join TR")
-                            .runCommand("/csmc LoadMap Nuke")
-                            .send((Player) sender);
+                    this.plugin.SendOptions((Player) sender);
                 }
             }
 
@@ -112,6 +80,8 @@ public class CounterStrikeCommand implements CommandExecutor {
 
             if (this.plugin.getGameState().equals(GameState.LOBBY) || this.plugin.getGameState().equals(GameState.WAITING) || this.plugin.getGameState().equals(GameState.STARTING)) {
                 this.plugin.Map = args[1];
+
+                this.plugin.LoadDBMapConfigs(this.plugin.Map);
             } else {
                 sender.sendMessage(ChatColor.LIGHT_PURPLE + "Too late to change map ");
             }

@@ -4,9 +4,9 @@ import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
+import dev.danablend.counterstrike.database.Mundos;
 import dev.danablend.counterstrike.runnables.Bomb;
 import dev.danablend.counterstrike.utils.PacketUtils;
-import dev.danablend.counterstrike.database.Mundos;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -21,7 +21,10 @@ import static dev.danablend.counterstrike.Config.MAX_ROUNDS;
 
 public class PlayerInteractListener implements Listener {
 
+    CounterStrike plugin;
+
     public PlayerInteractListener() {
+        this.plugin = CounterStrike.i;
     }
 
     @EventHandler
@@ -30,7 +33,6 @@ public class PlayerInteractListener implements Listener {
         Player player = event.getPlayer();
         String mundo = player.getWorld().getName();
 
-        //if has generalP loaded
         if (CounterStrike.i.HashWorlds != null) {
             Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
 
@@ -89,6 +91,9 @@ public class PlayerInteractListener implements Listener {
             }
 
             csplayer.setColourOpponent(corAdversaria);
+
+              plugin.StartGameCounter(0);
+
             return;
         }
 
@@ -106,5 +111,6 @@ public class PlayerInteractListener implements Listener {
 
         bomb.defuse(csplayer);
     }
+
 
 }

@@ -12,26 +12,26 @@ import org.bukkit.event.block.BlockIgniteEvent;
  * @author barpec12
  * created on 2020-05-19
  */
-public class BlockIgniteListener implements Listener{
+public class BlockIgniteListener implements Listener {
 
-	@EventHandler
-	public void onBlockIgniteEvent(BlockIgniteEvent e) {
-		Player player = e.getPlayer();
+    @EventHandler
+    public void onBlockIgniteEvent(BlockIgniteEvent e) {
+        Player player = e.getPlayer();
 
-		if (player != null) { //might have other origins
-			String mundo = player.getWorld().getName();
+        if (player != null) { //might have other origins
+            String mundo = player.getWorld().getName();
 
-			if (CounterStrike.i.HashWorlds != null) {
-				Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+            if (CounterStrike.i.HashWorlds != null) {
+                Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
 
-				if (md != null && !md.modoCs) {
-					return;
-				}
-			}
+                if (md != null && !md.modoCs) {
+                    return;
+                }
+            }
 
-			if (e.getBlock().getType().equals(Material.TNT)) {
-				e.setCancelled(true);
-			}
-		}
-	}
+            if (e.getBlock().getType().equals(Material.TNT)) {
+                e.setCancelled(true);
+            }
+        }
+    }
 }

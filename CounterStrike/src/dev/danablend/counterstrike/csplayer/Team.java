@@ -37,10 +37,6 @@ public class Team {
         this.losses = losses;
     }
 
-    public void setTeam(TeamEnum team) {
-        this.team = team;
-    }
-
     public void addLoss() {
         losses += 1;
     }
@@ -53,12 +49,16 @@ public class Team {
         return team;
     }
 
-    public void setColour(String colours) {
-        this.colour = colours;
+    public void setTeam(TeamEnum team) {
+        this.team = team;
     }
 
     public String getColour() {
         return colour;
+    }
+
+    public void setColour(String colours) {
+        this.colour = colours;
     }
 
 }

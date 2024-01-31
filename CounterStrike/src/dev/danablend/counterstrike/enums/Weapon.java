@@ -1,15 +1,14 @@
 package dev.danablend.counterstrike.enums;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-
+import dev.danablend.counterstrike.csplayer.TeamEnum;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import dev.danablend.counterstrike.csplayer.TeamEnum;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 
 public class Weapon {
 
@@ -18,21 +17,17 @@ public class Weapon {
     protected String name;
     protected String displayName;
     protected Material material;
+    protected int magazineCapacity;
+    protected double reloadTime;
+    protected WeaponType weaponType;
     private int cost;
     private int ammunition;
-    protected int magazineCapacity;
     private int magazines;
     private double damage;
-    protected double reloadTime;
     private TeamEnum team;
-    protected WeaponType weaponType;
     private ItemStack item;
     private ItemStack shopItem;
     private String id;
-
-    public static void addWeapon(Weapon weapon) {
-        weapons.put(weapon.getId(), weapon);
-    }
 
     /**
      * Use only for grenades
@@ -79,6 +74,40 @@ public class Weapon {
         this.id = id;
     }
 
+    public static void addWeapon(Weapon weapon) {
+        weapons.put(weapon.getId(), weapon);
+    }
+
+    public static boolean isWeapon(ItemStack item) {
+        return getByItem(item) != null;
+    }
+
+    public static Collection<Weapon> getAllWeaponsByTeam(TeamEnum team) {
+        Collection<Weapon> guns = new ArrayList<>();
+        for (Weapon gun : weapons.values()) {
+            if (gun.getTeam() == team) guns.add(gun);
+        }
+        return guns;
+    }
+
+    public static Weapon getByName(String name) {
+        return weapons.get(name);
+    }
+
+    public static Weapon getByItem(ItemStack item) {
+
+        if (item == null || !item.hasItemMeta() || !item.getItemMeta().hasDisplayName()) {
+            return null;
+        }
+
+        for (Weapon gun : weapons.values()) {
+            if (item.getItemMeta().getDisplayName().equals(gun.getDisplayName())) {
+                return gun;
+            }
+        }
+        return null;
+    }
+
     public ItemStack loadItem() {
         ItemStack armoryItem;
         armoryItem = new ItemStack(material);
@@ -94,7 +123,6 @@ public class Weapon {
 
         return armoryItem;
     }
-
 
     private ItemStack loadShopItem() {
         ItemStack item = this.item.clone();
@@ -167,36 +195,6 @@ public class Weapon {
 
     public ItemStack getShopItem() {
         return shopItem;
-    }
-
-    public static boolean isWeapon(ItemStack item) {
-        return getByItem(item) != null;
-    }
-
-    public static Collection<Weapon> getAllWeaponsByTeam(TeamEnum team) {
-        Collection<Weapon> guns = new ArrayList<>();
-        for (Weapon gun : weapons.values()) {
-            if (gun.getTeam() == team) guns.add(gun);
-        }
-        return guns;
-    }
-
-    public static Weapon getByName(String name) {
-        return weapons.get(name);
-    }
-
-    public static Weapon getByItem(ItemStack item) {
-
-        if (item == null || !item.hasItemMeta() || !item.getItemMeta().hasDisplayName()) {
-            return null;
-        }
-
-        for (Weapon gun : weapons.values()) {
-            if (item.getItemMeta().getDisplayName().equals(gun.getDisplayName())) {
-                return gun;
-            }
-        }
-        return null;
     }
 
 }

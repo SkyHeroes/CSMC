@@ -1,38 +1,46 @@
 package dev.danablend.counterstrike.runnables;
 
 import dev.danablend.counterstrike.CounterStrike;
+import dev.danablend.counterstrike.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
-import dev.danablend.counterstrike.utils.JSONMessage;
 import dev.danablend.counterstrike.utils.PacketUtils;
-import dev.danablend.counterstrike.database.Mundos;
+import dev.danablend.counterstrike.utils.Utils;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.Collection;
 
 
-public class GameStarter extends BukkitRunnable {
+public class GameStarter {
 
+    public int timeToStart;
     CounterStrike plugin;
     Collection<CSPlayer> csPlayers;
-    public int timeToStart;
+    Object task;
 
     public GameStarter(CounterStrike plugin) {
         this.plugin = plugin;
         csPlayers = plugin.getCSPlayers();
 
+        //opcao se gera sempre ou nao???
         if (plugin.getTerroristsTeam().getWins() + plugin.getTerroristsTeam().getLosses() == 0) {
-            plugin.LoadDBRandomConfigs();
+            plugin.LoadDBRandomMaps();
             timeToStart = 15;
         } else {
+
+            if (plugin.randomMaps) {
+                plugin.LoadDBRandomMaps();
+            }
+            else Utils.debug("#####  Not using random maps... ");
+
             timeToStart = 6;
         }
 
-        if (timeToStart == 15) {
-            for (CSPlayer csplayer : CounterStrike.i.getCSPlayers()) {
-                Player player = csplayer.getPlayer();
-
+//        if (timeToStart == 15) {
+//            for (CSPlayer csplayer : CounterStrike.i.getCSPlayers()) {
+//                Player player = csplayer.getPlayer();
+//
 //                JSONMessage.create("Confirm")
 //                        .color(ChatColor.GREEN)
 //                        .tooltip("Click to confirm join")
@@ -45,24 +53,60 @@ public class GameStarter extends BukkitRunnable {
 //                        .tooltip("Click to leave CSMC game")
 //                        .runCommand("/csmc leave")
 //                        .send(player);
-
-                if (CounterStrike.i.HashWorlds != null) {
-                    String mundo = player.getWorld().getName();
-                    Mundos md = (Mundos) plugin.HashWorlds.get(mundo);
-
-                    if (md == null || !md.modoCs) {
-                        continue;
-                    }
-                }
-            }
-        }
+//            }
+//        }
     }
 
-    @Override
+    public void setScheduledTask(Object task) {
+        this.task = task;
+    }
+
+
     public void run() {
+
         if (timeToStart <= 0) {
             plugin.startGame();
-            this.cancel();
+
+            plugin.myBukkit.cancelTask(task);
+
+//            if (plugin.myBukkit.isFolia())
+//                ((ScheduledTask) task).cancel();
+//            else
+//                ((BukkitTask) task).cancel();
+
+            return;
+        }
+
+        int serverSize = CounterStrike.i.getCSPlayers().size();
+
+        if (serverSize == 0) {
+            Utils.debug("Aborting start counter, no players left");
+
+            CounterStrike.i.getTerroristsTeam().setLosses(0);
+            CounterStrike.i.getTerroristsTeam().setWins(0);
+            CounterStrike.i.getTerroristsTeam().setColour("WHITE");
+            CounterStrike.i.getCounterTerroristsTeam().setLosses(0);
+            CounterStrike.i.getCounterTerroristsTeam().setWins(0);
+            CounterStrike.i.getCounterTerroristsTeam().setColour("WHITE");
+
+//            if (CounterStrike.i.gameCount == null) {
+//                CounterStrike.i.gameCount = new GameCounter(CounterStrike.i);
+//                CounterStrike.i.gameCount.start();
+//            } else {
+//                CounterStrike.i.gameCount.start();
+//            }
+
+            //  plugin.StartGameCounter(0);
+
+            CounterStrike.i.gameState = GameState.LOBBY;
+
+            plugin.myBukkit.cancelTask(task);
+
+//            if (plugin.myBukkit.isFolia())
+//                ((ScheduledTask) task).cancel();
+//            else
+//                ((BukkitTask) task).cancel();
+
             return;
         }
 

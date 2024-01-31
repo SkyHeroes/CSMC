@@ -1,11 +1,11 @@
 package dev.danablend.counterstrike.listeners;
 
+import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.database.Mundos;
+import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-
-import dev.danablend.counterstrike.CounterStrike;
 
 
 public class BlockBreakListener implements Listener {
@@ -21,6 +21,12 @@ public class BlockBreakListener implements Listener {
             if (md != null && !md.modoCs) {
                 return;
             }
+        }
+
+        if (event.getBlock().getType() == Material.TNT && event.getPlayer().isOp()) {
+            CounterStrike.i.myBukkit.runTaskLater(null, event.getBlock().getLocation(), null, () -> {
+                event.getBlock().setType(Material.AIR);
+            }, 1);
         }
 
         event.setCancelled(true);

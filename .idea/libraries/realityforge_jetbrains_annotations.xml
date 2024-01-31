@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="realityforge.jetbrains.annotations" type="repository">
+    <properties maven-id="org.realityforge.org.jetbrains.annotations:org.jetbrains.annotations:1.7.0" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/realityforge/org/jetbrains/annotations/org.jetbrains.annotations/1.7.0/org.jetbrains.annotations-1.7.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -16,7 +16,6 @@ import dev.danablend.counterstrike.utils.CSUtil;
 import dev.danablend.counterstrike.utils.MyBukkit;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import dev.danablend.counterstrike.utils.Utils;
-import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import me.zombie_striker.qg.guns.Gun;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -31,7 +30,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.sql.Connection;
@@ -100,11 +98,7 @@ public class CounterStrike extends JavaPlugin {
             return;
         }
 
-        if (Bukkit.getVersion().toUpperCase().contains("FOLIA")) {
-            myBukkit = new MyBukkit(this, 8);
-        } else {
-            myBukkit = new MyBukkit(this, 1);
-        }
+        myBukkit = new MyBukkit(this);
 
         File dataFolder = getDataFolder();
 
@@ -165,13 +159,13 @@ public class CounterStrike extends JavaPlugin {
                     Mundos md = (Mundos) obj;
 
                     if (!md.modoCs) {
-                        this.myBukkit.runTask(null,null,null, () -> w.setGameRule(GameRule.NATURAL_REGENERATION, true));
+                        this.myBukkit.runTask(null, null, null, () -> w.setGameRule(GameRule.NATURAL_REGENERATION, true));
                         continue;
                     }
                 }
             }
 
-            this.myBukkit.runTask(null,null,null, () -> {
+            this.myBukkit.runTask(null, null, null, () -> {
                 w.setGameRule(GameRule.NATURAL_REGENERATION, false);
                 w.setGameRule(GameRule.KEEP_INVENTORY, false);
             });
@@ -233,7 +227,7 @@ public class CounterStrike extends JavaPlugin {
 
             String result = sqlite.select("select max(id) from CSMaps");
 
-            if (result.equals("")) {
+            if (result == null || result.equals("")) {
                 Utils.debug("#####  " + ChatColor.RED + "No maps loaded");
                 broadcastMessage(ChatColor.RED + "No maps loaded");
                 return;
@@ -286,45 +280,38 @@ public class CounterStrike extends JavaPlugin {
         SpawnCounterTerroristsLocation = null;
         SpawnTerroristsLocation = null;
 
+        if (Rand < 0 || SpawnTerrorists == null || getTerroristSpawn(false) == null) {
+            Utils.debug("Cant load map or spawn...");
+            return;
+        }
+
         myBukkit.runTaskLater(null, getTerroristSpawn(false), null, () -> Preparemap(), 1);
 
     }
 
 
     private void Preparemap() {
+        Utils.debug("Preparing map...");
 
-        myBukkit.runTask(null,getTerroristSpawn(false),null, () -> {
-            this.getTerroristSpawn(false).getWorld().getEntities().stream().filter(Item.class::isInstance).forEach(Entity::remove); // remove tnt from ground
+        myBukkit.runTask(null, getTerroristSpawn(false), null, () -> {
+            // this.getTerroristSpawn(false).getWorld().getEntities().stream().filter(Item.class::isInstance).forEach(Entity::remove); // remove entities from ground
+
+            for (Entity ent : this.getTerroristSpawn(false).getWorld().getEntities()) {
+                if (!(ent instanceof Player) && !ent.isDead()) {
+                    Utils.debug(ent.getName() + " kills " + ent.getType());
+                    ent.remove();
+                }
+            }
+
         });
 
-//        try {
-//            Location local = getTerroristSpawn(false);
-//
-//            //   this.getTerroristSpawn(false).getWorld().getEntities().stream().filter(Item.class::isInstance).forEach(Entity::remove); // remove tnt from ground
-//            myBukkit.runTaskLater(null, local, null, () -> {
-//                // local.getWorld().getEntities().stream().filter(Item.class::isInstance).forEach(Entity::remove);
-//                // entity.getType()  == Material.TNT
-//
-//                for (Entity entity : local.getWorld().getEntities()) {
-//                    if (entity instanceof Item) {
-//                        myBukkit.runTaskLater(null, null, entity, () -> {
-//                            entity.remove();
-//                        }, 1);
-//                    }
-//                }
-//            }, 1);
-//        } catch (Exception e) {
-//        }
 
-        //  if (!(Map.equals("Dust2") || Map.equals("Mirage"))) return
-
-        for (int n = 1; n == 3; n++) {
-            getTerroristSpawn(false).getWorld().spawnEntity(getTerroristSpawn(true), EntityType.CHICKEN);
+        for (int n = 1; n <= 5; n++) {
+            getTerroristSpawn(true).getWorld().spawnEntity(getTerroristSpawn(true), EntityType.CHICKEN);
         }
 
-        for (int n = 1; n == 3; n++) {
-            // getCounterTerroristSpawn(false).getWorld().spawn spawnCreature(TargetLocation, EntityType.ZOMBIE);
-            getCounterTerroristSpawn(false).getWorld().spawnEntity(getCounterTerroristSpawn(true), EntityType.CHICKEN);
+        for (int n = 1; n <= 5; n++) {
+            getCounterTerroristSpawn(true).getWorld().spawnEntity(getCounterTerroristSpawn(true), EntityType.CHICKEN);
         }
 
     }
@@ -367,6 +354,8 @@ public class CounterStrike extends JavaPlugin {
 
 
     public void LoadCOnfigs() {
+        this.getConfig().options().copyDefaults(true);
+
         //alrealy loaded map
         Utils.debug("Loading static map and locations...");
         Lobby = getConfig().getString("lobby-location");
@@ -439,18 +428,11 @@ public class CounterStrike extends JavaPlugin {
         for (CSPlayer csplayer : getCSPlayers()) {
             Player player = csplayer.getPlayer();
 
-            //#### trying to hide name???
-//            ArmorStand stand = player.getLocation().getWorld().spawn(player.getLocation().add(0.0D, -1.25D, 0.0D), ArmorStand.class);
-//            SkullMeta meta = (SkullMeta) head.getItemMeta();
-//            meta = VersionUtils.setPlayerHead(p, meta);
-//            head.setItemMeta(meta);
-//
-//            stand.setVisible(false);
-//            stand.getEquipment().setHelmet(head);
-//            stand.setGravity(false);
-//            stand.setCustomNameVisible(false);
+            // player.setInvisible(false); //esconde o jogador
+            // setPlayerListName  //no Tab
 
 
+            player.hidePlayer(this, player);
             player.setCustomNameVisible(false);
 
 
@@ -470,6 +452,8 @@ public class CounterStrike extends JavaPlugin {
             if (rifle != null) {
                 me.zombie_striker.qg.guns.Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(rifle.getName());
                 Gun.updateAmmo(gun, player.getInventory().getItem(0), rifle.getMagazineCapacity());
+
+                Utils.debug(rifle.getMagazineCapacity() + " ###### rifle " + rifle.getName());
 
                 ItemStack ammo = gun.getAmmoType().getItemStack().clone();
                 ammo.setAmount((rifle.getMagazines() - 1) * rifle.getMagazineCapacity());
@@ -632,7 +616,6 @@ public class CounterStrike extends JavaPlugin {
             }
         }
 
-
         for (Player player : Bukkit.getOnlinePlayers()) {   //quem estiver no mundo de cs é teleportado
 
             String mundo = player.getWorld().getName();
@@ -655,7 +638,7 @@ public class CounterStrike extends JavaPlugin {
     }
 
 
-    private void FinishGame(Team winnerTeam, Team loserTeam) {
+    public void FinishGame(Team winnerTeam, Team loserTeam) {
 
         gameState = GameState.LOBBY;
 
@@ -666,35 +649,37 @@ public class CounterStrike extends JavaPlugin {
         loserTeam.setWins(0);
         loserTeam.setColour("WHITE");
 
-        for (Player player : Bukkit.getOnlinePlayers()) {
-
-            //Clears coulors
-            TextComponent component = Component.text(ChatColor.WHITE + player.getName());
-            player.playerListName(component);
+       // for (Player player : Bukkit.getOnlinePlayers()) {
+        for (CSPlayer csPlayer : csPlayers) {
+            Player player = csPlayer.getPlayer();
 
             CSPlayer csplayer = getCSPlayer(player, false, null);
 
             if (csplayer != null) {
-                player.getInventory().clear();
                 getPlayerUpdater().deleteScoreBoards(player);
-                csplayer.clear();
             }
 
-            String mundo = player.getWorld().getName();
+            if (player.isOnline()) {
+                player.getInventory().clear();
+                //Clears colors
+                TextComponent component = Component.text(ChatColor.WHITE + player.getName());
+                player.playerListName(component);
 
-            if (CounterStrike.i.HashWorlds != null) {
-                Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+                String mundo = player.getWorld().getName();
 
-                if (md != null && !md.modoCs) continue;
+                if (CounterStrike.i.HashWorlds != null) {
+                    Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+                    if (md != null && !md.modoCs) continue;
+                }
+
+                myBukkit.runTask(player, null, null, () -> player.teleportAsync(getLobbyLocation()));
+                player.setGameMode(GameMode.SURVIVAL);
             }
-
-            myBukkit.runTask(player, null, null, () -> player.teleportAsync(getLobbyLocation()));
-            player.setGameMode(GameMode.SURVIVAL);
         }
 
+        csPlayers.clear();
         getPlayerUpdater().playersWithScoreboard = new ArrayList<>(); //list reset
 
-        //   StartGameCounter(0);
     }
 
 
@@ -754,6 +739,8 @@ public class CounterStrike extends JavaPlugin {
     }
 
     public Location getLobbyLocation() {
+        if (Lobby == null) return null;
+
         String locRaw = Lobby;
         String[] locList = locRaw.split(",");
         World world = Bukkit.getWorld(locList[0]);
@@ -803,6 +790,11 @@ public class CounterStrike extends JavaPlugin {
 
             x = x + (init * 2.0 * Math.random());
             z = z + (init * 2.0 * Math.random());
+        }
+
+        if (world == null) {
+            Utils.debug("Game world not loaded... for " + SpawnTerrorists);
+            return null;
         }
 
         SpawnTerroristsLocation = new Location(world, x, y, z, yaw, pitch);
@@ -902,7 +894,7 @@ public class CounterStrike extends JavaPlugin {
         int delay = 2;
         Utils.debug("Muda pack para " + resourse);
 
-        this.myBukkit.runTaskLater(player,null,null, () -> player.setResourcePack(resourse, hash), delay * 20);
+        this.myBukkit.runTaskLater(player, null, null, () -> player.setResourcePack(resourse, hash), delay * 20);
     }
 
 
@@ -951,11 +943,7 @@ public class CounterStrike extends JavaPlugin {
     }
 
     public void StopGameCounter() {
-        if (CounterStrike.i.myBukkit.isFolia())
-            ((ScheduledTask) gameCounterTask).cancel();
-        else
-            ((BukkitTask) gameCounterTask).cancel();
-
+        CounterStrike.i.myBukkit.cancelTask(gameCounterTask);
         gameCounterTask = null;
     }
 }

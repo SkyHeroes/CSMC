@@ -14,7 +14,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 
 public class BlockPlaceListener implements Listener {
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void blockPlaceEvent(BlockPlaceEvent event) {
 
         String mundo = event.getPlayer().getWorld().getName();

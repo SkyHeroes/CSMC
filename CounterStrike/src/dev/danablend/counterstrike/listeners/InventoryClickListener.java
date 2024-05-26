@@ -13,7 +13,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
  */
 public class InventoryClickListener implements Listener {
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onInventoryClick(InventoryClickEvent e) {
 
         Player p = (Player) e.getWhoClicked();

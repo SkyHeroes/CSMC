@@ -2,11 +2,12 @@ package dev.danablend.counterstrike.runnables;
 
 import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
+import dev.danablend.counterstrike.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
-import dev.danablend.counterstrike.utils.Board.FastBoard;
 import dev.danablend.counterstrike.utils.CSUtil;
 import dev.danablend.counterstrike.utils.PacketUtils;
+import fr.mrmicky.fastboard.FastBoard;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -57,7 +58,7 @@ public class PlayerUpdater extends BukkitRunnable {
         for (CSPlayer csplayer : plugin.getCSPlayers()) {
             Player player = csplayer.getPlayer();
 
-            if (CSUtil.isOutOfShopZone(player)) {
+            if (CSUtil.isOutOfShopZone(player) || plugin.getGameState() != GameState.SHOP) {
                 player.getInventory().remove(CounterStrike.i.getShopItem());
             } else {
                 if (player.getInventory().getItem(8) == null)
@@ -235,7 +236,7 @@ public class PlayerUpdater extends BukkitRunnable {
 
         String[] lines = new String[21];
 
-        lines[0] = ChatColor.LIGHT_PURPLE + "Map: " + ChatColor.GREEN + plugin.Map + "  " + ChatColor.LIGHT_PURPLE + "R: " + ChatColor.GREEN + "" + (myTeam.getLosses() + myTeam.getWins() + 1) + " of " + MAX_ROUNDS;
+        lines[0] = ChatColor.LIGHT_PURPLE + "Map: " + ChatColor.GREEN + plugin.Map + "  " + ChatColor.LIGHT_PURPLE + "R: " + ChatColor.GREEN + "" + (myTeam.getLosses() + myTeam.getWins() + 1) + " of " + MAX_ROUNDS ;
         lines[1] = ChatColor.LIGHT_PURPLE + "Teams: " + TeamA + myTeam.getWins() + ChatColor.GRAY + " vs " + TeamB + myTeam.getLosses();
 
         ChatColor c1 = ChatColor.valueOf(plugin.counterTerroristsTeam.getColour());

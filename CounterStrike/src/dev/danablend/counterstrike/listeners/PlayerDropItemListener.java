@@ -8,7 +8,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 
 public class PlayerDropItemListener implements Listener {
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void playerItemDropEvent(PlayerDropItemEvent event) {
 
         String mundo = event.getPlayer().getWorld().getName();

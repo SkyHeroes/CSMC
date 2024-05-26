@@ -78,15 +78,7 @@ public class ShopPhaseManager implements Listener {
             CounterStrike.i.getCounterTerroristsTeam().setWins(0);
             CounterStrike.i.getCounterTerroristsTeam().setColour("WHITE");
 
-            //plugin.StartGameCounter(0);
-
             CounterStrike.i.gameState = GameState.LOBBY;
-
-//            if (plugin.myBukkit.isFolia())
-//                ((ScheduledTask) task).cancel();
-//            else
-//                ((BukkitTask) task).cancel();
-
             plugin.myBukkit.cancelTask(task);
 
             plugin.Shop = null;
@@ -101,14 +93,7 @@ public class ShopPhaseManager implements Listener {
             CounterStrike.i.setGameTimer(new GameTimer());
 
             plugin.gameState = GameState.RUN;
-
-//            if (plugin.myBukkit.isFolia())
-//                ((ScheduledTask) task).cancel();
-//            else
-//                ((BukkitTask) task).cancel();
-
             plugin.myBukkit.cancelTask(task);
-
             plugin.Shop = null;
         }
         duration--;

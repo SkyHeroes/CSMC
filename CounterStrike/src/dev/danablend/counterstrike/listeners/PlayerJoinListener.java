@@ -34,7 +34,7 @@ public class PlayerJoinListener implements Listener {
         this.config = plugin.getConfig();
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onPlayerResourcePackStatusEvent(PlayerResourcePackStatusEvent event) {
         Player player = event.getPlayer();
         String mundo = player.getWorld().getName();
@@ -64,7 +64,7 @@ public class PlayerJoinListener implements Listener {
     }
 
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void playerJoinEvent(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         String mundo = player.getWorld().getName();
@@ -125,7 +125,7 @@ public class PlayerJoinListener implements Listener {
     }
 
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void playerQuitEvent(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         String mundo = player.getWorld().getName();
@@ -150,7 +150,7 @@ public class PlayerJoinListener implements Listener {
     }
 
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void playerChangedWorldEvent(PlayerChangedWorldEvent event) {
         Player player = event.getPlayer();
         String mundo = player.getWorld().getName();
@@ -220,7 +220,7 @@ public class PlayerJoinListener implements Listener {
     }
 
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void ServerListMotd(final ServerListPingEvent event) {
 
         if (plugin.gameState.equals(GameState.WAITING)) {
@@ -234,7 +234,7 @@ public class PlayerJoinListener implements Listener {
     }
 
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent e) {
         Player player = e.getPlayer();
 
@@ -250,7 +250,7 @@ public class PlayerJoinListener implements Listener {
     }
 
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onSignChangeEvent(SignChangeEvent e) {
         Player player = e.getPlayer();
 

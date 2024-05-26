@@ -19,7 +19,7 @@ import org.bukkit.inventory.ItemStack;
  */
 public class EntityPickupItemListener implements Listener {
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onPlayerPickupItem(EntityPickupItemEvent e) {
 
         String mundo = e.getEntity().getWorld().getName();

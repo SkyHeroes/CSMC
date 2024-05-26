@@ -16,10 +16,8 @@ import org.bukkit.event.Listener;
 
 public class CustomPlayerDeathListener implements Listener {
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void playerDeathEvent(CustomPlayerDeathEvent event) {
-        Utils.debug("############## playerDeathEvent");
-
         Player victim = event.getVictim();
         Player killer = event.getKiller();
         CSPlayer csKiller = CounterStrike.i.getCSPlayer(killer, false, null);

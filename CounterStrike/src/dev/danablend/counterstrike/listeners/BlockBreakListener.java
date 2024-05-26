@@ -10,7 +10,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 
 public class BlockBreakListener implements Listener {
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void blockBreakEvent(BlockBreakEvent event) {
 
         String mundo = event.getPlayer().getWorld().getName();

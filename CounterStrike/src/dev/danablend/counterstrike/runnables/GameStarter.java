@@ -64,54 +64,24 @@ public class GameStarter {
 
     public void run() {
 
-        if (timeToStart <= 0) {
-            plugin.startGame();
+        int serverSize = CounterStrike.i.getCSPlayers().size();
+
+        if (serverSize == 0 || plugin.getServer().getOnlinePlayers().size() == 0) {
+            Utils.debug("Aborting start counter, no players left");
 
             plugin.myBukkit.cancelTask(task);
-
-//            if (plugin.myBukkit.isFolia())
-//                ((ScheduledTask) task).cancel();
-//            else
-//                ((BukkitTask) task).cancel();
+            CounterStrike.i.FinishGame(CounterStrike.i.getTerroristsTeam(),CounterStrike.i.getCounterTerroristsTeam());
 
             return;
         }
 
-        int serverSize = CounterStrike.i.getCSPlayers().size();
-
-        if (serverSize == 0) {
-            Utils.debug("Aborting start counter, no players left");
-
-            CounterStrike.i.getTerroristsTeam().setLosses(0);
-            CounterStrike.i.getTerroristsTeam().setWins(0);
-            CounterStrike.i.getTerroristsTeam().setColour("WHITE");
-            CounterStrike.i.getCounterTerroristsTeam().setLosses(0);
-            CounterStrike.i.getCounterTerroristsTeam().setWins(0);
-            CounterStrike.i.getCounterTerroristsTeam().setColour("WHITE");
-
-//            if (CounterStrike.i.gameCount == null) {
-//                CounterStrike.i.gameCount = new GameCounter(CounterStrike.i);
-//                CounterStrike.i.gameCount.start();
-//            } else {
-//                CounterStrike.i.gameCount.start();
-//            }
-
-            //  plugin.StartGameCounter(0);
-
-            CounterStrike.i.gameState = GameState.LOBBY;
-
+        if (timeToStart <= 0) {
+            plugin.startGame();
             plugin.myBukkit.cancelTask(task);
-
-//            if (plugin.myBukkit.isFolia())
-//                ((ScheduledTask) task).cancel();
-//            else
-//                ((BukkitTask) task).cancel();
-
             return;
         }
 
         PacketUtils.sendTitleAndSubtitleToInGame(ChatColor.YELLOW + "The game will start in " + timeToStart + " seconds!", ChatColor.YELLOW + "get ready", 0, 0, 1);
-
         PacketUtils.sendTitleAndSubtitleToWaitingInLobby(ChatColor.RED + "The game will start in " + timeToStart + " seconds!", ChatColor.YELLOW + "you can still join", 0, 0, 1);
 
         timeToStart--;

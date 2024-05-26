@@ -7,6 +7,7 @@ import dev.danablend.counterstrike.csplayer.TeamEnum;
 import dev.danablend.counterstrike.enums.Weapon;
 import dev.danablend.counterstrike.enums.WeaponType;
 import dev.danablend.counterstrike.utils.Utils;
+import me.zombie_striker.qg.guns.Gun;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -159,6 +160,9 @@ public class Shop {
         }
 
         if (CounterStrike.i.usingQualityArmory() && type != WeaponType.GRENADE && type != WeaponType.HELMET && type != WeaponType.ARMOUR) {
+            me.zombie_striker.qg.guns.Gun gun1 = me.zombie_striker.qg.api.QualityArmory.getGunByName(gun.getName());
+            Gun.updateAmmo(gun1, player.getInventory().getItem(0), gun.getMagazineCapacity());
+
             ItemStack ammo = me.zombie_striker.qg.api.QualityArmory.getGunByName(gun.getName()).getAmmoType().getItemStack().clone();
             ammo.setAmount((gun.getMagazines() - 1) * gun.getMagazineCapacity());
 
@@ -166,6 +170,13 @@ public class Shop {
                 player.getInventory().setItem(6, ammo);
             } else player.getInventory().setItem(7, ammo);
         }
+
+//        me.zombie_striker.qg.guns.Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(pistol.getName());
+//        Gun.updateAmmo(gun, player.getInventory().getItem(1), pistol.getMagazineCapacity());
+//
+//        ItemStack ammo = gun.getAmmoType().getItemStack().clone();
+//        ammo.setAmount((pistol.getMagazines() - 1) * pistol.getMagazineCapacity());
+//        player.getInventory().setItem(7, ammo);
 
         player.sendMessage(ChatColor.GREEN + "You have purchased " + gun.getDisplayName());
         Utils.debug("Purchase of an item has been completed...");

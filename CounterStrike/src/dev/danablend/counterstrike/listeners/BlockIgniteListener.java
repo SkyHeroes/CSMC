@@ -14,7 +14,7 @@ import org.bukkit.event.block.BlockIgniteEvent;
  */
 public class BlockIgniteListener implements Listener {
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onBlockIgniteEvent(BlockIgniteEvent e) {
         Player player = e.getPlayer();
 

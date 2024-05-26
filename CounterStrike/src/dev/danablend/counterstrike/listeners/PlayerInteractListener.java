@@ -27,7 +27,7 @@ public class PlayerInteractListener implements Listener {
         this.plugin = CounterStrike.i;
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void playerDefuseEvent(PlayerInteractEvent event) {
 
         Player player = event.getPlayer();

@@ -33,7 +33,7 @@ public class PlayerChatControlListener implements Listener {
 
         //dead players don't talk
         if (player.getGameMode() == GameMode.SPECTATOR) {
-//           chat.callEvent();
+        //  chat.callEvent();
             chat.setMessage("");
         }
     }

@@ -41,7 +41,8 @@ public class GameCounter {
         }
         int serverSize = plugin.getCSPlayers().size();
 
-        if (serverSize == 0) {
+        if (serverSize == 0  || plugin.getServer().getOnlinePlayers().size() == 0) {
+            Utils.debug("Aborting Counter, no players left");
             CounterStrike.i.gameState = GameState.LOBBY;
             plugin.StopGameCounter();
             return;

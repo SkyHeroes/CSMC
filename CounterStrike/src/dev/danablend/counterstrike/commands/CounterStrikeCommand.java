@@ -13,6 +13,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
+import static dev.danablend.counterstrike.Config.MIN_PLAYERS;
+
 
 public class CounterStrikeCommand implements CommandExecutor {
 
@@ -27,58 +29,10 @@ public class CounterStrikeCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (args.length == 4 && args[0].equalsIgnoreCase("money")) {
-            if (args[1].equalsIgnoreCase("give")) {
-                CSPlayer playerToGiveMoneyTo = CounterStrike.i.getCSPlayer(Bukkit.getPlayer(args[2]), false, null);
-
-                if (playerToGiveMoneyTo == null) {
-                    return false;
-                }
-
-                playerToGiveMoneyTo.setMoney(playerToGiveMoneyTo.getMoney() + Integer.parseInt(args[3]));
-                sender.sendMessage("Added " + Integer.parseInt(args[3]) + ". New balance is " + playerToGiveMoneyTo.getMoney());
-                return true;
-            }
-            return true;
-        }
-        if (args.length == 1 && args[0].equalsIgnoreCase("shopt")) {
-            Shop.getShop().openTerroristShop((Player) sender);
-            return true;
-        }
-        if (args.length == 1 && args[0].equalsIgnoreCase("shopct")) {
-            Shop.getShop().openCounterTerroristShop((Player) sender);
-            return true;
-        }
-        if (args.length == 1 && args[0].equalsIgnoreCase("leave")) {
-
-            if (this.plugin.getGameState().equals(GameState.LOBBY) || this.plugin.getGameState().equals(GameState.WAITING) || this.plugin.getGameState().equals(GameState.STARTING)) {
-                CSPlayer csplayer = CounterStrike.i.getCSPlayer((Player) sender, false, null);
-
-                if (csplayer != null) {
-                    csplayer.clear();
-                    sender.sendMessage(ChatColor.LIGHT_PURPLE + "You have left the game");
-                }
-            } else {
-                sender.sendMessage(ChatColor.LIGHT_PURPLE + "Too late to leave game");
-            }
-
-            return true;
-        } else if (args.length == 1 && args[0].equalsIgnoreCase("Ok")) {
-
-            if (this.plugin.getGameState().equals(GameState.LOBBY) || this.plugin.getGameState().equals(GameState.WAITING) || this.plugin.getGameState().equals(GameState.STARTING)) {
-                CSPlayer csplayer = CounterStrike.i.getCSPlayer((Player) sender, false, null);
-
-                if (csplayer != null) {
-                    this.plugin.SendOptions((Player) sender);
-                }
-            }
-
-            return true;
-        }
 
         if (args.length == 2 && args[0].equalsIgnoreCase("LoadMap")) {
 
-            if (this.plugin.getGameState().equals(GameState.LOBBY) || this.plugin.getGameState().equals(GameState.WAITING) || this.plugin.getGameState().equals(GameState.STARTING)) {
+            if (this.plugin.getGameState().equals(GameState.LOBBY) || this.plugin.getGameState().equals(GameState.WAITING) ) {
                 this.plugin.Map = args[1];
 
                 this.plugin.LoadDBMapConfigs(this.plugin.Map);
@@ -88,12 +42,23 @@ public class CounterStrikeCommand implements CommandExecutor {
             return true;
         }
 
-        if (args.length == 2 && args[0].equalsIgnoreCase("setMap")) {
-            Map = args[1];
-            System.out.println("Mapa " + Map);
-            sender.sendMessage("Map set to " + Map);
+        if (args.length == 2 && args[0].equalsIgnoreCase("setMinPlayers")) {
+
+            if (this.plugin.getGameState().equals(GameState.LOBBY) || this.plugin.getGameState().equals(GameState.WAITING)) {
+                config.addDefault("min-players", args[1]);
+                MIN_PLAYERS=Integer.parseInt(args[1]);
+                config.options().copyDefaults(true);
+
+                plugin.saveConfig();
+                plugin.LoadCOnfigs();
+
+                sender.sendMessage(ChatColor.GOLD + "setMinPlayers to "+  args[1]);
+            } else {
+                sender.sendMessage(ChatColor.LIGHT_PURPLE + "Too late to change player min count ");
+            }
             return true;
         }
+
         if (args.length == 1 && args[0].equalsIgnoreCase("setlobby")) {
             if (!(sender instanceof Player)) {
                 sender.sendMessage("You need to be a player to execute this command.");
@@ -108,9 +73,16 @@ public class CounterStrikeCommand implements CommandExecutor {
             float yaw = loc.getYaw();
             float pitch = loc.getPitch();
             String location = world + "," + x + "," + y + "," + z + "," + yaw + "," + pitch;
-            config.set("Lobby", location);
+            config.addDefault("Lobby", location);
+            config.options().copyDefaults(true);
+
             plugin.saveConfig();
             plugin.LoadCOnfigs();
+
+            if (Map == null) {
+                player.sendMessage(ChatColor.GOLD + "Map no set, assuming " + world);
+                Map = world;
+            }
 
             if (Map != null) {
                 plugin.SaveDBCOnfig(Map, "Lobby", location);
@@ -118,6 +90,7 @@ public class CounterStrikeCommand implements CommandExecutor {
             }
 
             return true;
+
         } else if (args.length == 2 && args[0].equalsIgnoreCase("setspawn")) {
             if (!(sender instanceof Player)) {
                 sender.sendMessage("You need to be a player to execute this command.");
@@ -133,9 +106,17 @@ public class CounterStrikeCommand implements CommandExecutor {
                 float yaw = loc.getYaw();
                 float pitch = loc.getPitch();
                 String location = world + "," + x + "," + y + "," + z + "," + yaw + "," + pitch;
-                config.set("spawn-locations.counterterrorist", location);
+                config.addDefault("spawn-locations.counterterrorist", location);
                 plugin.saveConfig();
                 plugin.LoadCOnfigs();
+
+//                config.set("maxChunkEntities", Integer.parseInt(valor));
+//                main.saveConfig();
+//
+                if (Map == null) {
+                    player.sendMessage(ChatColor.GOLD + "Map no set, assuming " + world);
+                    Map = world;
+                }
 
                 if (Map != null) {
                     plugin.SaveDBCOnfig(Map, "Counter", location);
@@ -151,9 +132,14 @@ public class CounterStrikeCommand implements CommandExecutor {
                 float yaw = loc.getYaw();
                 float pitch = loc.getPitch();
                 String location = world + "," + x + "," + y + "," + z + "," + yaw + "," + pitch;
-                config.set("spawn-locations.terrorist", location);
+                config.addDefault("spawn-locations.terrorist", location);
                 plugin.saveConfig();
                 plugin.LoadCOnfigs();
+
+                if (Map == null) {
+                    player.sendMessage(ChatColor.GOLD + "Map no set, assuming " + world);
+                    Map = world;
+                }
 
                 if (Map != null) {
                     plugin.SaveDBCOnfig(Map, "Terrorist", location);

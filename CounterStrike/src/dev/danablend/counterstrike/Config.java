@@ -18,7 +18,7 @@ public class Config {
     private static final FileConfiguration config = CounterStrike.i.getConfig();
     public static final boolean GAME_ENABLED = config.getBoolean("enabled", true);
     public static final boolean DEBUGGING_ENABLED = config.getBoolean("debug", false);
-    public static final int MIN_PLAYERS = config.getInt("min-players", 5);
+    public static  int MIN_PLAYERS = config.getInt("min-players", 5);
     public static final int MAX_PLAYERS = config.getInt("max-players", 10);
     public static final int ROUNDS_TO_WIN = config.getInt("rounds-to-win", 16);
     public static final int MAX_ROUNDS = config.getInt("max-rounds", 30);

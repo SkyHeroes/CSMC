@@ -20,7 +20,7 @@ import org.bukkit.inventory.ItemStack;
 public class PlayerDeathListener implements Listener {
     CounterStrike plugin = CounterStrike.i;
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void playerDeathEvent(PlayerDeathEvent event) {
         Player victim = event.getEntity();
         Player player = event.getPlayer();

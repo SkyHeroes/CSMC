@@ -8,7 +8,7 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 
 public class FoodLevelChangeListener implements Listener {
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void foodLevelChangeEvent(FoodLevelChangeEvent event) {
 
         String mundo = event.getEntity().getWorld().getName();

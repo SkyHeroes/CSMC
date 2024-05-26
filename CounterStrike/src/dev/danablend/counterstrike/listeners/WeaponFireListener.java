@@ -10,7 +10,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class WeaponFireListener implements Listener {
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void weaponFireEvent(WeaponFireEvent event) {
 
         System.out.println("######################   ###############   fire event??");

@@ -2,6 +2,7 @@ package dev.danablend.counterstrike.utils;
 
 import dev.danablend.counterstrike.CounterStrike;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -12,21 +13,27 @@ import static org.bukkit.Bukkit.getServer;
 import static org.bukkit.Bukkit.isOwnedByCurrentRegion;
 
 public class MyBukkit {
-    private int myVersion;
     private CounterStrike main;
+    private boolean folia ;
 
-    public MyBukkit(CounterStrike main, int version) {
+    public MyBukkit(CounterStrike main) {
         this.main = main;
-        myVersion = version;
+
+        String version = Bukkit.getVersion().toUpperCase();
+        folia = (version.contains("-FOLIA-"));
+
+        //server type name
+        String minecraftVersion2 = Bukkit.getServer().getName();
+        folia = (!folia && (minecraftVersion2.toUpperCase().contains("FOLIA")));
     }
 
     public boolean isFolia() {
-        return (myVersion == 8);
+        return folia;
     }
 
 
     public Object runTask(Player player, Location local, Entity entity, Runnable myrun) {
-        if (myVersion == 8) {
+        if (isFolia()) {
             if (player != null) return player.getScheduler().run(main, st -> myrun.run(), null);
             else if (local != null) return getServer().getRegionScheduler().run(main, local, st -> myrun.run());
             else if (entity != null) return entity.getScheduler().run(main, st -> myrun.run(), null);
@@ -37,7 +44,7 @@ public class MyBukkit {
     }
 
     public Object runTaskLater(Player player, Location local, Entity entity, Runnable myrun, long delay) {
-        if (myVersion == 8) {
+        if (isFolia()) {
             if (player != null) return player.getScheduler().runDelayed(main, st -> myrun.run(), null, delay);
             else if (local != null)
                 return getServer().getRegionScheduler().runDelayed(main, local, st -> myrun.run(), delay);
@@ -49,7 +56,7 @@ public class MyBukkit {
     }
 
     public Object runTaskTimer(Player player, Location local, Entity entity, Runnable myrun, long delay, long period) {
-        if (myVersion == 8) {
+        if (isFolia()) {
             if (player != null)
                 return player.getScheduler().runAtFixedRate(main, st -> myrun.run(), null, delay, period);
             else if (local != null)
@@ -63,15 +70,22 @@ public class MyBukkit {
     }
 
     public void cancelTask(Object task) {
-        if (CounterStrike.i.myBukkit.isFolia())
+        if (isFolia())
             ((ScheduledTask) task).cancel();
         else
             ((BukkitTask) task).cancel();
     }
 
+    public boolean isCancelled(Object task) {
+        if (folia)
+            return ((ScheduledTask) task).isCancelled();
+        else
+            return ((BukkitTask) task).isCancelled();
+    }
+
     public boolean isOwnedby(Entity entity, Location local, Block block) {
 
-        if (myVersion == 8) {
+        if (isFolia()) {
             if (entity != null) return isOwnedByCurrentRegion(entity);
             else if (local != null) return isOwnedByCurrentRegion(local);
             else if (block != null) return isOwnedByCurrentRegion(block);

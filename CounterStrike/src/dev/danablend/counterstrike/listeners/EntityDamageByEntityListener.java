@@ -15,7 +15,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 public class EntityDamageByEntityListener implements Listener {
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void entityDamageByEntityEvent(EntityDamageByEntityEvent event) {
 
         if (event.getEntity() instanceof Player) {

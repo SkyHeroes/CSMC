@@ -42,7 +42,7 @@ public class PacketUtils {
 
             CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
-            if (csplayer == null && InLocation(player)) {
+            if (csplayer == null && InLobbyLocation(player)) {
                 sendTitleAndSubtitle(player, titleText, subtitleText, fadeInDuration, duration, fadeOutDuration);
             }
         }
@@ -66,7 +66,7 @@ public class PacketUtils {
 
             CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
-            if (csplayer == null && InLocation(player)) {
+            if (csplayer == null && InLobbyLocation(player)) {
                 sendActionBar(player, text);
             }
         }
@@ -87,7 +87,8 @@ public class PacketUtils {
     }
 
 
-    private static Boolean InLocation(Player p) {
+    private static Boolean InLobbyLocation(Player p) {
+        if (CounterStrike.i.getLobbyLocation() == null) return false;
 
         Location locRaw = CounterStrike.i.getLobbyLocation();
 

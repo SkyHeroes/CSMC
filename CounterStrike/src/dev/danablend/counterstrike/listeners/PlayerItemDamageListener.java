@@ -10,7 +10,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public class PlayerItemDamageListener implements Listener {
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void playerItemDamageEvent(PlayerItemDamageEvent event) {
 
         String mundo = event.getPlayer().getWorld().getName();

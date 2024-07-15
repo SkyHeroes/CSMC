@@ -12,10 +12,7 @@ import dev.danablend.counterstrike.runnables.*;
 import dev.danablend.counterstrike.shop.Shop;
 import dev.danablend.counterstrike.shop.ShopListener;
 import dev.danablend.counterstrike.tests.TestCommand;
-import dev.danablend.counterstrike.utils.CSUtil;
-import dev.danablend.counterstrike.utils.MyBukkit;
-import dev.danablend.counterstrike.utils.PacketUtils;
-import dev.danablend.counterstrike.utils.Utils;
+import dev.danablend.counterstrike.utils.*;
 import me.zombie_striker.qg.guns.Gun;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -23,7 +20,6 @@ import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -78,6 +74,14 @@ public class CounterStrike extends JavaPlugin {
     public void onEnable() {
         i = this;
         setup();
+
+        try {
+            myBukkit.runTaskLater(null, null, null,  () -> new Metrics(this, 22650),5);
+        }
+        catch (Exception e){
+            getLogger().info(ChatColor.RED + " Failed to register into Bstats");
+        }
+
     }
 
     public void onDisable() {
@@ -294,11 +298,13 @@ public class CounterStrike extends JavaPlugin {
         Utils.debug("Preparing map...");
 
         myBukkit.runTask(null, getTerroristSpawn(false), null, () -> {
-            // this.getTerroristSpawn(false).getWorld().getEntities().stream().filter(Item.class::isInstance).forEach(Entity::remove); // remove entities from ground
 
             for (Entity ent : this.getTerroristSpawn(false).getWorld().getEntities()) {
                 if (!(ent instanceof Player) && !ent.isDead()) {
-                    Utils.debug(ent.getName() + " kills " + ent.getType());
+                    ent.remove();
+                }
+                if (!(ent instanceof Player) && ent.getType().equals(Material.TNT)) {
+                    Utils.debug(ent.getName() + " removes TNT? " + ent.getType());
                     ent.remove();
                 }
             }
@@ -306,11 +312,11 @@ public class CounterStrike extends JavaPlugin {
         });
 
 
-        for (int n = 1; n <= 5; n++) {
+        for (int n = 1; n <= 3; n++) {
             getTerroristSpawn(true).getWorld().spawnEntity(getTerroristSpawn(true), EntityType.CHICKEN);
         }
 
-        for (int n = 1; n <= 5; n++) {
+        for (int n = 1; n <= 3; n++) {
             getCounterTerroristSpawn(true).getWorld().spawnEntity(getCounterTerroristSpawn(true), EntityType.CHICKEN);
         }
 
@@ -368,7 +374,6 @@ public class CounterStrike extends JavaPlugin {
 
 
     public ItemStack getKnife() {
-        //     Utils.debug("Getting knife...");
         ItemStack knife = new ItemStack(Material.IRON_AXE);
         ItemMeta meta = knife.getItemMeta();
         Component component = Component.text(ChatColor.GRAY + "Standard Knife");
@@ -391,6 +396,7 @@ public class CounterStrike extends JavaPlugin {
 
     public void startGame() {
         Utils.debug("---> Starting game initiated...");
+        Preparemap();
 
         gameState = GameState.STARTING;
 
@@ -442,8 +448,7 @@ public class CounterStrike extends JavaPlugin {
             player.getInventory().setItem(2, getKnife());
             player.getInventory().setItem(8, getShopItem());
 
-            player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40);
-            player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+            player.setHealth(40);
 
             CSPlayer cp = this.getCSPlayer(player, false, null);
             Weapon rifle = cp.getRifle();

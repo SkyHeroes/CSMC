@@ -24,9 +24,9 @@ public class PlayerItemDamageListener implements Listener {
         }
 
         event.setCancelled(true);
-        Damageable meta = (Damageable) event.getItem().getItemMeta();
-        meta.setDamage(meta.getDamage() - 2);
-        event.getItem().setItemMeta((ItemMeta) meta);
+//        Damageable meta = (Damageable) event.getItem().getItemMeta();
+//        meta.setDamage(meta.getDamage() - 2);
+//        event.getItem().setItemMeta((ItemMeta) meta);
     }
 
 }

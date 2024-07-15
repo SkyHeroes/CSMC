@@ -48,8 +48,6 @@ public class BlockPlaceListener implements Listener {
 
             event.getPlayer().getInventory().getItemInMainHand().setType(Material.AIR);
 
-            // new Bomb(CounterStrike.i.getGameTimer(), Config.BOMB_TIMER, block.getLocation()).runTaskTimer(CounterStrike.i, 20, 20);
-
             Object task = null;
             Bomb bomb = new Bomb(CounterStrike.i.getGameTimer(), Config.BOMB_TIMER, block.getLocation());
             task = CounterStrike.i.myBukkit.runTaskTimer(null, null, null, () -> bomb.run(), 20L, 20L);
@@ -58,6 +56,7 @@ public class BlockPlaceListener implements Listener {
             return;
         }
 
+        //so it doesn't let place any blocks except tnt at right place
         event.setCancelled(true);
     }
 

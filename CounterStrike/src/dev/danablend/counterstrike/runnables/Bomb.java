@@ -239,21 +239,6 @@ public class Bomb {
 
         if (hologram != null) hologram.delete();
 
-//        new BukkitRunnable() {
-//            int counter = 25;
-//
-//            public void run() {
-//                detonated = true;
-//                counter--;
-//                location.getWorld().createExplosion(location.getX(), location.getY(), location.getZ(), 22, false, false);
-//
-//                if (counter <= 0) {
-//                    this.cancel();
-//                    CounterStrike.i.restartGame(CounterStrike.i.getTerroristsTeam());
-//                }
-//            }
-//        }.runTaskTimer(CounterStrike.i, 1L, 1L);
-
         AtomicInteger counter = new AtomicInteger(25);
 
         bombTask = CounterStrike.i.myBukkit.runTaskTimer(null, location, null, () -> {

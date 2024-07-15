@@ -34,6 +34,7 @@ public class EntityDamageByEntityListener implements Listener {
                 event.setCancelled(true);
                 return;
             }
+
             if (event.getDamager() instanceof Player && event.getEntity() instanceof Player) {
                 Player damager = (Player) event.getDamager();
 
@@ -63,8 +64,11 @@ public class EntityDamageByEntityListener implements Listener {
                 Player damager = (Player) event.getDamager();
                 CSPlayer csShooter = CounterStrike.i.getCSPlayer(damager, false, null);
                 csShooter.setChickenKills(csShooter.getKills() + 1);
-
             }
+
+        }
+        //Animals
+        else {
 
         }
     }

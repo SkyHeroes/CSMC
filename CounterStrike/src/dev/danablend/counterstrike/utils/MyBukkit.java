@@ -16,6 +16,7 @@ public class MyBukkit {
     private CounterStrike main;
     private boolean folia ;
 
+
     public MyBukkit(CounterStrike main) {
         this.main = main;
 
@@ -23,9 +24,12 @@ public class MyBukkit {
         folia = (version.contains("-FOLIA-"));
 
         //server type name
-        String minecraftVersion2 = Bukkit.getServer().getName();
-        folia = (!folia && (minecraftVersion2.toUpperCase().contains("FOLIA")));
+        if (!folia) {
+            String minecraftVersion2 = Bukkit.getServer().getName();
+            folia = (minecraftVersion2.toUpperCase().contains("FOLIA"));
+        }
     }
+
 
     public boolean isFolia() {
         return folia;
@@ -43,6 +47,7 @@ public class MyBukkit {
         }
     }
 
+
     public Object runTaskLater(Player player, Location local, Entity entity, Runnable myrun, long delay) {
         if (isFolia()) {
             if (player != null) return player.getScheduler().runDelayed(main, st -> myrun.run(), null, delay);
@@ -54,6 +59,7 @@ public class MyBukkit {
             return getServer().getScheduler().runTaskLater(main, myrun, delay);
         }
     }
+
 
     public Object runTaskTimer(Player player, Location local, Entity entity, Runnable myrun, long delay, long period) {
         if (isFolia()) {
@@ -69,19 +75,28 @@ public class MyBukkit {
         }
     }
 
+
     public void cancelTask(Object task) {
+
+        if (task == null) return;
+
         if (isFolia())
             ((ScheduledTask) task).cancel();
         else
             ((BukkitTask) task).cancel();
     }
 
+
     public boolean isCancelled(Object task) {
+
+        if (task == null) return true;
+
         if (folia)
             return ((ScheduledTask) task).isCancelled();
         else
             return ((BukkitTask) task).isCancelled();
     }
+
 
     public boolean isOwnedby(Entity entity, Location local, Block block) {
 

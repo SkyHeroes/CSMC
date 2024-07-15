@@ -23,11 +23,11 @@ public class BlockBreakListener implements Listener {
             }
         }
 
-        if (event.getBlock().getType() == Material.TNT && event.getPlayer().isOp()) {
+/*        if (event.getBlock().getType() == Material.TNT && event.getPlayer().isOp()) {
             CounterStrike.i.myBukkit.runTaskLater(null, event.getBlock().getLocation(), null, () -> {
                 event.getBlock().setType(Material.AIR);
             }, 1);
-        }
+        }*/
 
         event.setCancelled(true);
     }

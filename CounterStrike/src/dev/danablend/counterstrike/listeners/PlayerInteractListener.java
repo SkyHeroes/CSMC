@@ -8,6 +8,7 @@ import dev.danablend.counterstrike.database.Mundos;
 import dev.danablend.counterstrike.runnables.Bomb;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -26,6 +27,7 @@ public class PlayerInteractListener implements Listener {
     public PlayerInteractListener() {
         this.plugin = CounterStrike.i;
     }
+
 
     @EventHandler(ignoreCancelled = true)
     public void playerDefuseEvent(PlayerInteractEvent event) {
@@ -92,7 +94,7 @@ public class PlayerInteractListener implements Listener {
 
             csplayer.setColourOpponent(corAdversaria);
 
-              plugin.StartGameCounter(0);
+            plugin.StartGameCounter(0);
 
             return;
         }
@@ -112,5 +114,5 @@ public class PlayerInteractListener implements Listener {
         bomb.defuse(csplayer);
     }
 
-
 }
+

@@ -10,6 +10,7 @@ import dev.danablend.counterstrike.enums.Weapon;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -28,7 +29,7 @@ public class ShopListener implements Listener {
     }
 
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void playerInteractEvent(PlayerInteractEvent event) {
         Player player = event.getPlayer();
 
@@ -54,13 +55,13 @@ public class ShopListener implements Listener {
             event.setCancelled(true);
             return;
         }
+
+        ItemStack inHandItem = inv.getItemInMainHand();
+
         if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
 
-            // Gun checker
-            ItemStack gunItem = inv.getItemInMainHand();
-
             // Shop Item Checker
-            if (inv.getItemInMainHand().equals(CounterStrike.i.getShopItem())) {
+            if (inHandItem.equals(CounterStrike.i.getShopItem())) {
 
                 if (plugin.getGameState() != GameState.SHOP) {
                     player.sendMessage(ChatColor.RED + "Sorry, not in ShopPhase.");
@@ -72,10 +73,29 @@ public class ShopListener implements Listener {
                 } else {
                     Shop.getShop().openTerroristShop(player);
                 }
+                return;
+            } else {
+                Action a = event.getAction();
+                Block block = event.getClickedBlock();
+                if (block == null) return;
+
+                if (a.equals(Action.RIGHT_CLICK_BLOCK)) {
+
+                    Material mat = block.getType();
+
+                    if (mat == Material.CHEST || mat == Material.SHULKER_BOX) {
+                        event.setCancelled(true);
+
+                    } else if (mat.toString().contains("DOOR") || mat.toString().contains("BUTTON") || mat.toString().contains("PLATE") || mat == Material.LEVER) {
+                        event.setCancelled(true);
+                    }
+
+                } else if (a.equals(Action.LEFT_CLICK_BLOCK) && event.getHand() != null) {
+                    event.setCancelled(true);
+                }
             }
         }
-        if (!event.getPlayer().getInventory().getItemInMainHand().getType().equals(Material.TNT))
-            event.setCancelled(true);
+
     }
 
     //chest selection

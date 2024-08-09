@@ -13,8 +13,6 @@ public class WeaponFireListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void weaponFireEvent(WeaponFireEvent event) {
 
-        System.out.println("######################   ###############   fire event??");
-
         Player player = event.getPlayer();
         ItemStack gunItem = player.getInventory().getItemInMainHand();
 

@@ -3,7 +3,7 @@ package dev.danablend.counterstrike.listeners;
 import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
-import dev.danablend.counterstrike.database.Mundos;
+import dev.danablend.counterstrike.database.Worlds;
 import dev.danablend.counterstrike.enums.Weapon;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -11,8 +11,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
-
-import javax.swing.*;
 
 /**
  * @author barpec12
@@ -23,10 +21,10 @@ public class EntityPickupItemListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onPlayerPickupItem(EntityPickupItemEvent e) {
 
-        String mundo = e.getEntity().getWorld().getName();
+        String world = e.getEntity().getWorld().getName();
 
         if (CounterStrike.i.HashWorlds != null) {
-            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
             if (md != null && !md.modoCs) {
                 return;
@@ -52,6 +50,7 @@ public class EntityPickupItemListener implements Listener {
 
             if (Weapon.isWeapon(item)) {
                 Weapon weapon = Weapon.getByItem(item);
+
                 switch (weapon.getWeaponType()) {
                     case RIFLE:
                         if (p.getInventory().getItem(0) == null) {
@@ -59,6 +58,7 @@ public class EntityPickupItemListener implements Listener {
                             p.getInventory().setItem(0, item);
                         }
                         e.setCancelled(true);
+                        break;
 
                     case PISTOL:
                         if (p.getInventory().getItem(1) == null) {
@@ -66,12 +66,14 @@ public class EntityPickupItemListener implements Listener {
                             p.getInventory().setItem(1, item);
                         }
                         e.setCancelled(true);
+                        break;
 
                     case GRENADE:
                         break;
 
                     default:
                         e.setCancelled(true);
+                        break;
                 }
 
             }

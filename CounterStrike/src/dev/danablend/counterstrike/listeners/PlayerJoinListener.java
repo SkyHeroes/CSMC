@@ -3,7 +3,7 @@ package dev.danablend.counterstrike.listeners;
 import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
-import dev.danablend.counterstrike.database.Mundos;
+import dev.danablend.counterstrike.database.Worlds;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import dev.danablend.counterstrike.utils.Utils;
 import org.bukkit.ChatColor;
@@ -37,10 +37,10 @@ public class PlayerJoinListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onPlayerResourcePackStatusEvent(PlayerResourcePackStatusEvent event) {
         Player player = event.getPlayer();
-        String mundo = player.getWorld().getName();
+        String world = player.getWorld().getName();
 
         if (CounterStrike.i.HashWorlds != null) {
-            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
             if (md != null && !md.modoCs) {
                 if (plugin.ResourseHash.get(player.getName() + "RES") == null) {
@@ -50,7 +50,7 @@ public class PlayerJoinListener implements Listener {
         }
 
         if (!event.getStatus().equals(ACCEPTED) && !event.getStatus().equals(SUCCESSFULLY_LOADED)) {
-            Utils.debug("Estado de carregamento " + event.getStatus());
+            Utils.debug("Loading resource status " + event.getStatus());
 
             //goes back in loaded resource pack
             if (plugin.ResourseHash.get(player.getName() + "RES") == null || plugin.ResourseHash.get(player.getName() + "RES") == "DEFAULT") {
@@ -67,10 +67,10 @@ public class PlayerJoinListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void playerJoinEvent(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        String mundo = player.getWorld().getName();
+        String world = player.getWorld().getName();
 
         if (plugin.HashWorlds != null) {
-            Mundos md = (Mundos) plugin.HashWorlds.get(mundo);
+            Worlds md = (Worlds) plugin.HashWorlds.get(world);
 
             if (md != null && !md.modoCs) {
                 return;
@@ -78,10 +78,10 @@ public class PlayerJoinListener implements Listener {
         }
 
         if (plugin.HashWorlds != null) {
-            Object obj = plugin.HashWorlds.get(mundo);
+            Object obj = plugin.HashWorlds.get(world);
 
             if (obj != null) {
-                Mundos md = (Mundos) obj;
+                Worlds md = (Worlds) obj;
 
                 if (md != null && !md.modoCs) {
                     player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20);
@@ -93,7 +93,7 @@ public class PlayerJoinListener implements Listener {
         }
 
         if (!plugin.getPlayerUpdater().playersWithScoreboard.contains(player.getUniqueId())) {
-            Utils.debug("#### Player " + player.getName() + " entered to lobby");
+            Utils.debug("#### Player " + player.getName() + " entered the lobby");
             plugin.myBukkit.runTask(player, null, null, () -> player.teleportAsync(plugin.getLobbyLocation()));
 
             if (plugin.getCSPlayers().size() >= MAX_PLAYERS) {
@@ -107,7 +107,7 @@ public class PlayerJoinListener implements Listener {
                 player.setGameMode(GameMode.SURVIVAL);
                 player.getInventory().clear();
                 player.getInventory().setArmorContents(null);
-                player.setFoodLevel(8); //era 6
+                player.setFoodLevel(8); //was 6
                 player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40);
                 player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
             }
@@ -119,7 +119,7 @@ public class PlayerJoinListener implements Listener {
 
             plugin.returnPlayertoGame(csplayer);
 
-            PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "Get ready", ChatColor.RED + "You will resume plaing in next round!", 1, 8, 1);
+            PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "Get ready", ChatColor.RED + "You will resume playing in next round!", 1, 8, 1);
         }
 
     }
@@ -128,8 +128,8 @@ public class PlayerJoinListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void playerQuitEvent(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        String mundo = player.getWorld().getName();
-        Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+        String world = player.getWorld().getName();
+        Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
         plugin.ResourseHash.remove(player.getName() + "RES");
 
@@ -153,26 +153,26 @@ public class PlayerJoinListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void playerChangedWorldEvent(PlayerChangedWorldEvent event) {
         Player player = event.getPlayer();
-        String mundo = player.getWorld().getName();
-        Mundos md = null;
+        String world = player.getWorld().getName();
+        Worlds md = null;
 
         if (CounterStrike.i.HashWorlds != null) {
-            Object obj = plugin.HashWorlds.get(mundo);
+            Object obj = plugin.HashWorlds.get(world);
 
             if (obj == null) {
                 return; //no support without a map mapping
             } else {
-                md = (Mundos) obj;
+                md = (Worlds) obj;
             }
         }
 
-        Utils.debug("#### Player " + player.getName() + " changes world from " + event.getFrom().getName() + " to " + mundo);
+        Utils.debug("#### Player " + player.getName() + " changed world from " + event.getFrom().getName() + " to " + world);
 
         if (md != null && !md.modoCs) { //Leaving CSMC map
 
             Object md_old = plugin.HashWorlds.get(event.getFrom().getName());
 
-            if (md_old != null && ((Mundos) md_old).modoCs) {
+            if (md_old != null && ((Worlds) md_old).modoCs) {
 
                 CSPlayer csplayer = plugin.getCSPlayer(event.getPlayer(), false, null);
 
@@ -212,7 +212,7 @@ public class PlayerJoinListener implements Listener {
             player.setGameMode(GameMode.SURVIVAL);
             player.getInventory().clear();
             player.getInventory().setArmorContents(null);
-            player.setFoodLevel(8); //era 6
+            player.setFoodLevel(8); //was 6
             player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40);
             player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
         }

@@ -1,8 +1,7 @@
 package dev.danablend.counterstrike.listeners;
 
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.database.Mundos;
-import dev.danablend.counterstrike.utils.Utils;
+import dev.danablend.counterstrike.database.Worlds;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,10 +15,10 @@ public class PlayerChatControlListener implements Listener {
     public void onPlayerChat(@NotNull AsyncPlayerChatEvent chat) {
 
         Player player = chat.getPlayer();
-        String mundo = player.getWorld().getName();
+        String world = player.getWorld().getName();
 
         if (CounterStrike.i.HashWorlds != null) {
-            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
             if (md != null && !md.modoCs) {
                 return;
@@ -33,8 +32,7 @@ public class PlayerChatControlListener implements Listener {
 
         //dead players don't talk
         if (player.getGameMode() == GameMode.SPECTATOR) {
-        //  chat.callEvent();
-            chat.setMessage("");
+            chat.setCancelled(true);
         }
     }
 

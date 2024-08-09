@@ -4,11 +4,10 @@ import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
-import dev.danablend.counterstrike.database.Mundos;
+import dev.danablend.counterstrike.database.Worlds;
 import dev.danablend.counterstrike.runnables.Bomb;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -22,7 +21,7 @@ import static dev.danablend.counterstrike.Config.MAX_ROUNDS;
 
 public class PlayerInteractListener implements Listener {
 
-    CounterStrike plugin;
+    private CounterStrike plugin;
 
     public PlayerInteractListener() {
         this.plugin = CounterStrike.i;
@@ -33,10 +32,10 @@ public class PlayerInteractListener implements Listener {
     public void playerDefuseEvent(PlayerInteractEvent event) {
 
         Player player = event.getPlayer();
-        String mundo = player.getWorld().getName();
+        String world = player.getWorld().getName();
 
         if (CounterStrike.i.HashWorlds != null) {
-            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
             if (md != null && !md.modoCs) {
                 return;

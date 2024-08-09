@@ -11,9 +11,9 @@ public class WeaponFireEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
 
-    Player shooter;
-    Weapon gun;
-    Projectile bullet;
+    private Player shooter;
+    private Weapon gun;
+    private Projectile bullet;
 
 
     public WeaponFireEvent(Player shooter, Weapon gun, Projectile bullet) {

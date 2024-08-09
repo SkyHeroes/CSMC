@@ -22,9 +22,9 @@ public class Bomb {
     public static Bomb bomb = null;
     public static boolean detonated = false;
     private static boolean cleaning = false;
-    Object global;
-    Object bombTask;
-    Object defuseTask;
+    private Object global;
+    private Object bombTask;
+    private Object defuseTask;
     private Location location;
     private Hologram hologram;
     private int countdown;
@@ -116,7 +116,6 @@ public class Bomb {
 
         defuseTask = CounterStrike.i.myBukkit.runTaskTimer(null, location, null, () -> {
             if (location == null || hologram == null) {
-                System.out.println("#################  contingency bomb cleaning");
                 cleanUp();
                 CounterStrike.i.myBukkit.cancelTask(defuseTask);
                 return;
@@ -211,7 +210,6 @@ public class Bomb {
 
         @EventHandler
         private void weaponFire(WeaponFireEvent event) {
-            System.out.println("############## defusing weapon fire event");
 
             CSPlayer csplayer = CounterStrike.i.getCSPlayer(event.getPlayer(), false, null);
 

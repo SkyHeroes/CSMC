@@ -4,10 +4,9 @@ import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
-import dev.danablend.counterstrike.database.Mundos;
+import dev.danablend.counterstrike.database.Worlds;
 import dev.danablend.counterstrike.utils.PlayerUtils;
 import org.bukkit.entity.Chicken;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -20,10 +19,10 @@ public class EntityDamageByEntityListener implements Listener {
 
         if (event.getEntity() instanceof Player) {
             Player victim = (Player) event.getEntity();
-            String mundo = victim.getWorld().getName();
+            String world = victim.getWorld().getName();
 
             if (CounterStrike.i.HashWorlds != null) {
-                Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+                Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
                 if (md != null && !md.modoCs) {
                     return;

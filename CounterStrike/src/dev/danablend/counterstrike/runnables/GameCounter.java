@@ -27,10 +27,10 @@ public class GameCounter {
         }
     }
 
-    //CouterStrike->GameCounter (aguarda que jogadores digam que querem jogar)->GameStarter (espera pelo minimo de jogadores e passa a starting)->GameTimer
-    //  GameState.LOBBY    - qd jogadores entram, depois de terminar qd jogadores ficam em espera ou qd nao tem jogadores a jogar
-    //  GameState.WAITING  - qd aguarda que cheguem mais jogadores em GameCounter
-    //  GameState.STARTING - qd esta memso a começar, qd arrnaca GameStarter
+    // CouterStrike->GameCounter (waits for players to join the game - WAITING)->GameStarter (waits for mininum players to start countdown and passes to STARTING)->GameTimer
+    //  GameState.LOBBY    - when players join the server but haven't join the CS game, also after game finishs
+    //  GameState.WAITING  - when waiting for more players to join before start in GameCounter
+    //  GameState.STARTING - when it is starting will fire GameStarter
 
     public void run() {
 

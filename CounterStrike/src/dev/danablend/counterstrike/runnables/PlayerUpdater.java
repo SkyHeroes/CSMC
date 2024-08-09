@@ -85,7 +85,7 @@ public class PlayerUpdater extends BukkitRunnable {
         player.setPlayerListName(ChatColor.valueOf(csplayer.getColour()) + player.getName());
 
         FastBoard board = new FastBoard(player);
-        board.updateTitle(ChatColor.BOLD + "----Miner Strike v" + CounterStrike.i.getDescription().getVersion() + "----");
+        board.updateTitle(ChatColor.BOLD + "----Mine Strike v" + CounterStrike.i.getDescription().getVersion() + "----");
         csplayer.setBoard(board);
 
     }

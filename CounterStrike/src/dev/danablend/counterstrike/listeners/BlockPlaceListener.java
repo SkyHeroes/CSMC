@@ -3,7 +3,7 @@ package dev.danablend.counterstrike.listeners;
 import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
-import dev.danablend.counterstrike.database.Mundos;
+import dev.danablend.counterstrike.database.Worlds;
 import dev.danablend.counterstrike.runnables.Bomb;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -17,10 +17,10 @@ public class BlockPlaceListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void blockPlaceEvent(BlockPlaceEvent event) {
 
-        String mundo = event.getPlayer().getWorld().getName();
+        String world = event.getPlayer().getWorld().getName();
 
         if (CounterStrike.i.HashWorlds != null) {
-            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
             if (md != null && !md.modoCs) {
                 return;

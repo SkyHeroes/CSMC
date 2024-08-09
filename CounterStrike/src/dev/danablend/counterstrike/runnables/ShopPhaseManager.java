@@ -4,7 +4,7 @@ import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
-import dev.danablend.counterstrike.database.Mundos;
+import dev.danablend.counterstrike.database.Worlds;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import dev.danablend.counterstrike.utils.Utils;
 import org.bukkit.Location;
@@ -24,7 +24,6 @@ public class ShopPhaseManager implements Listener {
 
         plugin = myplugin;
         duration = Config.SHOP_PHASE_DURATION;
-        //this.runTaskTimer(CounterStrike.i, 20L, 20L);
         Location local = myplugin.getLobbyLocation();
 
         task = plugin.myBukkit.runTaskTimer(null, local, null, () -> run(), 20L, 20L);
@@ -37,10 +36,10 @@ public class ShopPhaseManager implements Listener {
 
         Player player = e.getPlayer();
 
-        String mundo = player.getWorld().getName();
+        String world = player.getWorld().getName();
 
         if (CounterStrike.i.HashWorlds != null) {
-            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
             if (md != null && !md.modoCs) {
                 Utils.debug("Not a CS Map, aborting");

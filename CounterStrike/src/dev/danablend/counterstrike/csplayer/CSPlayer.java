@@ -28,14 +28,14 @@ public class CSPlayer {
     private Player player;
     private int money;
     private int kills;
-    private int chickenkills;
+    private int chickenKills;
     private int deaths;
     private int assists;
     private int mvp;
     private int tempmvp;
     private TeamEnum team;
     private String colour;
-    private String opponentcolour;
+    private String opponentColour;
     private boolean status = false;
     private Date date = Date.from(Instant.now());
     private FastBoard board;
@@ -222,12 +222,12 @@ public class CSPlayer {
 
     public int getChickenKills() {
         //  Utils.debug("Getting kills for CSPlayer " + player.getName());
-        return chickenkills;
+        return chickenKills;
     }
 
     public void setChickenKills(int kills) {
         //   Utils.debug("Setting kills for CSPlayer " + player.getName());
-        this.chickenkills = kills;
+        this.chickenKills = kills;
     }
 
 
@@ -279,7 +279,7 @@ public class CSPlayer {
     }
 
     public void setColourOpponent(String opponentcolour) {
-        this.opponentcolour = opponentcolour;
+        this.opponentColour = opponentcolour;
     }
 
     public String getColour() {
@@ -287,7 +287,7 @@ public class CSPlayer {
     }
 
     public String getOpponentColour() {
-        return opponentcolour;
+        return opponentColour;
     }
 
     public TeamEnum getTeam() {

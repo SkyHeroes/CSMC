@@ -1,7 +1,7 @@
 package dev.danablend.counterstrike.listeners;
 
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.database.Mundos;
+import dev.danablend.counterstrike.database.Worlds;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,10 +19,10 @@ public class BlockIgniteListener implements Listener {
         Player player = e.getPlayer();
 
         if (player != null) { //might have other origins
-            String mundo = player.getWorld().getName();
+            String world = player.getWorld().getName();
 
             if (CounterStrike.i.HashWorlds != null) {
-                Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+                Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
                 if (md != null && !md.modoCs) {
                     return;

@@ -33,9 +33,6 @@ public class Reloader extends BukkitRunnable {
         player.giveExp(1);
         if (player.getLevel() >= 1) {
             item.setAmount(gun.getAmmunition());
-
-            System.out.println(gun.getAmmunition() + " reload gun " + gun.getMagazineCapacity());
-
             player.setExp(0);
             player.setLevel(0);
             this.cancel();

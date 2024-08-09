@@ -1,7 +1,7 @@
 package dev.danablend.counterstrike.listeners;
 
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.database.Mundos;
+import dev.danablend.counterstrike.database.Worlds;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -11,10 +11,10 @@ public class PlayerDropItemListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void playerItemDropEvent(PlayerDropItemEvent event) {
 
-        String mundo = event.getPlayer().getWorld().getName();
+        String world = event.getPlayer().getWorld().getName();
 
         if (CounterStrike.i.HashWorlds != null) {
-            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
             if (md != null && !md.modoCs) {
                 return;

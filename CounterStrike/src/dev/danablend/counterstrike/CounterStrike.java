@@ -4,7 +4,7 @@ import dev.danablend.counterstrike.commands.CounterStrikeCommand;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.Team;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
-import dev.danablend.counterstrike.database.Mundos;
+import dev.danablend.counterstrike.database.Worlds;
 import dev.danablend.counterstrike.database.SQLiteConnection;
 import dev.danablend.counterstrike.enums.Weapon;
 import dev.danablend.counterstrike.listeners.*;
@@ -13,7 +13,6 @@ import dev.danablend.counterstrike.shop.Shop;
 import dev.danablend.counterstrike.shop.ShopListener;
 import dev.danablend.counterstrike.tests.TestCommand;
 import dev.danablend.counterstrike.utils.*;
-import me.zombie_striker.customitemmanager.CustomItemManager;
 import me.zombie_striker.qg.guns.Gun;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -122,10 +121,10 @@ public class CounterStrike extends JavaPlugin {
             HashWorlds = new Hashtable();
 
             while (rs.next()) {
-                String mundo = rs.getString("nome");
-                Mundos md = new dev.danablend.counterstrike.database.Mundos(rs.getInt("id"), mundo, Boolean.parseBoolean(rs.getString("modoCs")));
-                HashWorlds.put(mundo, md);
-                Utils.debug("Loaded map " + mundo + "  " + md.modoCs);
+                String world = rs.getString("nome");
+                Worlds md = new Worlds(rs.getInt("id"), world, Boolean.parseBoolean(rs.getString("modoCs")));
+                HashWorlds.put(world, md);
+                Utils.debug("Loaded map " + world + "  " + md.modoCs);
             }
             Utils.debug("Loaded maps! ");
         } catch (SQLException e) {
@@ -164,7 +163,7 @@ public class CounterStrike extends JavaPlugin {
                 Object obj = HashWorlds.get(w.getName());
 
                 if (obj != null) {
-                    Mundos md = (Mundos) obj;
+                    Worlds md = (Worlds) obj;
 
                     if (!md.modoCs) {
                         this.myBukkit.runTask(null, null, null, () -> w.setGameRule(GameRule.NATURAL_REGENERATION, true));
@@ -210,7 +209,7 @@ public class CounterStrike extends JavaPlugin {
             if (result == null || result.equals("")) {
                 sqlite.checkLock("update mundos set modocs = 'true' where nome = '" + location.split(",")[0] + "'");
 
-                Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(location.split(",")[0]);
+                Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(location.split(",")[0]);
 
                 if (md != null && !md.modoCs) {
                     md.modoCs = true;
@@ -311,7 +310,7 @@ public class CounterStrike extends JavaPlugin {
                 Object obj = HashWorlds.get(w.getName());
 
                 if (obj != null) {
-                    Mundos md = (Mundos) obj;
+                    Worlds md = (Worlds) obj;
 
                     if (!md.modoCs) {
                         continue;
@@ -392,6 +391,7 @@ public class CounterStrike extends JavaPlugin {
     }
 
 
+    //more customizable configs
     private void setupConfig() {
         FileConfiguration config = getConfig();
         File dataFolder = getDataFolder();
@@ -582,12 +582,12 @@ public class CounterStrike extends JavaPlugin {
             }
         }
 
-        for (Player player : Bukkit.getOnlinePlayers()) {   //quem estiver no mundo de cs é teleportado
+        for (Player player : Bukkit.getOnlinePlayers()) {   //who ever is in a CS world is teleported
 
-            String mundo = player.getWorld().getName();
+            String world = player.getWorld().getName();
 
             if (CounterStrike.i.HashWorlds != null) {
-                Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+                Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
                 if (md != null && !md.modoCs) {
                     continue;
@@ -597,7 +597,7 @@ public class CounterStrike extends JavaPlugin {
             myBukkit.runTask(player, null, null, () -> player.teleportAsync(getLobbyLocation()));
         }
 
-        //usar delay
+        //use delay
         StartGameCounter(Delay);
 
         Utils.debug("Game successfully restarted...");
@@ -615,7 +615,6 @@ public class CounterStrike extends JavaPlugin {
         loserTeam.setWins(0);
         loserTeam.setColour("WHITE");
 
-        // for (Player player : Bukkit.getOnlinePlayers()) {
         for (CSPlayer csPlayer : csPlayers) {
             Player player = csPlayer.getPlayer();
 
@@ -631,10 +630,10 @@ public class CounterStrike extends JavaPlugin {
                 TextComponent component = Component.text(ChatColor.WHITE + player.getName());
                 player.playerListName(component);
 
-                String mundo = player.getWorld().getName();
+                String world = player.getWorld().getName();
 
                 if (CounterStrike.i.HashWorlds != null) {
-                    Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+                    Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
                     if (md != null && !md.modoCs) continue;
                 }
 
@@ -658,7 +657,7 @@ public class CounterStrike extends JavaPlugin {
 
             csPlayer.setColourOpponent(counterTerroristsTeam.getColour());
 
-            //Coloca na base
+            //put in base
             myBukkit.runTask(p, null, null, () -> p.teleportAsync(getTerroristSpawn(true)));
 
             if (p.getInventory().getItem(1) == null || csPlayer.getPistol() == null) {
@@ -675,7 +674,7 @@ public class CounterStrike extends JavaPlugin {
 
             csPlayer.setColourOpponent(terroristsTeam.getColour());
 
-            //Coloca na base
+            //put in base
             myBukkit.runTask(p, null, null, () -> p.teleportAsync(getCounterTerroristSpawn(true)));
 
             if (p.getInventory().getItem(1) == null || csPlayer.getPistol() == null) {
@@ -702,7 +701,7 @@ public class CounterStrike extends JavaPlugin {
             Weapon pistol = cp.getPistol();
 
             if (rifle != null) {
-                me.zombie_striker.qg.guns.Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(rifle.getName());
+                Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(rifle.getName());
                 Gun.updateAmmo(gun, player.getInventory().getItem(0), rifle.getMagazineCapacity());
 
                 Utils.debug(rifle.getMagazineCapacity() + " ###### rifle " + rifle.getName());
@@ -713,7 +712,7 @@ public class CounterStrike extends JavaPlugin {
             }
 
             if (pistol != null) {
-                me.zombie_striker.qg.guns.Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(pistol.getName());
+                Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(pistol.getName());
                 Gun.updateAmmo(gun, player.getInventory().getItem(1), pistol.getMagazineCapacity());
 
                 ItemStack ammo = gun.getAmmoType().getItemStack().clone();
@@ -960,7 +959,7 @@ public class CounterStrike extends JavaPlugin {
 
     public void loadResourcePack(Player player, String resourse, String hash) {
         int delay = 2;
-        Utils.debug("Muda pack para " + resourse);
+        Utils.debug("Change to pack " + resourse);
 
         this.myBukkit.runTaskLater(player, null, null, () -> player.setResourcePack(resourse, hash), delay * 20);
     }

@@ -3,7 +3,7 @@ package dev.danablend.counterstrike.listeners;
 import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
-import dev.danablend.counterstrike.database.Mundos;
+import dev.danablend.counterstrike.database.Worlds;
 import dev.danablend.counterstrike.utils.CSUtil;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import dev.danablend.counterstrike.utils.Utils;
@@ -25,10 +25,10 @@ public class PlayerDeathListener implements Listener {
         Player victim = event.getEntity();
         Player player = event.getPlayer();
 
-        String mundo = victim.getWorld().getName();
+        String world = victim.getWorld().getName();
 
         if (plugin.HashWorlds != null) {
-            Mundos md = (Mundos) plugin.HashWorlds.get(mundo);
+            Worlds md = (Worlds) plugin.HashWorlds.get(world);
 
             if (md != null && !md.modoCs) {
                 return;
@@ -43,7 +43,7 @@ public class PlayerDeathListener implements Listener {
 
         CSPlayer csplayerVictim = plugin.getCSPlayer(victim, false, null);
 
-        //se morreu sozinho
+        //if died alone
         if (csplayerVictim == null) {
 
             for (CSPlayer csplayer : plugin.getCSPlayers()) {

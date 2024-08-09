@@ -1,6 +1,7 @@
 package dev.danablend.counterstrike.enums;
 
 import dev.danablend.counterstrike.csplayer.TeamEnum;
+import me.zombie_striker.qg.guns.Gun;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -42,7 +43,7 @@ public class WeaponQA extends Weapon {
 
         } else {
             item = me.zombie_striker.qg.api.QualityArmory.getGunByName(name);
-            me.zombie_striker.qg.guns.Gun gun = (me.zombie_striker.qg.guns.Gun) item;
+            Gun gun = (Gun) item;
             gun.setMaxBullets(magazineCapacity);
             gun.setReloadingTimeInSeconds(reloadTime);
         }

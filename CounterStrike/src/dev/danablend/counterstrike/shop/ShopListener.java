@@ -5,7 +5,7 @@ import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
-import dev.danablend.counterstrike.database.Mundos;
+import dev.danablend.counterstrike.database.Worlds;
 import dev.danablend.counterstrike.enums.Weapon;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -33,10 +33,10 @@ public class ShopListener implements Listener {
     public void playerInteractEvent(PlayerInteractEvent event) {
         Player player = event.getPlayer();
 
-        String mundo = player.getWorld().getName();
+        String world = player.getWorld().getName();
 
         if (CounterStrike.i.HashWorlds != null) {
-            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
             if (md == null || !md.modoCs) {
                 return;
@@ -102,10 +102,10 @@ public class ShopListener implements Listener {
     @EventHandler
     public void inventoryClickEvent(InventoryClickEvent event) {
 
-        String mundo = event.getWhoClicked().getWorld().getName();
+        String world = event.getWhoClicked().getWorld().getName();
 
         if (CounterStrike.i.HashWorlds != null) {
-            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
             if (md == null || !md.modoCs) {
                 return;
@@ -118,6 +118,16 @@ public class ShopListener implements Listener {
             if (plugin.getGameState() != GameState.SHOP) {
                 player.sendMessage(ChatColor.RED + "Sorry, not in ShopPhase.");
                 return;
+            }
+
+            if (!event.getCurrentItem().equals(CounterStrike.i.getShopItem())) {
+                player.sendMessage("inventory hacker1!?");
+
+            }
+
+            if (!event.getCursor().equals(CounterStrike.i.getShopItem())) {
+                player.sendMessage("inventory hacker2!?");
+
             }
 
             ItemStack clicked = event.getCurrentItem();

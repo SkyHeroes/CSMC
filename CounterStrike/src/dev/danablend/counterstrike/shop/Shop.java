@@ -128,13 +128,11 @@ public class Shop {
                     try {
                         helmetMeta.setColor(mycolor);
                     } catch (Exception e) {
-                        System.out.println(e.getMessage() + " ########### Erro em Item111 " + gun.loadItem());
                     }
                     ItemStack helm = gun.loadItem();
                     helm.setItemMeta(helmetMeta);
                     player.getInventory().setHelmet(helm);
                 } catch (Exception e) {
-                    System.out.println(e.getMessage() + " ########### Erro em Item " + gun.loadItem());
                 }
                 break;
 
@@ -160,7 +158,7 @@ public class Shop {
         }
 
         if (CounterStrike.i.usingQualityArmory() && type != WeaponType.GRENADE && type != WeaponType.HELMET && type != WeaponType.ARMOUR) {
-            me.zombie_striker.qg.guns.Gun gun1 = me.zombie_striker.qg.api.QualityArmory.getGunByName(gun.getName());
+            Gun gun1 = me.zombie_striker.qg.api.QualityArmory.getGunByName(gun.getName());
             Gun.updateAmmo(gun1, player.getInventory().getItem(0), gun.getMagazineCapacity());
 
             ItemStack ammo = me.zombie_striker.qg.api.QualityArmory.getGunByName(gun.getName()).getAmmoType().getItemStack().clone();
@@ -170,13 +168,6 @@ public class Shop {
                 player.getInventory().setItem(6, ammo);
             } else player.getInventory().setItem(7, ammo);
         }
-
-//        me.zombie_striker.qg.guns.Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(pistol.getName());
-//        Gun.updateAmmo(gun, player.getInventory().getItem(1), pistol.getMagazineCapacity());
-//
-//        ItemStack ammo = gun.getAmmoType().getItemStack().clone();
-//        ammo.setAmount((pistol.getMagazines() - 1) * pistol.getMagazineCapacity());
-//        player.getInventory().setItem(7, ammo);
 
         player.sendMessage(ChatColor.GREEN + "You have purchased " + gun.getDisplayName());
         Utils.debug("Purchase of an item has been completed...");

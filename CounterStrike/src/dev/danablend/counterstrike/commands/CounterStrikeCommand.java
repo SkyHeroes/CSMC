@@ -77,7 +77,7 @@ public class CounterStrikeCommand implements CommandExecutor {
             plugin.loadConfigs();
 
             if (Map == null) {
-                player.sendMessage(ChatColor.GOLD + "Map no set, assuming " + world);
+                player.sendMessage(ChatColor.GOLD + "Map not set, assuming " + world);
                 Map = world;
             }
 
@@ -107,11 +107,8 @@ public class CounterStrikeCommand implements CommandExecutor {
                 plugin.saveConfig();
                 plugin.loadConfigs();
 
-//                config.set("maxChunkEntities", Integer.parseInt(valor));
-//                main.saveConfig();
-//
                 if (Map == null) {
-                    player.sendMessage(ChatColor.GOLD + "Map no set, assuming " + world);
+                    player.sendMessage(ChatColor.GOLD + "Map not set, assuming " + world);
                     Map = world;
                 }
 
@@ -134,7 +131,7 @@ public class CounterStrikeCommand implements CommandExecutor {
                 plugin.loadConfigs();
 
                 if (Map == null) {
-                    player.sendMessage(ChatColor.GOLD + "Map no set, assuming " + world);
+                    player.sendMessage(ChatColor.GOLD + "Map not set, assuming " + world);
                     Map = world;
                 }
 

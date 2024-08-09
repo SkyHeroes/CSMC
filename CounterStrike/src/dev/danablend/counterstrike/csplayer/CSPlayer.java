@@ -35,7 +35,8 @@ public class CSPlayer {
     private int tempmvp;
     private TeamEnum team;
     private String colour;
-    private String opponentcolour;
+    private String opponentColour;
+
     private boolean status = false;
     private Date date = Date.from(Instant.now());
     private FastBoard board;

@@ -50,7 +50,7 @@ public class PlayerJoinListener implements Listener {
         }
 
         if (!event.getStatus().equals(ACCEPTED) && !event.getStatus().equals(SUCCESSFULLY_LOADED)) {
-            Utils.debug("Loading resource status " + event.getStatus());
+        //    Utils.debug("Loading resource status " + event.getStatus());
 
             //goes back in loaded resource pack
             if (plugin.ResourseHash.get(player.getName() + "RES") == null || plugin.ResourseHash.get(player.getName() + "RES") == "DEFAULT") {

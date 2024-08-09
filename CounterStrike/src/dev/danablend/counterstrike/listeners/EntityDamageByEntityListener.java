@@ -51,6 +51,7 @@ public class EntityDamageByEntityListener implements Listener {
 
                 if (damager.getInventory().getItemInMainHand().equals(CounterStrike.i.getKnife())) {
 
+                    //player stabded in the back, gives sure death, so using 40 case he has armour
                     if (PlayerUtils.playerBehindPlayer(damager, victim)) {
                         event.setDamage(40);
                     } else {

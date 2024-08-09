@@ -29,7 +29,7 @@ public class PlayerInteractListener implements Listener {
 
 
     @EventHandler(ignoreCancelled = true)
-    public void playerDefuseEvent(PlayerInteractEvent event) {
+    public void onPlayerJoinGame(PlayerInteractEvent event) {
 
         Player player = event.getPlayer();
         String world = player.getWorld().getName();
@@ -95,22 +95,36 @@ public class PlayerInteractListener implements Listener {
 
             plugin.StartGameCounter(0);
 
-            return;
+        }
+    }
+
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerDefuseEvent(PlayerInteractEvent event) {
+
+        Player player = event.getPlayer();
+        String world = player.getWorld().getName();
+
+        if (CounterStrike.i.HashWorlds != null) {
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
+
+            if (md != null && !md.modoCs) {
+                return;
+            }
         }
 
-        if (Bomb.bomb == null) {
-            return;
-        }
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
-            return;
-        }
-        if (csplayer == null || csplayer.getTeam() != TeamEnum.COUNTER_TERRORISTS) {
-            return;
-        }
+        CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
-        Bomb bomb = Bomb.bomb;
+        if (csplayer != null && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 
-        bomb.defuse(csplayer);
+            if (Bomb.bomb == null) return;
+
+            if (csplayer.getTeam() != TeamEnum.COUNTER_TERRORISTS) return;
+
+            Bomb bomb = Bomb.bomb;
+
+            bomb.defuse(csplayer);
+        }
     }
 
 }

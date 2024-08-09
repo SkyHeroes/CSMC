@@ -235,7 +235,7 @@ public class PlayerJoinListener implements Listener {
 
 
     @EventHandler(ignoreCancelled = true)
-    public void onPlayerInteract(PlayerInteractEvent e) {
+    public void onPlayerJoinLobby(PlayerInteractEvent e) {
         Player player = e.getPlayer();
 
         if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {

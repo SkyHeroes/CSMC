@@ -1,7 +1,10 @@
 package dev.danablend.counterstrike.listeners;
 
 import dev.danablend.counterstrike.CounterStrike;
+import dev.danablend.counterstrike.GameState;
+import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.database.Worlds;
+import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -22,11 +25,14 @@ public class BlockBreakListener implements Listener {
             }
         }
 
-/*        if (event.getBlock().getType() == Material.TNT && event.getPlayer().isOp()) {
+        CSPlayer csplayer = CounterStrike.i.getCSPlayer(event.getPlayer(), false, null);
+
+        //if game is in lobby state, any player can break tnt from the maps
+        if (csplayer != null && CounterStrike.i.getGameState().equals(GameState.LOBBY) && event.getBlock().getType() == Material.TNT) {
             CounterStrike.i.myBukkit.runTaskLater(null, event.getBlock().getLocation(), null, () -> {
                 event.getBlock().setType(Material.AIR);
             }, 1);
-        }*/
+        }
 
         event.setCancelled(true);
     }

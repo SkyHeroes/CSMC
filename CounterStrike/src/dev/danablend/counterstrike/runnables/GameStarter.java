@@ -14,16 +14,15 @@ import java.util.Collection;
 
 public class GameStarter {
 
-    public int timeToStart;
-    CounterStrike plugin;
-    Collection<CSPlayer> csPlayers;
-    Object task;
+    private int timeToStart;
+    private CounterStrike plugin;
+    private Collection<CSPlayer> csPlayers;
+    private Object task;
 
     public GameStarter(CounterStrike plugin) {
         this.plugin = plugin;
         csPlayers = plugin.getCSPlayers();
 
-        //opcao se gera sempre ou nao???
         if (plugin.getTerroristsTeam().getWins() + plugin.getTerroristsTeam().getLosses() == 0) {
             plugin.LoadDBRandomMaps();
             timeToStart = 15;
@@ -36,26 +35,8 @@ public class GameStarter {
 
             timeToStart = 6;
         }
-
-//        if (timeToStart == 15) {
-//            for (CSPlayer csplayer : CounterStrike.i.getCSPlayers()) {
-//                Player player = csplayer.getPlayer();
-//
-//                JSONMessage.create("Confirm")
-//                        .color(ChatColor.GREEN)
-//                        .tooltip("Click to confirm join")
-//                        .runCommand("/csmc Ok")
-//                        .then(" or ")
-//                        .color(ChatColor.GRAY)
-//                        .style(ChatColor.BOLD)
-//                        .then("Abort")
-//                        .color(ChatColor.RED)
-//                        .tooltip("Click to leave CSMC game")
-//                        .runCommand("/csmc leave")
-//                        .send(player);
-//            }
-//        }
     }
+
 
     public void setScheduledTask(Object task) {
         this.task = task;

@@ -30,7 +30,7 @@ public class ShopListener implements Listener {
 
 
     @EventHandler(ignoreCancelled = true)
-    public void playerInteractEvent(PlayerInteractEvent event) {
+    public void playerObjectInteractEvent(PlayerInteractEvent event) {
         Player player = event.getPlayer();
 
         String world = player.getWorld().getName();
@@ -73,7 +73,7 @@ public class ShopListener implements Listener {
                 } else {
                     Shop.getShop().openTerroristShop(player);
                 }
-                return;
+
             } else {
                 Action a = event.getAction();
                 Block block = event.getClickedBlock();
@@ -120,14 +120,9 @@ public class ShopListener implements Listener {
                 return;
             }
 
-            if (!event.getCurrentItem().equals(CounterStrike.i.getShopItem())) {
-                player.sendMessage("inventory hacker1!?");
-
-            }
-
-            if (!event.getCursor().equals(CounterStrike.i.getShopItem())) {
-                player.sendMessage("inventory hacker2!?");
-
+            if (!event.getClickedInventory().getType().toString().equals("CHEST")) {
+                event.setCancelled(true);
+                return;
             }
 
             ItemStack clicked = event.getCurrentItem();
@@ -140,8 +135,10 @@ public class ShopListener implements Listener {
                 if (gun != null) {
                     Shop.getShop().purchaseShopItem(player, gun);
                 }
+
             } else if (event.getView().getTitle().equals(Config.counterTerroristShopName)) {
                 event.setCancelled(true);
+
                 Weapon gun = Weapon.getByItem(clicked);
                 if (gun != null) {
                     Shop.getShop().purchaseShopItem(player, gun);
@@ -149,4 +146,5 @@ public class ShopListener implements Listener {
             }
         }
     }
+
 }

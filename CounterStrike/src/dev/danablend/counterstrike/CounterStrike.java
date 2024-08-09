@@ -13,11 +13,12 @@ import dev.danablend.counterstrike.shop.Shop;
 import dev.danablend.counterstrike.shop.ShopListener;
 import dev.danablend.counterstrike.tests.TestCommand;
 import dev.danablend.counterstrike.utils.*;
+import me.zombie_striker.customitemmanager.CustomItemManager;
 import me.zombie_striker.qg.guns.Gun;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.*;
-import org.bukkit.attribute.Attribute;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -26,6 +27,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.Scoreboard;
 
 import java.io.File;
 import java.sql.Connection;
@@ -76,12 +78,14 @@ public class CounterStrike extends JavaPlugin {
         setup();
 
         try {
-            myBukkit.runTaskLater(null, null, null,  () -> new Metrics(this, 22650),5);
-        }
-        catch (Exception e){
+            myBukkit.runTaskLater(null, null, null, () -> new Metrics(this, 22650), 5);
+        } catch (Exception e) {
             getLogger().info(ChatColor.RED + " Failed to register into Bstats");
         }
 
+        Scoreboard board1 = Bukkit.getScoreboardManager().getMainScoreboard();
+        if (board1.getTeam("team1") != null) board1.getTeam("team1").unregister();
+        if (board1.getTeam("team2") != null) board1.getTeam("team2").unregister();
     }
 
     public void onDisable() {
@@ -107,7 +111,7 @@ public class CounterStrike extends JavaPlugin {
         File dataFolder = getDataFolder();
 
         if (!dataFolder.exists()) {
-            dataFolder.mkdir();
+            setupConfig();
         }
 
         sqlite = new SQLiteConnection(getDataFolder(), "CSMC.db");
@@ -184,6 +188,10 @@ public class CounterStrike extends JavaPlugin {
 
         Config c = new Config();
         c.loadWeapons();
+
+        randomMaps = getConfig().getBoolean("randomMaps", false);
+        alwaysDay = getConfig().getBoolean("alwaysDay", true);
+        quitExitGame = getConfig().getBoolean("quitExitGame", false);
 
         new Shop();
 
@@ -297,10 +305,53 @@ public class CounterStrike extends JavaPlugin {
     private void Preparemap() {
         Utils.debug("Preparing map...");
 
+        for (World w : Bukkit.getWorlds()) {
+
+            if (HashWorlds != null) {
+                Object obj = HashWorlds.get(w.getName());
+
+                if (obj != null) {
+                    Mundos md = (Mundos) obj;
+
+                    if (!md.modoCs) {
+                        continue;
+                    }
+                }
+            }
+
+            this.myBukkit.runTask(null, null, null, () -> {
+                if (alwaysDay) {
+                    Utils.debug("No day cicle...");
+                    w.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+                    w.setTime(0);
+                } else {
+                    Utils.debug("With day cicle...");
+                    w.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, true);
+                }
+            });
+        }
+
+        myBukkit.runTask(null, getCounterTerroristSpawn(false), null, () -> {
+            for (Entity ent : this.getCounterTerroristSpawn(false).getWorld().getEntities()) {
+
+                //  Utils.debug(ent.getName() + " bye2" + (ent instanceof Player) + "     " + ent.isDead());
+
+                if (!(ent instanceof Player) && !ent.isDead()) {
+                    //   Utils.debug(ent.getName() + " bye2");
+                    ent.remove();
+                }
+                if (!(ent instanceof Player) && ent.getType().equals(Material.TNT)) {
+                    Utils.debug(ent.getName() + " removes TNT? " + ent.getType());
+                    ent.remove();
+                }
+            }
+        });
+
         myBukkit.runTask(null, getTerroristSpawn(false), null, () -> {
 
             for (Entity ent : this.getTerroristSpawn(false).getWorld().getEntities()) {
                 if (!(ent instanceof Player) && !ent.isDead()) {
+                    //     Utils.debug(ent.getName() + " bye");
                     ent.remove();
                 }
                 if (!(ent instanceof Player) && ent.getType().equals(Material.TNT)) {
@@ -309,57 +360,21 @@ public class CounterStrike extends JavaPlugin {
                 }
             }
 
-        });
 
-
-        for (int n = 1; n <= 3; n++) {
-            getTerroristSpawn(true).getWorld().spawnEntity(getTerroristSpawn(true), EntityType.CHICKEN);
-        }
-
-        for (int n = 1; n <= 3; n++) {
-            getCounterTerroristSpawn(true).getWorld().spawnEntity(getCounterTerroristSpawn(true), EntityType.CHICKEN);
-        }
-
-    }
-
-
-    public void SendOptions(Player player) {
-
-        String result = sqlite.select("select max(id) from CSMaps");
-        String result1;
-        // JSONMessage j = null;
-
-        for (int n = 1; n <= Integer.parseInt(result); n++) {
-
-            result1 = sqlite.select("select descr from CSMaps where id = " + n);
-
-            if (result1 != null && !result1.equals("")) {
-
-//                if (n == 1) {
-//                    j = JSONMessage.create(result1)
-//                            .color(ChatColor.GREEN)
-//                            .tooltip("Click to select map")
-//                            .runCommand("/csmc LoadMap " + result1);
-//                } else {
-//                    j.then(" / ")
-//                            .color(ChatColor.GRAY)
-//                            .style(ChatColor.BOLD)
-//                            .then(result1)
-//                            .color(ChatColor.GREEN)
-//                            .tooltip("Click to select map")
-//                            .runCommand("/csmc LoadMap " + result1);
-//                }
-
+            for (int n = 1; n <= 3; n++) {
+                getTerroristSpawn(true).getWorld().spawnEntity(getTerroristSpawn(true), EntityType.CHICKEN);
             }
 
-        }
+            for (int n = 1; n <= 3; n++) {
+                getCounterTerroristSpawn(true).getWorld().spawnEntity(getCounterTerroristSpawn(true), EntityType.CHICKEN);
+            }
 
-        //      j.send(player);
+        });
 
     }
 
 
-    public void LoadCOnfigs() {
+    public void loadConfigs() {
         this.getConfig().options().copyDefaults(true);
 
         //alrealy loaded map
@@ -370,6 +385,25 @@ public class CounterStrike extends JavaPlugin {
 
         SpawnCounterTerroristsLocation = null;
         SpawnTerroristsLocation = null;
+
+        randomMaps = getConfig().getBoolean("randomMaps", false);
+        alwaysDay = getConfig().getBoolean("alwaysDay", true);
+        quitExitGame = getConfig().getBoolean("quitExitGame", false);
+    }
+
+
+    private void setupConfig() {
+        FileConfiguration config = getConfig();
+        File dataFolder = getDataFolder();
+
+        if (!dataFolder.exists()) dataFolder.mkdir();
+
+        config.addDefault("randomMaps", false);
+        config.addDefault("alwaysDay", true);
+        config.addDefault("quitExitGame", false);
+
+        config.options().copyDefaults(true);
+        saveConfig();
     }
 
 
@@ -396,90 +430,14 @@ public class CounterStrike extends JavaPlugin {
 
     public void startGame() {
         Utils.debug("---> Starting game initiated...");
-        Preparemap();
+
+        Scoreboard board1 = Bukkit.getScoreboardManager().getMainScoreboard();
+        if (board1.getTeam("team1") != null) board1.getTeam("team1").unregister();
+        if (board1.getTeam("team2") != null) board1.getTeam("team2").unregister();
 
         gameState = GameState.STARTING;
 
-        for (CSPlayer csPlayer : terrorists) {
-            Player p = csPlayer.getPlayer();
-
-            csPlayer.setColourOpponent(counterTerroristsTeam.getColour());
-
-            //Coloca na base
-            myBukkit.runTask(p, null, null, () -> p.teleportAsync(getTerroristSpawn(true)));
-
-            if (p.getInventory().getItem(1) == null) {
-                p.getInventory().setItem(1, Weapon.getByName("t-pistol-default").getItem());
-            }
-            giveEquipment(csPlayer);
-            csPlayer.settempMVP(0);
-        }
-
-        for (CSPlayer csPlayer : counterTerrorists) {
-            Player p = csPlayer.getPlayer();
-
-            csPlayer.setColourOpponent(terroristsTeam.getColour());
-
-            //Coloca na base
-            myBukkit.runTask(p, null, null, () -> p.teleportAsync(getCounterTerroristSpawn(true)));
-
-            if (p.getInventory().getItem(1) == null) {
-                p.getInventory().setItem(1, Weapon.getByName("ct-pistol-default").getItem());
-            }
-            giveEquipment(csPlayer);
-            csPlayer.settempMVP(0);
-        }
-
-
-        for (CSPlayer csplayer : getCSPlayers()) {
-            Player player = csplayer.getPlayer();
-
-            // player.setInvisible(false); //esconde o jogador
-            // setPlayerListName  //no Tab
-
-
-            player.hidePlayer(this, player);
-            player.setCustomNameVisible(false);
-
-
-            player.setGameMode(GameMode.SURVIVAL);
-            player.setFlying(false);
-            player.setAllowFlight(false);
-            player.getInventory().setItem(2, getKnife());
-            player.getInventory().setItem(8, getShopItem());
-
-            player.setHealth(40);
-
-            CSPlayer cp = this.getCSPlayer(player, false, null);
-            Weapon rifle = cp.getRifle();
-            Weapon pistol = cp.getPistol();
-
-            if (rifle != null) {
-                me.zombie_striker.qg.guns.Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(rifle.getName());
-                Gun.updateAmmo(gun, player.getInventory().getItem(0), rifle.getMagazineCapacity());
-
-                Utils.debug(rifle.getMagazineCapacity() + " ###### rifle " + rifle.getName());
-
-                ItemStack ammo = gun.getAmmoType().getItemStack().clone();
-                ammo.setAmount((rifle.getMagazines() - 1) * rifle.getMagazineCapacity());
-                player.getInventory().setItem(6, ammo);
-            }
-
-            if (pistol != null) {
-                me.zombie_striker.qg.guns.Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(pistol.getName());
-                Gun.updateAmmo(gun, player.getInventory().getItem(1), pistol.getMagazineCapacity());
-
-                ItemStack ammo = gun.getAmmoType().getItemStack().clone();
-                ammo.setAmount((pistol.getMagazines() - 1) * pistol.getMagazineCapacity());
-                player.getInventory().setItem(7, ammo);
-            }
-
-            player.getInventory().remove(Material.TNT);
-        }
-        if (!terrorists.isEmpty()) {
-            CSPlayer playerWithBomb = (CSPlayer) terrorists.toArray()[new Random().nextInt(terrorists.toArray().length)];
-            playerWithBomb.getPlayer().getInventory().setItem(4, CSUtil.getBombItem());
-        }
+        setupPlayers();
 
         if (Shop == null) {
             Shop = new ShopPhaseManager(this);
@@ -487,6 +445,9 @@ public class CounterStrike extends JavaPlugin {
         } else {
             Utils.debug(" ###### avoided duplication thread to Shop ");
         }
+
+        Preparemap();
+
         Utils.debug("Game successfully started...");
     }
 
@@ -654,7 +615,7 @@ public class CounterStrike extends JavaPlugin {
         loserTeam.setWins(0);
         loserTeam.setColour("WHITE");
 
-       // for (Player player : Bukkit.getOnlinePlayers()) {
+        // for (Player player : Bukkit.getOnlinePlayers()) {
         for (CSPlayer csPlayer : csPlayers) {
             Player player = csPlayer.getPlayer();
 
@@ -688,6 +649,105 @@ public class CounterStrike extends JavaPlugin {
     }
 
 
+    public void setupPlayers() {
+
+        for (CSPlayer csPlayer : terrorists) {
+            Player p = csPlayer.getPlayer();
+
+            setupTeams(p, "team1");
+
+            csPlayer.setColourOpponent(counterTerroristsTeam.getColour());
+
+            //Coloca na base
+            myBukkit.runTask(p, null, null, () -> p.teleportAsync(getTerroristSpawn(true)));
+
+            if (p.getInventory().getItem(1) == null || csPlayer.getPistol() == null) {
+                p.getInventory().setItem(1, Weapon.getByName("t-pistol-default").getItem());
+            }
+            giveEquipment(csPlayer);
+            csPlayer.settempMVP(0);
+        }
+
+        for (CSPlayer csPlayer : counterTerrorists) {
+            Player p = csPlayer.getPlayer();
+
+            setupTeams(p, "team2");
+
+            csPlayer.setColourOpponent(terroristsTeam.getColour());
+
+            //Coloca na base
+            myBukkit.runTask(p, null, null, () -> p.teleportAsync(getCounterTerroristSpawn(true)));
+
+            if (p.getInventory().getItem(1) == null || csPlayer.getPistol() == null) {
+                p.getInventory().setItem(1, Weapon.getByName("ct-pistol-default").getItem());
+            }
+            giveEquipment(csPlayer);
+            csPlayer.settempMVP(0);
+        }
+
+        for (CSPlayer csplayer : getCSPlayers()) {
+            Player player = csplayer.getPlayer();
+
+            player.setGameMode(GameMode.SURVIVAL);
+            player.setFlying(false);
+            player.setAllowFlight(false);
+
+            player.getInventory().setItem(2, getKnife());
+            player.getInventory().setItem(8, getShopItem());
+
+            player.setHealth(40);
+
+            CSPlayer cp = this.getCSPlayer(player, false, null);
+            Weapon rifle = cp.getRifle();
+            Weapon pistol = cp.getPistol();
+
+            if (rifle != null) {
+                me.zombie_striker.qg.guns.Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(rifle.getName());
+                Gun.updateAmmo(gun, player.getInventory().getItem(0), rifle.getMagazineCapacity());
+
+                Utils.debug(rifle.getMagazineCapacity() + " ###### rifle " + rifle.getName());
+
+                ItemStack ammo = gun.getAmmoType().getItemStack().clone();
+                ammo.setAmount((rifle.getMagazines() - 1) * rifle.getMagazineCapacity());
+                player.getInventory().setItem(6, ammo);
+            }
+
+            if (pistol != null) {
+                me.zombie_striker.qg.guns.Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(pistol.getName());
+                Gun.updateAmmo(gun, player.getInventory().getItem(1), pistol.getMagazineCapacity());
+
+                ItemStack ammo = gun.getAmmoType().getItemStack().clone();
+                ammo.setAmount((pistol.getMagazines() - 1) * pistol.getMagazineCapacity());
+                player.getInventory().setItem(7, ammo);
+            }
+
+            player.getInventory().remove(Material.TNT);
+        }
+
+        if (!terrorists.isEmpty()) {
+            CSPlayer playerWithBomb = (CSPlayer) terrorists.toArray()[new Random().nextInt(terrorists.toArray().length)];
+            playerWithBomb.getPlayer().getInventory().setItem(4, CSUtil.getBombItem());
+        }
+
+    }
+
+
+    public void setupTeams(Player p, String team) {
+        Scoreboard board = Bukkit.getScoreboardManager().getMainScoreboard();
+        org.bukkit.scoreboard.Team myTeam = board.getTeam(team);
+
+        if (!myBukkit.isFolia() &&  board != null) {
+            if (myTeam == null) {
+                board.registerNewTeam(team);
+                myTeam = board.getTeam(team);
+                myTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.FOR_OTHER_TEAMS); //the command is hideforotherteams in vanilla
+            }
+
+            myTeam.addEntity(p);
+        }
+    }
+
+
     public GameTimer getGameTimer() {
         return timer;
     }
@@ -697,6 +757,7 @@ public class CounterStrike extends JavaPlugin {
         Utils.debug("Setting game timer...");
         this.timer = gametimer;
     }
+
 
     public CSPlayer getCSPlayer(Player player, boolean create, String colour) {
 
@@ -714,9 +775,11 @@ public class CounterStrike extends JavaPlugin {
         }
     }
 
+
     public Collection<CSPlayer> getCSPlayers() {
         return csPlayers;
     }
+
 
     public Collection<CSPlayer> getCounterTerrorists() {
         Utils.debug("Getting Counter Terrorists...");

@@ -114,65 +114,6 @@ public class Bomb {
         Bukkit.getPluginManager().registerEvents(defuseChecker, CounterStrike.i);
         Player player = csplayer.getPlayer();
 
-//        new BukkitRunnable() {
-//            @Override
-//            public void run() {
-//
-//                if (location == null || hologram == null) {
-//                    System.out.println("#################  contingency bomb cleaning");
-//                    cleanUp();
-//                    this.cancel();
-//                    return;
-//                }
-//
-//                if (defuser == null) {
-//                    HandlerList.unregisterAll(defuseChecker);
-//                    defuseTimeLeft = Config.BOMB_DEFUSE_TIME;
-//                    if (hologram != null)
-//                        ((TextLine) hologram.getLine(2)).setText(ChatColor.GRAY + "(Right click to defuse)");
-//                    this.cancel();
-//                    return;
-//                }
-//
-//                if (player.getLocation().distance(location) > 2 || player.isDead() || player.getGameMode().equals(GameMode.SPECTATOR) || (player.getInventory().getItemInMainHand() != null && !player.getInventory().getItemInMainHand().getType().equals(Material.IRON_AXE))) {
-//                    HandlerList.unregisterAll(defuseChecker);
-//                    defuseTimeLeft = Config.BOMB_DEFUSE_TIME;
-//
-//                    try { //contigency
-//                        if (hologram != null)
-//                            ((TextLine) hologram.getLine(2)).setText(ChatColor.GRAY + "(Right click to defuse)");
-//                    } catch (Exception e) {
-//                    }
-//
-//                    removeDefuser();
-//                    this.cancel();
-//                    return;
-//                }
-//
-//                if (defuseTimeLeft <= 0) {
-//                    HandlerList.unregisterAll(defuseChecker);
-//                    csplayer.settempMVP(csplayer.gettempMVP() + 3);
-//
-//                    CounterStrike.i.restartGame(CounterStrike.i.getCounterTerroristsTeam());
-//                    this.cancel();
-//                    return;
-//                }
-//
-//                if (Bomb.bomb == null) {
-//                    this.cancel();
-//                    return;
-//                }
-//
-//                try { //contigency
-//                    if (hologram != null)
-//                        ((TextLine) hologram.getLine(2)).setText(ChatColor.GREEN + "DEFUSING: " + (new DecimalFormat("##.##").format(defuseTimeLeft)) + " s.");
-//                } catch (Exception e) {
-//                }
-//
-//                defuseTimeLeft -= 5.0D / 20.0D;
-//            }
-//        }.runTaskTimer(CounterStrike.i, 0, 5);
-
         defuseTask = CounterStrike.i.myBukkit.runTaskTimer(null, location, null, () -> {
             if (location == null || hologram == null) {
                 System.out.println("#################  contingency bomb cleaning");
@@ -265,7 +206,6 @@ public class Bomb {
         private CSPlayer defuser;
 
         public DefuseChecker(CSPlayer defuser) {
-            System.out.println("############## new DefuseChecker");
             this.defuser = defuser;
         }
 

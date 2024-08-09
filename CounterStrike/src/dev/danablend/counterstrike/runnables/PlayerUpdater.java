@@ -8,11 +8,13 @@ import dev.danablend.counterstrike.csplayer.TeamEnum;
 import dev.danablend.counterstrike.utils.CSUtil;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import fr.mrmicky.fastboard.FastBoard;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Scoreboard;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -168,6 +170,10 @@ public class PlayerUpdater extends BukkitRunnable {
             if (csplayer == null) {
                 return;
             }
+
+            Scoreboard board1 = Bukkit.getScoreboardManager().getMainScoreboard();
+            if (board1.getTeam("team1") != null) board1.getTeam("team1").unregister();
+            if (board1.getTeam("team2") != null) board1.getTeam("team2").unregister();
 
             FastBoard board = csplayer.returnBoard();
 

@@ -41,7 +41,7 @@ public class GameCounter {
         }
         int serverSize = plugin.getCSPlayers().size();
 
-        if (serverSize == 0  || plugin.getServer().getOnlinePlayers().size() == 0) {
+        if ((serverSize == 0 || plugin.getServer().getOnlinePlayers().size() == 0) && plugin.quitExitGame) {
             Utils.debug("Aborting Counter, no players left");
             CounterStrike.i.gameState = GameState.LOBBY;
             plugin.StopGameCounter();
@@ -51,12 +51,16 @@ public class GameCounter {
         int minPlayers = MIN_PLAYERS;
 
         if (serverSize >= minPlayers) {
-            GameStarter start = new GameStarter(plugin);
-            Object task;
-            task = plugin.myBukkit.runTaskTimer(null, null, null, () -> start.run(), 40L, 20L);
-            start.setScheduledTask(task);
 
-            CounterStrike.i.gameState = GameState.STARTING;
+            if (CounterStrike.i.gameState != GameState.STARTING) {
+                GameStarter start = new GameStarter(plugin);
+                Object task;
+                task = plugin.myBukkit.runTaskTimer(null, null, null, () -> start.run(), 40L, 20L);
+                start.setScheduledTask(task);
+
+                CounterStrike.i.gameState = GameState.STARTING;
+            }
+
             plugin.StopGameCounter();
 
         } else {

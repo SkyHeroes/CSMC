@@ -26,7 +26,7 @@ public class GameTimer {
             return;
         }
 
-        if (serverSize == 0 || plugin.getServer().getOnlinePlayers().size() == 0) {
+        if ((serverSize == 0 || plugin.getServer().getOnlinePlayers().size() == 0) && plugin.quitExitGame) {
             Utils.debug("Aborting game, no players left");
 
             plugin.myBukkit.cancelTask(task);

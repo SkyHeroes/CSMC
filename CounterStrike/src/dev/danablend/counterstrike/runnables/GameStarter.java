@@ -66,7 +66,7 @@ public class GameStarter {
 
         int serverSize = CounterStrike.i.getCSPlayers().size();
 
-        if (serverSize == 0 || plugin.getServer().getOnlinePlayers().size() == 0) {
+        if ((serverSize == 0 || plugin.getServer().getOnlinePlayers().size() == 0) && plugin.quitExitGame ) {
             Utils.debug("Aborting start counter, no players left");
 
             plugin.myBukkit.cancelTask(task);

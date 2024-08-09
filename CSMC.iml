@@ -24,11 +24,9 @@
     <orderEntry type="library" name="paper-api-1.20.2-R0.1-SNAPSHOT" level="project" />
     <orderEntry type="library" name="google.api.client" level="project" />
     <orderEntry type="library" name="net.md.5.bungeecord.api" level="project" />
-    <orderEntry type="library" name="net.kyori.examination.api" level="project" />
-    <orderEntry type="library" name="net.kyori.examination.string" level="project" />
     <orderEntry type="library" name="realityforge.jetbrains.annotations" level="project" />
-    <orderEntry type="library" name="adventure-api-4.14.0" level="project" />
-    <orderEntry type="library" name="adventure-key-4.14.0" level="project" />
     <orderEntry type="library" name="folia-api-1.20.2-R0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="fr.mrmicky.fastboard" level="project" />
+    <orderEntry type="library" name="net.kyori.adventure.api" level="project" />
   </component>
 </module>

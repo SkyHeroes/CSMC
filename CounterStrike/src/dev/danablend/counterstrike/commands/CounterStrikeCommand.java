@@ -2,9 +2,6 @@ package dev.danablend.counterstrike.commands;
 
 import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.GameState;
-import dev.danablend.counterstrike.csplayer.CSPlayer;
-import dev.danablend.counterstrike.shop.Shop;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -50,7 +47,7 @@ public class CounterStrikeCommand implements CommandExecutor {
                 config.options().copyDefaults(true);
 
                 plugin.saveConfig();
-                plugin.LoadCOnfigs();
+                plugin.loadConfigs();
 
                 sender.sendMessage(ChatColor.GOLD + "setMinPlayers to "+  args[1]);
             } else {
@@ -77,7 +74,7 @@ public class CounterStrikeCommand implements CommandExecutor {
             config.options().copyDefaults(true);
 
             plugin.saveConfig();
-            plugin.LoadCOnfigs();
+            plugin.loadConfigs();
 
             if (Map == null) {
                 player.sendMessage(ChatColor.GOLD + "Map no set, assuming " + world);
@@ -108,7 +105,7 @@ public class CounterStrikeCommand implements CommandExecutor {
                 String location = world + "," + x + "," + y + "," + z + "," + yaw + "," + pitch;
                 config.addDefault("spawn-locations.counterterrorist", location);
                 plugin.saveConfig();
-                plugin.LoadCOnfigs();
+                plugin.loadConfigs();
 
 //                config.set("maxChunkEntities", Integer.parseInt(valor));
 //                main.saveConfig();
@@ -134,7 +131,7 @@ public class CounterStrikeCommand implements CommandExecutor {
                 String location = world + "," + x + "," + y + "," + z + "," + yaw + "," + pitch;
                 config.addDefault("spawn-locations.terrorist", location);
                 plugin.saveConfig();
-                plugin.LoadCOnfigs();
+                plugin.loadConfigs();
 
                 if (Map == null) {
                     player.sendMessage(ChatColor.GOLD + "Map no set, assuming " + world);

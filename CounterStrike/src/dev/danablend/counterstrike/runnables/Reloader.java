@@ -22,8 +22,6 @@ public class Reloader extends BukkitRunnable {
         this.ticksTilExperience = (int) Math.round((duration * 20) / 7);
         this.item = player.getInventory().getItemInMainHand();
 
-       // this.runTaskTimer(CounterStrike.i, ticksTilExperience, ticksTilExperience);
-
         reloadTask = CounterStrike.i.myBukkit.runTaskTimer(null, null, null, () -> {
             run();
         }, ticksTilExperience, ticksTilExperience);

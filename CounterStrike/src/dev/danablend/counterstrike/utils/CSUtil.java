@@ -38,8 +38,8 @@ public class CSUtil {
         double player_bodyheight = player.getLocation().getY() + 1.60;
         System.out.println("Body height = " + player_bodyheight);
         System.out.println("Projectile height = " + projectile_height);
+
         if (projectile_height > player_bodyheight) {
-            System.out.println();
             return true;
         }
         return false;

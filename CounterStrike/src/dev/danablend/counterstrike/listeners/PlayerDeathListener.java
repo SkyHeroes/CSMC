@@ -63,7 +63,9 @@ public class PlayerDeathListener implements Listener {
         victim.setHealth(victim.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
         victim.setGameMode(GameMode.SPECTATOR);
 
-        victim.spigot().respawn();
+        plugin.myBukkit.runTaskLater(player, null, null, () -> {
+            victim.spigot().respawn();
+        }, 40L);
 
         victim.sendMessage(ChatColor.RED + "Wait until next round for a respawn.");
         PacketUtils.sendTitleAndSubtitle(victim, ChatColor.RED + "You are dead.", ChatColor.YELLOW + "You will respawn in the next round.", 0, 3, 1);

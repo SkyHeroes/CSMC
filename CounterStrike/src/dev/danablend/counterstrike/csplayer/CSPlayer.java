@@ -1,9 +1,12 @@
 package dev.danablend.counterstrike.csplayer;
 
-import java.time.Instant;
-import java.util.Collection;
-import java.util.Date;
-
+import dev.danablend.counterstrike.Config;
+import dev.danablend.counterstrike.CounterStrike;
+import dev.danablend.counterstrike.enums.Weapon;
+import dev.danablend.counterstrike.runnables.Reloader;
+import dev.danablend.counterstrike.utils.PacketUtils;
+import dev.danablend.counterstrike.utils.Utils;
+import fr.mrmicky.fastboard.FastBoard;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -12,12 +15,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import dev.danablend.counterstrike.Config;
-import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.enums.Weapon;
-import dev.danablend.counterstrike.runnables.Reloader;
-import dev.danablend.counterstrike.utils.PacketUtils;
-import dev.danablend.counterstrike.utils.Utils;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.Date;
 
 public class CSPlayer {
 
@@ -28,18 +28,20 @@ public class CSPlayer {
     private Player player;
     private int money;
     private int kills;
+    private int chickenKills;
     private int deaths;
     private int assists;
     private int mvp;
     private int tempmvp;
     private TeamEnum team;
     private String colour;
-    private String opponentcolour;
+    private String opponentColour;
     private boolean status = false;
     private Date date = Date.from(Instant.now());
+    private FastBoard board;
 
     public CSPlayer(CounterStrike plugin, Player player, String colour) {
-        System.out.println("#### New CSPlayer " + player.getName() + " with requested colour " + colour);
+        Utils.debug("#### New CSPlayer " + player.getName() + " with requested colour " + colour);
 
         csPlayers = plugin.getCSPlayers();
         terrorists = plugin.getTerrorists();
@@ -53,11 +55,11 @@ public class CSPlayer {
 
         if (colour.equals(plugin.getTerroristsTeam().getColour()) && terrorists.size() <= (counterTerrorists.size() + 1)) {
             this.team = TeamEnum.TERRORISTS;
-            System.out.println(player.getName() + " got terr1");
+            Utils.debug(player.getName() + " got terr1");
 
         } else if (colour.equals(plugin.getCounterTerroristsTeam().getColour()) && counterTerrorists.size() <= (terrorists.size() + 1)) {
             this.team = TeamEnum.COUNTER_TERRORISTS;
-            System.out.println(player.getName() + " got CT1");
+            Utils.debug(player.getName() + " got CT1");
 
         } else if (plugin.getTerroristsTeam().getColour().equals("WHITE")) {
             this.team = TeamEnum.TERRORISTS;
@@ -65,7 +67,7 @@ public class CSPlayer {
             if (colour.equals(plugin.getCounterTerroristsTeam().getColour()))
                 colour = "AQUA";
 
-            System.out.println(player.getName() + " got terr2 and colour " + colour);
+            Utils.debug(player.getName() + " got terr2 and colour " + colour);
 
             plugin.getTerroristsTeam().setColour(colour);
 
@@ -75,7 +77,7 @@ public class CSPlayer {
             if (colour.equals(plugin.getCounterTerroristsTeam().getColour()))
                 colour = "AQUA";
 
-            System.out.println(player.getName() + " got CT2 and colour " + colour);
+            Utils.debug(player.getName() + " got CT2 and colour " + colour);
 
             plugin.getCounterTerroristsTeam().setColour(colour);
 
@@ -83,15 +85,16 @@ public class CSPlayer {
             this.team = TeamEnum.TERRORISTS;
             this.colour = plugin.getTerroristsTeam().getColour();
 
-            System.out.println(player.getName() + " got terr3 and colour " + this.colour);
+            Utils.debug(player.getName() + " got terr3 and colour " + this.colour);
 
         } else if (counterTerrorists.size() <= terrorists.size()) {
             this.team = TeamEnum.COUNTER_TERRORISTS;
             this.colour = plugin.getCounterTerroristsTeam().getColour();
 
-            System.out.println(player.getName() + " got CT3 and colour " + this.colour);
+            Utils.debug(player.getName() + " got CT3 and colour " + this.colour);
 
         } else {
+            Utils.debug(player.getName() + " salta return " + colour);
             return;
         }
 
@@ -102,9 +105,13 @@ public class CSPlayer {
         }
         csPlayers.add(this);
 
-        if (plugin.ResourseHash.get(player.getName()) == null) {
-            plugin.ResourseHash.put(player.getName(), true);
-            player.setResourcePack("https://cld.pt/dl/download/28d22674-7bae-43d9-96e1-cd2ae23965c1/QualityArmoryV2.1.9.zip?download=true");
+        Utils.debug(player.getName() + " resource " + plugin.ResourseHash.get(player.getName() + "RES"));
+
+        if (plugin.ResourseHash.get(player.getName() + "RES") == null || plugin.ResourseHash.get(player.getName() + "RES") == "DEFAULT") {
+            plugin.ResourseHash.remove(player.getName() + "RES");
+            plugin.ResourseHash.put(player.getName() + "RES", "QUALITY");
+
+            plugin.loadResourcePack(player, "https://github.com/ZombieStriker/QualityArmory-Resourcepack/releases/download/latest/QualityArmory.zip", "3a34fc09dcc6f009aa05741f8ab487dd17b13eaf");
         }
 
         if (getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
@@ -119,15 +126,16 @@ public class CSPlayer {
     }
 
     public void update() {
+        if (player == null) return;
+
         if (player.getInventory().getItemInMainHand().getType().equals(Material.IRON_AXE)) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 99999, Config.KNIFE_SPEED - 2));
+            CounterStrike.i.myBukkit.runTask(player,null,null, () -> player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 99999, (int) (player.getWalkSpeed() * 0.7))));
         } else {
-            player.removePotionEffect(PotionEffectType.SPEED);
+            CounterStrike.i.myBukkit.runTask(player,null,null, () -> player.removePotionEffect(PotionEffectType.SPEED));
         }
     }
 
     public Location getSpawnLocation() {
-        Utils.debug("Getting spawn location for CSPlayer " + player.getName());
 
         if (getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
             return CounterStrike.i.getCounterTerroristSpawn(true);
@@ -139,16 +147,15 @@ public class CSPlayer {
     }
 
     public void clear() {
-        Utils.debug("Clearing CSPlayer data for " + player.getName());
         boolean test1 = csPlayers.remove(this);
         boolean test2 = terrorists.remove(this);
         boolean test3 = counterTerrorists.remove(this);
-        player = null;
         money = 0;
         kills = 0;
         deaths = 0;
+        Utils.debug("Clearing CSPlayer data for " + player.getName() + "   " + test1 + "    " + test2 + "    " + test3);
+        player = null;
         team = null;
-        System.out.println("#### Clear player " + test1 + "    " + test2 + "    " + test3);
     }
 
     public void reload(ItemStack item) {
@@ -184,28 +191,53 @@ public class CSPlayer {
         return Weapon.getByItem(player.getInventory().getItem(3));
     }
 
+
+    public void setBoard(FastBoard board) {
+        this.board = board;
+    }
+
+    public FastBoard returnBoard() {
+        return board;
+    }
+
     public Player getPlayer() {
-        Utils.debug("Getting player object from CSPlayer " + player.getName());
+        //  Utils.debug("Getting player object from CSPlayer " + player.getName());
         return player;
     }
 
+    public void setPlayer(Player player) {
+        //  Utils.debug("Getting player object from CSPlayer " + player.getName());
+        this.player = player;
+    }
+
     public int getKills() {
-        Utils.debug("Getting kills for CSPlayer " + player.getName());
+        //  Utils.debug("Getting kills for CSPlayer " + player.getName());
         return kills;
     }
 
     public void setKills(int kills) {
-        Utils.debug("Setting kills for CSPlayer " + player.getName());
+        //   Utils.debug("Setting kills for CSPlayer " + player.getName());
         this.kills = kills;
     }
 
+    public int getChickenKills() {
+        //  Utils.debug("Getting kills for CSPlayer " + player.getName());
+        return chickenKills;
+    }
+
+    public void setChickenKills(int kills) {
+        //   Utils.debug("Setting kills for CSPlayer " + player.getName());
+        this.chickenKills = kills;
+    }
+
+
     public int getDeaths() {
-        Utils.debug("Getting deaths for CSPlayer " + player.getName());
+        //  Utils.debug("Getting deaths for CSPlayer " + player.getName());
         return deaths;
     }
 
     public void setDeaths(int deaths) {
-        Utils.debug("Setting deaths for CSPlayer " + player.getName());
+        //  Utils.debug("Setting deaths for CSPlayer " + player.getName());
         this.deaths = deaths;
     }
 
@@ -236,12 +268,18 @@ public class CSPlayer {
 
 
     public int getMoney() {
-        Utils.debug("Getting money for CSPlayer " + player.getName());
+        // Utils.debug("Getting money for CSPlayer " + player.getName());
         return money;
     }
 
+    public void setMoney(int money) {
+        //  Utils.debug("Setting money for CSPlayer " + player.getName());
+        if (money > 16000) money = 16000;
+        this.money = money;
+    }
+
     public void setColourOpponent(String opponentcolour) {
-        this.opponentcolour = opponentcolour;
+        this.opponentColour = opponentcolour;
     }
 
     public String getColour() {
@@ -249,18 +287,11 @@ public class CSPlayer {
     }
 
     public String getOpponentColour() {
-        return opponentcolour;
-    }
-
-
-    public void setMoney(int money) {
-        Utils.debug("Setting money for CSPlayer " + player.getName());
-        if (money > 16000) money = 16000;
-        this.money = money;
+        return opponentColour;
     }
 
     public TeamEnum getTeam() {
-        Utils.debug("Getting team for CSPlayer " + player.getName());
+        // Utils.debug("Getting team for CSPlayer " + player.getName());
         return team;
     }
 

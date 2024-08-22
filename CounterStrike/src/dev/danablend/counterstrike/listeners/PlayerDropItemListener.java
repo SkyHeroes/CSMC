@@ -1,35 +1,35 @@
 package dev.danablend.counterstrike.listeners;
 
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.database.Mundos;
+import dev.danablend.counterstrike.database.Worlds;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerDropItemEvent;
 
 public class PlayerDropItemListener implements Listener {
-	
-	@EventHandler
-	public void playerItemDropEvent(PlayerDropItemEvent event) {
 
-		String mundo = event.getPlayer().getWorld().getName();
+    @EventHandler(ignoreCancelled = true)
+    public void playerItemDropEvent(PlayerDropItemEvent event) {
 
-		if (CounterStrike.i.HashWorlds != null) {
-			Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+        String world = event.getPlayer().getWorld().getName();
 
-			if (md != null && !md.modoCs) {
-				return;
-			}
-		}
+        if (CounterStrike.i.HashWorlds != null) {
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
-		if(!event.getPlayer().isOp()) {
-			int currentSlot = event.getPlayer().getInventory().getHeldItemSlot();
+            if (md != null && !md.modoCs) {
+                return;
+            }
+        }
 
-			if(currentSlot == 0 || currentSlot == 1) {
-				return;
-			}
+        if (!event.getPlayer().isOp()) {
+            int currentSlot = event.getPlayer().getInventory().getHeldItemSlot();
 
-			event.setCancelled(true);
-		}
-	}
-	
+            if (currentSlot == 0 || currentSlot == 1) {
+                return;
+            }
+
+            event.setCancelled(true);
+        }
+    }
+
 }

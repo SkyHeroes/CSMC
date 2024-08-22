@@ -1,15 +1,15 @@
-##################################
-# Counter Strike - CS:GO         #
-# Made by Danablend and barpec12 #
-##################################
+##############################################
+# Counter Strike - CS:GO                     #
+# Made by Danablend, barpec12 and tontito007 #
+##############################################
 # Whether the plugin will start games or not.
 enabled: true
 # Whether the plugin should send debug messages to console or not.
 debug: false
 # The minimum amount of players needed to start a game.
-min-players: 5
+min-players: 4
 # The maximum amount of players allowed into a game.
-max-players: 10
+max-players: 12
 # The amount of rounds team should won to win the whole game. 
 rounds-to-win: 16
 # The amount of maximum rounds in a single game.
@@ -21,7 +21,7 @@ money-on-win-reward: 3000
 # The money that each player on the losing team will get after a loss.
 money-on-loss-reward: 2000
 # The block material you can plant the bomb on.
-bomb-material: BEDROCK
+bomb-block: OBSIDIAN
 # The amount of seconds it should take for the bomb to explode.
 bomb-timer: 45
 # The amount of seconds players have, to buy items from the shop in start of each round.

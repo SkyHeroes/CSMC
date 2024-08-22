@@ -7,7 +7,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -17,11 +16,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * This is a complete JSON message builder class. To create a new JSONMessage do
@@ -1020,15 +1015,6 @@ public class JSONMessage {
         }
 
         /**
-         * @param color The legacy ChatColor to set
-         * @deprecated Use {@link #setColor(String)} instead
-         */
-        @Deprecated
-        public void setLegacyColor(ChatColor color) {
-            legacyColor = color;
-        }
-
-        /**
          * @param color The color to set
          */
         public void setColor(String color) {
@@ -1036,6 +1022,15 @@ public class JSONMessage {
                 throw new IllegalArgumentException("Color cannot be null!");
             }
             this.color = color;
+        }
+
+        /**
+         * @param color The legacy ChatColor to set
+         * @deprecated Use {@link #setColor(String)} instead
+         */
+        @Deprecated
+        public void setLegacyColor(ChatColor color) {
+            legacyColor = color;
         }
 
         /**

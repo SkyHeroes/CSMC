@@ -5,11 +5,12 @@ import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
+import dev.danablend.counterstrike.database.Worlds;
 import dev.danablend.counterstrike.enums.Weapon;
-import dev.danablend.counterstrike.database.Mundos;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -28,14 +29,14 @@ public class ShopListener implements Listener {
     }
 
 
-    @EventHandler
-    public void playerInteractEvent(PlayerInteractEvent event) {
+    @EventHandler(ignoreCancelled = true)
+    public void playerObjectInteractEvent(PlayerInteractEvent event) {
         Player player = event.getPlayer();
 
-        String mundo = player.getWorld().getName();
+        String world = player.getWorld().getName();
 
         if (CounterStrike.i.HashWorlds != null) {
-            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
             if (md == null || !md.modoCs) {
                 return;
@@ -54,13 +55,13 @@ public class ShopListener implements Listener {
             event.setCancelled(true);
             return;
         }
+
+        ItemStack inHandItem = inv.getItemInMainHand();
+
         if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
 
-            // Gun checker
-            ItemStack gunItem = inv.getItemInMainHand();
-
             // Shop Item Checker
-            if (inv.getItemInMainHand().equals(CounterStrike.i.getShopItem())) {
+            if (inHandItem.equals(CounterStrike.i.getShopItem())) {
 
                 if (plugin.getGameState() != GameState.SHOP) {
                     player.sendMessage(ChatColor.RED + "Sorry, not in ShopPhase.");
@@ -72,20 +73,39 @@ public class ShopListener implements Listener {
                 } else {
                     Shop.getShop().openTerroristShop(player);
                 }
+
+            } else {
+                Action a = event.getAction();
+                Block block = event.getClickedBlock();
+                if (block == null) return;
+
+                if (a.equals(Action.RIGHT_CLICK_BLOCK)) {
+
+                    Material mat = block.getType();
+
+                    if (mat == Material.CHEST || mat == Material.SHULKER_BOX) {
+                        event.setCancelled(true);
+
+                    } else if (mat.toString().contains("DOOR") || mat.toString().contains("BUTTON") || mat.toString().contains("PLATE") || mat == Material.LEVER) {
+                        event.setCancelled(true);
+                    }
+
+                } else if (a.equals(Action.LEFT_CLICK_BLOCK) && event.getHand() != null) {
+                    event.setCancelled(true);
+                }
             }
         }
-        if (!event.getPlayer().getInventory().getItemInMainHand().getType().equals(Material.TNT))
-            event.setCancelled(true);
+
     }
 
     //chest selection
     @EventHandler
     public void inventoryClickEvent(InventoryClickEvent event) {
 
-        String mundo = event.getWhoClicked().getWorld().getName();
+        String world = event.getWhoClicked().getWorld().getName();
 
         if (CounterStrike.i.HashWorlds != null) {
-            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
             if (md == null || !md.modoCs) {
                 return;
@@ -100,6 +120,11 @@ public class ShopListener implements Listener {
                 return;
             }
 
+            if (!event.getClickedInventory().getType().toString().equals("CHEST")) {
+                event.setCancelled(true);
+                return;
+            }
+
             ItemStack clicked = event.getCurrentItem();
 
             if (event.getView().getTitle().equals(Config.terroristShopName)) {
@@ -110,8 +135,10 @@ public class ShopListener implements Listener {
                 if (gun != null) {
                     Shop.getShop().purchaseShopItem(player, gun);
                 }
+
             } else if (event.getView().getTitle().equals(Config.counterTerroristShopName)) {
                 event.setCancelled(true);
+
                 Weapon gun = Weapon.getByItem(clicked);
                 if (gun != null) {
                     Shop.getShop().purchaseShopItem(player, gun);
@@ -119,4 +146,5 @@ public class ShopListener implements Listener {
             }
         }
     }
+
 }

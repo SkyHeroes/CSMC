@@ -2,107 +2,109 @@ package dev.danablend.counterstrike.utils;
 
 import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 
 public class PacketUtils {
 
-	/**
-	 * 
-	 * @param player
-	 * @param titleText
-	 * @param subtitleText
-	 * @param fadeInDuration - in seconds
-	 * @param duration - in seconds
-	 * @param fadeOutDuration - in seconds
-	 */
-	public static void sendTitleAndSubtitle(Player player, String titleText, String subtitleText, int fadeInDuration, int duration, int fadeOutDuration) {
-		player.sendTitle(titleText, subtitleText, 20*fadeInDuration, 20*duration, 20*fadeOutDuration);
-	}
-	
-	/**
-	 * 
-	 * @param titleText
-	 * @param subtitleText
-	 * @param fadeInDuration - in seconds
-	 * @param duration - in seconds
-	 * @param fadeOutDuration - in seconds
-	 */
+    /**
+     * @param player
+     * @param titleText
+     * @param subtitleText
+     * @param fadeInDuration  - in seconds
+     * @param duration        - in seconds
+     * @param fadeOutDuration - in seconds
+     */
+    public static void sendTitleAndSubtitle(Player player, String titleText, String subtitleText, int fadeInDuration, int duration, int fadeOutDuration) {
+        player.sendTitle(titleText, subtitleText, 20 * fadeInDuration, 20 * duration, 20 * fadeOutDuration);
+    }
 
-	public static void sendTitleAndSubtitleToInGame(String titleText, String subtitleText, int fadeInDuration, int duration, int fadeOutDuration) {
-		for (CSPlayer csplayer : CounterStrike.i.getCSPlayers()) {
-			sendTitleAndSubtitle(csplayer.getPlayer(), titleText, subtitleText, fadeInDuration, duration, fadeOutDuration);
-		}
-	}
+    /**
+     * @param titleText
+     * @param subtitleText
+     * @param fadeInDuration  - in seconds
+     * @param duration        - in seconds
+     * @param fadeOutDuration - in seconds
+     */
 
-	public static void sendTitleAndSubtitleToWaitingInLobby(String titleText, String subtitleText, int fadeInDuration, int duration, int fadeOutDuration) {
-		for (Player player : Bukkit.getOnlinePlayers()) {
+    public static void sendTitleAndSubtitleToInGame(String titleText, String subtitleText, int fadeInDuration, int duration, int fadeOutDuration) {
+        for (CSPlayer csplayer : CounterStrike.i.getCSPlayers()) {
+            sendTitleAndSubtitle(csplayer.getPlayer(), titleText, subtitleText, fadeInDuration, duration, fadeOutDuration);
+        }
+    }
 
-			CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
+    public static void sendTitleAndSubtitleToWaitingInLobby(String titleText, String subtitleText, int fadeInDuration, int duration, int fadeOutDuration) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
 
-			if (csplayer == null && InLocation(player)) {
-				sendTitleAndSubtitle(player, titleText, subtitleText, fadeInDuration, duration, fadeOutDuration);
-			}
-		}
-	}
+            CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
-	public static void sendTitleAndSubtitleToAll(String titleText, String subtitleText, int fadeInDuration, int duration, int fadeOutDuration) {
-		for(Player player : Bukkit.getOnlinePlayers()) {
-			sendTitleAndSubtitle(player, titleText, subtitleText, fadeInDuration, duration, fadeOutDuration);
-		}
-	}
+            if (csplayer == null && isInLobbyLocation(player)) {
+                sendTitleAndSubtitle(player, titleText, subtitleText, fadeInDuration, duration, fadeOutDuration);
+            }
+        }
+    }
+
+    public static void sendTitleAndSubtitleToAll(String titleText, String subtitleText, int fadeInDuration, int duration, int fadeOutDuration) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            sendTitleAndSubtitle(player, titleText, subtitleText, fadeInDuration, duration, fadeOutDuration);
+        }
+    }
 
 
+    public static void sendActionBarToInGame(String text) {
+        for (CSPlayer csplayer : CounterStrike.i.getCSPlayers()) {
+            sendActionBar(csplayer.getPlayer(), text);
+        }
+    }
 
-	public static void sendActionBarToInGame(String text, int duration) {
-		for (CSPlayer csplayer : CounterStrike.i.getCSPlayers()) {
-			sendActionBar(csplayer.getPlayer(), text, duration);
-		}
-	}
+    public static void sendActionBarToWaitingInLobby(String text) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
 
-	public static void sendActionBarToWaitingInLobby(String text, int duration) {
-		for (Player player : Bukkit.getOnlinePlayers()) {
+            CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
-			CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
+            if (csplayer == null && isInLobbyLocation(player)) {
+                sendActionBar(player, text);
+            }
+        }
+    }
 
-			if (csplayer == null && InLocation(player)) {
-				sendActionBar(player, text, duration);
-			}
-		}
-	}
+    public static void sendActionBarToAll(String text) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            sendActionBar(player, text);
+        }
+    }
 
-	public static void sendActionBarToAll(String text, int duration) {
-		for (Player player : Bukkit.getOnlinePlayers()) {
-			sendActionBar(player, text, duration);
-		}
-	}
+    public static void sendActionBar(Player player, String text1) {
+        final TextComponent component = Component.text(text1);
 
-	public static void sendActionBar(Player player, String text, int duration) {
-		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(text));
-	}
+        player.sendActionBar(component);
+
+        //player.sendMessage(ChatMessageType.ACTION_BAR, TextComponent..fromLegacyText(text));
+    }
 
 
-	private static Boolean InLocation(Player p) {
+    private static Boolean isInLobbyLocation(Player p) {
+        if (CounterStrike.i.getLobbyLocation() == null) return false;
 
-		Location locRaw = CounterStrike.i.getLobbyLocation();
+        Location locRaw = CounterStrike.i.getLobbyLocation();
 
-		Integer xx = locRaw.getBlockX();
-		Integer zz = locRaw.getBlockZ();
-		Location loc = p.getLocation();
-		Integer x = loc.getBlockX();
-		Integer z = loc.getBlockZ();
+        Integer xx = locRaw.getBlockX();
+        Integer zz = locRaw.getBlockZ();
+        Location loc = p.getLocation();
+        Integer x = loc.getBlockX();
+        Integer z = loc.getBlockZ();
 
-		if (x > (xx - 20) && x < (xx + 20)) {
-			if (z > (zz - 20) && z < (zz + 20)) {
-				return true;
-			}
-		}
+        if (x > (xx - 20) && x < (xx + 20)) {
+            if (z > (zz - 20) && z < (zz + 20)) {
+                return true;
+            }
+        }
 
-		return false;
-	}
+        return false;
+    }
 
 }

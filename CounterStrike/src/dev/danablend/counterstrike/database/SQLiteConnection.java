@@ -1,21 +1,21 @@
 package dev.danablend.counterstrike.database;
 
 
+import dev.danablend.counterstrike.utils.Utils;
 import org.bukkit.Bukkit;
-import org.bukkit.GameRule;
 import org.bukkit.World;
-import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.*;
+import java.io.File;
 import java.sql.*;
 
 
-public  class SQLiteConnection {
+public class SQLiteConnection {
     private final File path;
     private String BDName;
 
-   public SQLiteConnection(File path, String BDName) {
-       this.path = path;
+
+    public SQLiteConnection(File path, String BDName) {
+        this.path = path;
         this.BDName = BDName;
         initDB();
     }
@@ -32,7 +32,7 @@ public  class SQLiteConnection {
         try {
             conn = DriverManager.getConnection(url);
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            Utils.debug("Coul not start driver " + e.getMessage());
         }
         return conn;
     }
@@ -40,7 +40,7 @@ public  class SQLiteConnection {
 
     public String select(String sql) {
 
-        try (Connection conn = this.connect();
+        try (Connection conn = connect();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
@@ -60,7 +60,7 @@ public  class SQLiteConnection {
             }
 
         } catch (SQLException e) {
-            System.out.println(sql + "  Error in select: " + e.getMessage());
+            Utils.debug(sql + "  Error in select: " + e.getMessage());
         }
 
         return null;
@@ -69,17 +69,16 @@ public  class SQLiteConnection {
 
     public Integer checkLock(String sql) {
 
-        try (Connection conn = this.connect();
+        try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             return pstmt.executeUpdate();
 
         } catch (SQLException e) {
-            System.out.println(sql + "  Error in checklock:   " + e.getMessage());
+            Utils.debug(sql + "  Error in checklock:   " + e.getMessage());
         }
 
         return -1;
     }
-
 
 
     private void initDB() {
@@ -94,11 +93,13 @@ public  class SQLiteConnection {
 
     private void createNewDatabase() {
 
-        try (Connection conn = this.connect()) {
+        try (Connection conn = connect()) {
             if (conn != null) {
                 DatabaseMetaData meta = conn.getMetaData();
-                System.out.println("The driver name is " + meta.getDriverName());
-                System.out.println("A new database has been created.");
+                Utils.debug("The driver name is " + meta.getDriverName());
+                Utils.debug("A new database has been created.");
+            } else {
+                Utils.debug("Failed to create connection");
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -109,7 +110,7 @@ public  class SQLiteConnection {
     private void createNewTable() {
 
         // SQL statement for creating a new table
-       String sql = "CREATE TABLE IF NOT EXISTS mundos (\n"
+        String sql = "CREATE TABLE IF NOT EXISTS mundos (\n"
                 + "	id integer PRIMARY KEY,\n"
                 + "	nome VARCHAR(255) NOT NULL,\n"
                 + "	modoCs TINYINT\n"
@@ -121,16 +122,16 @@ public  class SQLiteConnection {
             stmt.execute(sql);
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            Utils.debug("Error initing DB " + e.getMessage());
         }
 
         sql = "CREATE TABLE CSMaps (\n"
-            + "id	INTEGER NOT NULL,\n"
-            + "Descr	varchar(50) NOT NULL,\n"
-            + "SpawnLobby	TEXT,\n"
-            + "SpawnTerrorists	TEXT,\n"
-            + "SpawnCounter	TEXT,\n"
-            + "PRIMARY KEY(id AUTOINCREMENT)\n);";
+                + "id	INTEGER NOT NULL,\n"
+                + "Descr	varchar(50) NOT NULL,\n"
+                + "SpawnLobby	TEXT,\n"
+                + "SpawnTerrorists	TEXT,\n"
+                + "SpawnCounter	TEXT,\n"
+                + "PRIMARY KEY(id AUTOINCREMENT)\n);";
 
         try (Connection conn = this.connect();
              Statement stmt = conn.createStatement()) {

@@ -1,45 +1,41 @@
 package dev.danablend.counterstrike.runnables;
 
-import java.text.DecimalFormat;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Effect;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import com.gmail.filoghost.holographicdisplays.api.Hologram;
+import com.gmail.filoghost.holographicdisplays.api.line.TextLine;
+import dev.danablend.counterstrike.Config;
+import dev.danablend.counterstrike.CounterStrike;
+import dev.danablend.counterstrike.GameState;
+import dev.danablend.counterstrike.csplayer.CSPlayer;
+import dev.danablend.counterstrike.events.WeaponFireEvent;
+import dev.danablend.counterstrike.utils.PacketUtils;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 
-import com.gmail.filoghost.holographicdisplays.api.Hologram;
-import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
-import com.gmail.filoghost.holographicdisplays.api.line.TextLine;
+import java.text.DecimalFormat;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import dev.danablend.counterstrike.Config;
-import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.csplayer.CSPlayer;
-import dev.danablend.counterstrike.events.WeaponFireEvent;
-import dev.danablend.counterstrike.utils.PacketUtils;
-
-public class Bomb extends BukkitRunnable {
+public class Bomb {
 
     public static Bomb bomb = null;
     public static boolean detonated = false;
-
+    private static boolean cleaning = false;
+    private Object global;
+    private Object bombTask;
+    private Object defuseTask;
     private Location location;
     private Hologram hologram;
     private int countdown;
     private float defuseTimeLeft;
     private CSPlayer defuser;
-    private static boolean cleaning = false;
 
     public Bomb(GameTimer timer, int countdown, Location location) {
         bomb = this;
-        timer.cancel();
+
+        if (global != null) CounterStrike.i.myBukkit.cancelTask(global);
+
         cleaning = false;
         detonated = false;
         location.getBlock().setType(Material.TNT);
@@ -47,26 +43,49 @@ public class Bomb extends BukkitRunnable {
         this.defuseTimeLeft = Config.BOMB_DEFUSE_TIME;
         this.defuser = null;
         this.location = location;
-        this.hologram = HologramsAPI.createHologram(CounterStrike.i, location.clone().add(0.5, 2.25, 0.5));
-        hologram.appendTextLine(ChatColor.RED + "Bomb");
-        hologram.appendTextLine(ChatColor.YELLOW + "Exploding in " + countdown + " seconds.");
-        hologram.appendTextLine(ChatColor.GRAY + "(Right click to defuse)");
+
+        CounterStrike.i.gameState = GameState.PLANTED;
+
+        try {
+//            this.hologram = HologramsAPI.createHologram(CounterStrike.i, location.clone().add(0.5, 2.25, 0.5));
+//            hologram.appendTextLine(ChatColor.RED + "Bomb");
+//            hologram.appendTextLine(ChatColor.YELLOW + "Exploding in " + countdown + " seconds.");
+//            hologram.appendTextLine(ChatColor.GRAY + "(Right click to defuse)");
+        } catch (Exception e) {
+        }
+
         PacketUtils.sendTitleAndSubtitleToInGame(ChatColor.YELLOW + "The bomb has been planted", ChatColor.YELLOW + "It will explode in " + Config.BOMB_TIMER + " seconds", 0, 2, 0);
     }
 
-    @Override
+    public static void cleanUp() {
+        cleaning = true;
+        bomb = null;
+        detonated = false;
+    }
+
+
     public void run() {
         if (cleaning) {
-            this.cancel();
-            hologram.delete();
-            location.getBlock().setType(Material.AIR);
+            CounterStrike.i.myBukkit.cancelTask(global);
+
+            if (hologram != null) hologram.delete();
+
+            CounterStrike.i.myBukkit.runTaskLater(null, location, null, () -> {
+                location.getBlock().setType(Material.AIR);
+            }, 1);
+
             return;
         }
         countdown--;
-        ((TextLine) hologram.getLine(1)).setText(ChatColor.YELLOW + "Exploding in " + countdown + " seconds.");
+
+        try {
+            if (hologram != null)
+                ((TextLine) hologram.getLine(1)).setText(ChatColor.YELLOW + "Exploding in " + countdown + " seconds.");
+        } catch (Exception e) {
+        }
 
         if (countdown <= 0) {
-            this.cancel();
+            CounterStrike.i.myBukkit.cancelTask(global);
             explode();
         } else {
 
@@ -76,8 +95,13 @@ public class Bomb extends BukkitRunnable {
 
             location.getWorld().playSound(location, Sound.UI_BUTTON_CLICK, 2f, 1f);
             location.getWorld().playEffect(location, Effect.CLICK1, 0);
-            PacketUtils.sendActionBarToInGame(ChatColor.RED + "The bomb will explode in " + countdown + " seconds.", 1);
+            PacketUtils.sendActionBarToInGame(ChatColor.RED + "The bomb will explode in " + countdown + " seconds.");
         }
+    }
+
+
+    public void setScheduledTask(Object task) {
+        this.global = task;
     }
 
 
@@ -90,85 +114,85 @@ public class Bomb extends BukkitRunnable {
         Bukkit.getPluginManager().registerEvents(defuseChecker, CounterStrike.i);
         Player player = csplayer.getPlayer();
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-
-                if (location == null || hologram == null) {
-                    System.out.println("#################  contingency bomb cleaning");
-                    cleanUp();
-                    this.cancel();
-                    return;
-                }
-
-                if (defuser == null) {
-                    HandlerList.unregisterAll(defuseChecker);
-                    defuseTimeLeft = Config.BOMB_DEFUSE_TIME;
-                    ((TextLine) hologram.getLine(2)).setText(ChatColor.GRAY + "(Right click to defuse)");
-                    this.cancel();
-                    return;
-                }
-
-                if (player.getLocation().distance(location) > 2 || player.isDead() || player.getGameMode().equals(GameMode.SPECTATOR) || (player.getInventory().getItemInMainHand() != null && !player.getInventory().getItemInMainHand().getType().equals(Material.IRON_AXE))) {
-                    HandlerList.unregisterAll(defuseChecker);
-                    defuseTimeLeft = Config.BOMB_DEFUSE_TIME;
-
-                    try { //contigency
-                        ((TextLine) hologram.getLine(2)).setText(ChatColor.GRAY + "(Right click to defuse)");
-                    } catch (Exception e) {
-                    }
-
-                    removeDefuser();
-                    this.cancel();
-                    return;
-                }
-
-                if (defuseTimeLeft <= 0) {
-                    HandlerList.unregisterAll(defuseChecker);
-                    csplayer.settempMVP(csplayer.gettempMVP() + 3);
-
-                    CounterStrike.i.restartGame(CounterStrike.i.getCounterTerroristsTeam());
-                    this.cancel();
-                    return;
-                }
-
-                if (Bomb.bomb == null) {
-                    this.cancel();
-                    return;
-                }
-                ((TextLine) hologram.getLine(2)).setText(ChatColor.GREEN + "DEFUSING: " + (new DecimalFormat("##.##").format(defuseTimeLeft)) + " s.");
-
-                defuseTimeLeft -= 5.0D / 20.0D;
+        defuseTask = CounterStrike.i.myBukkit.runTaskTimer(null, location, null, () -> {
+            if (location == null || hologram == null) {
+                cleanUp();
+                CounterStrike.i.myBukkit.cancelTask(defuseTask);
+                return;
             }
-        }.runTaskTimer(CounterStrike.i, 0, 5);
+
+            if (defuser == null) {
+                HandlerList.unregisterAll(defuseChecker);
+                defuseTimeLeft = Config.BOMB_DEFUSE_TIME;
+                if (hologram != null)
+                    ((TextLine) hologram.getLine(2)).setText(ChatColor.GRAY + "(Right click to defuse)");
+                CounterStrike.i.myBukkit.cancelTask(defuseTask);
+                return;
+            }
+
+            if (player.getLocation().distance(location) > 2 || player.isDead() || player.getGameMode().equals(GameMode.SPECTATOR) || (player.getInventory().getItemInMainHand() != null && !player.getInventory().getItemInMainHand().getType().equals(Material.IRON_AXE))) {
+                HandlerList.unregisterAll(defuseChecker);
+                defuseTimeLeft = Config.BOMB_DEFUSE_TIME;
+
+                try { //contigency
+                    if (hologram != null)
+                        ((TextLine) hologram.getLine(2)).setText(ChatColor.GRAY + "(Right click to defuse)");
+                } catch (Exception e) {
+                }
+
+                removeDefuser();
+                CounterStrike.i.myBukkit.cancelTask(defuseTask);
+                return;
+            }
+
+            if (defuseTimeLeft <= 0) {
+                HandlerList.unregisterAll(defuseChecker);
+                csplayer.settempMVP(csplayer.gettempMVP() + 3);
+
+                CounterStrike.i.restartGame(CounterStrike.i.getCounterTerroristsTeam());
+                CounterStrike.i.myBukkit.cancelTask(defuseTask);
+                return;
+            }
+
+            if (Bomb.bomb == null) {
+                CounterStrike.i.myBukkit.cancelTask(defuseTask);
+                return;
+            }
+
+            try { //contigency
+                if (hologram != null)
+                    ((TextLine) hologram.getLine(2)).setText(ChatColor.GREEN + "DEFUSING: " + (new DecimalFormat("##.##").format(defuseTimeLeft)) + " s.");
+            } catch (Exception e) {
+            }
+
+            defuseTimeLeft -= 5.0D / 20.0D;
+        }, 1, 5);
+
     }
 
 
     public void explode() {
-        location.getBlock().setType(Material.AIR);
-        hologram.delete();
 
-        new BukkitRunnable() {
-            int counter = 25;
+        CounterStrike.i.myBukkit.runTaskLater(null, location, null, () -> {
+            location.getBlock().setType(Material.AIR);
+        }, 1);
 
-            public void run() {
-                detonated = true;
-                counter--;
-                location.getWorld().createExplosion(location.getX(), location.getY(), location.getZ(), 22, false, false);
+        if (hologram != null) hologram.delete();
 
-                if (counter <= 0) {
-                    this.cancel();
-                    CounterStrike.i.restartGame(CounterStrike.i.getTerroristsTeam());
-                }
+        AtomicInteger counter = new AtomicInteger(25);
+
+        bombTask = CounterStrike.i.myBukkit.runTaskTimer(null, location, null, () -> {
+
+            detonated = true;
+            counter.getAndDecrement();
+            location.getWorld().createExplosion(location.getX(), location.getY(), location.getZ(), 22, false, false);
+
+            if (counter.get() <= 0) {
+                CounterStrike.i.myBukkit.cancelTask(bombTask);
+                CounterStrike.i.restartGame(CounterStrike.i.getTerroristsTeam());
             }
-        }.runTaskTimer(CounterStrike.i, 1L, 1L);
-    }
+        }, 1L, 1L);
 
-
-    public static void cleanUp() {
-        cleaning = true;
-        bomb = null;
-        detonated = false;
     }
 
     private void removeDefuser() {
@@ -186,7 +210,6 @@ public class Bomb extends BukkitRunnable {
 
         @EventHandler
         private void weaponFire(WeaponFireEvent event) {
-            System.out.println("defusing weapon fire event");
 
             CSPlayer csplayer = CounterStrike.i.getCSPlayer(event.getPlayer(), false, null);
 

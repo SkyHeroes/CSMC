@@ -4,9 +4,9 @@ import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
+import dev.danablend.counterstrike.database.Worlds;
 import dev.danablend.counterstrike.runnables.Bomb;
 import dev.danablend.counterstrike.utils.PacketUtils;
-import dev.danablend.counterstrike.database.Mundos;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -21,18 +21,21 @@ import static dev.danablend.counterstrike.Config.MAX_ROUNDS;
 
 public class PlayerInteractListener implements Listener {
 
+    private CounterStrike plugin;
+
     public PlayerInteractListener() {
+        this.plugin = CounterStrike.i;
     }
 
-    @EventHandler
-    public void playerDefuseEvent(PlayerInteractEvent event) {
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerJoinGame(PlayerInteractEvent event) {
 
         Player player = event.getPlayer();
-        String mundo = player.getWorld().getName();
+        String world = player.getWorld().getName();
 
-        //if has generalP loaded
         if (CounterStrike.i.HashWorlds != null) {
-            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
             if (md != null && !md.modoCs) {
                 return;
@@ -89,22 +92,40 @@ public class PlayerInteractListener implements Listener {
             }
 
             csplayer.setColourOpponent(corAdversaria);
-            return;
+
+            plugin.StartGameCounter(0);
+
+        }
+    }
+
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerDefuseEvent(PlayerInteractEvent event) {
+
+        Player player = event.getPlayer();
+        String world = player.getWorld().getName();
+
+        if (CounterStrike.i.HashWorlds != null) {
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
+
+            if (md != null && !md.modoCs) {
+                return;
+            }
         }
 
-        if (Bomb.bomb == null) {
-            return;
-        }
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
-            return;
-        }
-        if (csplayer == null || csplayer.getTeam() != TeamEnum.COUNTER_TERRORISTS) {
-            return;
-        }
+        CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
-        Bomb bomb = Bomb.bomb;
+        if (csplayer != null && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 
-        bomb.defuse(csplayer);
+            if (Bomb.bomb == null) return;
+
+            if (csplayer.getTeam() != TeamEnum.COUNTER_TERRORISTS) return;
+
+            Bomb bomb = Bomb.bomb;
+
+            bomb.defuse(csplayer);
+        }
     }
 
 }
+

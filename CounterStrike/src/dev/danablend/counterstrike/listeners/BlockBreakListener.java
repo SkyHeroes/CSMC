@@ -1,26 +1,37 @@
 package dev.danablend.counterstrike.listeners;
 
-import dev.danablend.counterstrike.database.Mundos;
+import dev.danablend.counterstrike.CounterStrike;
+import dev.danablend.counterstrike.GameState;
+import dev.danablend.counterstrike.csplayer.CSPlayer;
+import dev.danablend.counterstrike.database.Worlds;
+import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 
-import dev.danablend.counterstrike.CounterStrike;
-
 
 public class BlockBreakListener implements Listener {
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void blockBreakEvent(BlockBreakEvent event) {
 
-        String mundo = event.getPlayer().getWorld().getName();
+        String world = event.getPlayer().getWorld().getName();
 
         if (CounterStrike.i.HashWorlds != null) {
-            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
             if (md != null && !md.modoCs) {
                 return;
             }
+        }
+
+        CSPlayer csplayer = CounterStrike.i.getCSPlayer(event.getPlayer(), false, null);
+
+        //if game is in lobby state, any player can break tnt from the maps
+        if (csplayer != null && CounterStrike.i.getGameState().equals(GameState.LOBBY) && event.getBlock().getType() == Material.TNT) {
+            CounterStrike.i.myBukkit.runTaskLater(null, event.getBlock().getLocation(), null, () -> {
+                event.getBlock().setType(Material.AIR);
+            }, 1);
         }
 
         event.setCancelled(true);

@@ -1,6 +1,12 @@
 package dev.danablend.counterstrike.listeners;
 
-import dev.danablend.counterstrike.database.Mundos;
+import dev.danablend.counterstrike.CounterStrike;
+import dev.danablend.counterstrike.csplayer.CSPlayer;
+import dev.danablend.counterstrike.csplayer.TeamEnum;
+import dev.danablend.counterstrike.database.Worlds;
+import dev.danablend.counterstrike.utils.CSUtil;
+import dev.danablend.counterstrike.utils.PacketUtils;
+import dev.danablend.counterstrike.utils.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -11,22 +17,18 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 
-import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.csplayer.CSPlayer;
-import dev.danablend.counterstrike.csplayer.TeamEnum;
-import dev.danablend.counterstrike.utils.CSUtil;
-import dev.danablend.counterstrike.utils.PacketUtils;
-
 public class PlayerDeathListener implements Listener {
+    CounterStrike plugin = CounterStrike.i;
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void playerDeathEvent(PlayerDeathEvent event) {
         Player victim = event.getEntity();
+        Player player = event.getPlayer();
 
-        String mundo = victim.getWorld().getName();
+        String world = victim.getWorld().getName();
 
-        if (CounterStrike.i.HashWorlds != null) {
-            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+        if (plugin.HashWorlds != null) {
+            Worlds md = (Worlds) plugin.HashWorlds.get(world);
 
             if (md != null && !md.modoCs) {
                 return;
@@ -39,9 +41,21 @@ public class PlayerDeathListener implements Listener {
             }
         }
 
-        CSPlayer csplayerVictim = CounterStrike.i.getCSPlayer(victim,false, null);
+        CSPlayer csplayerVictim = plugin.getCSPlayer(victim, false, null);
 
+        //if died alone
         if (csplayerVictim == null) {
+
+            for (CSPlayer csplayer : plugin.getCSPlayers()) {
+                if (csplayer.getPlayer().getUniqueId().equals(player.getUniqueId())) {
+                    Utils.debug("#### Player returns");
+                    plugin.returnPlayertoGame(csplayer);
+                    return;
+                }
+            }
+
+            Utils.debug("#### Player lobby");
+            plugin.myBukkit.runTask(null, plugin.getLobbyLocation(), null, () -> player.teleportAsync(plugin.getLobbyLocation()));
             return;
         }
 
@@ -49,14 +63,16 @@ public class PlayerDeathListener implements Listener {
         victim.setHealth(victim.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
         victim.setGameMode(GameMode.SPECTATOR);
 
-        victim.spigot().respawn();
+        plugin.myBukkit.runTaskLater(player, null, null, () -> {
+            victim.spigot().respawn();
+        }, 40L);
 
         victim.sendMessage(ChatColor.RED + "Wait until next round for a respawn.");
         PacketUtils.sendTitleAndSubtitle(victim, ChatColor.RED + "You are dead.", ChatColor.YELLOW + "You will respawn in the next round.", 0, 3, 1);
 
         try {
             Player killer = victim.getKiller();
-            CSPlayer csplayerKiller = CounterStrike.i.getCSPlayer(killer,false, null);
+            CSPlayer csplayerKiller = CounterStrike.i.getCSPlayer(killer, false, null);
 
             String killerName = (csplayerKiller.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) ? ChatColor.BLUE + killer.getName() : ChatColor.RED + killer.getName();
             csplayerKiller.setMoney(csplayerKiller.getMoney() + 300);

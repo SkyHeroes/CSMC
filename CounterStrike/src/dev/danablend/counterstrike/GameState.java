@@ -1,9 +1,10 @@
 package dev.danablend.counterstrike;
 
 public enum GameState {
-	LOBBY,
-	WAITING,
-	STARTING,
-	SHOP,
-	RUN
+    LOBBY,
+    WAITING,
+    STARTING,
+    SHOP,
+    RUN,
+    PLANTED
 }

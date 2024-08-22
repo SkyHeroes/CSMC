@@ -1,7 +1,7 @@
 package dev.danablend.counterstrike.listeners;
 
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.database.Mundos;
+import dev.danablend.counterstrike.database.Worlds;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,15 +13,15 @@ import org.bukkit.event.inventory.InventoryClickEvent;
  */
 public class InventoryClickListener implements Listener {
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onInventoryClick(InventoryClickEvent e) {
 
         Player p = (Player) e.getWhoClicked();
 
-        String mundo = p.getPlayer().getWorld().getName();
+        String world = p.getPlayer().getWorld().getName();
 
         if (CounterStrike.i.HashWorlds != null) {
-            Mundos md = (Mundos) CounterStrike.i.HashWorlds.get(mundo);
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
             if (md != null && !md.modoCs) {
                 return;

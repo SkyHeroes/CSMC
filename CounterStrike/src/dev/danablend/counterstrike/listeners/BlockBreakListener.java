@@ -27,8 +27,8 @@ public class BlockBreakListener implements Listener {
 
         CSPlayer csplayer = CounterStrike.i.getCSPlayer(event.getPlayer(), false, null);
 
-        //if game is in lobby state, any player can break tnt from the maps
-        if (csplayer != null && CounterStrike.i.getGameState().equals(GameState.LOBBY) && event.getBlock().getType() == Material.TNT) {
+        //if game is not in bomb planted state, any player can break tnt from the maps
+        if (csplayer != null && CounterStrike.i.gameState != GameState.PLANTED && event.getBlock().getType() == Material.TNT) {
             CounterStrike.i.myBukkit.runTaskLater(null, event.getBlock().getLocation(), null, () -> {
                 event.getBlock().setType(Material.AIR);
             }, 1);

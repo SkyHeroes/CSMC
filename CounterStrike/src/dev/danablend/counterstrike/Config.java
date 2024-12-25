@@ -9,8 +9,6 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
-import java.io.File;
-
 public class Config {
 
     public static final String counterTerroristShopName = "Buy Menu - Counter Terrorist";

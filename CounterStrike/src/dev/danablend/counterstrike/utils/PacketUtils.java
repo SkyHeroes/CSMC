@@ -2,8 +2,6 @@ package dev.danablend.counterstrike.utils;
 
 import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -79,11 +77,7 @@ public class PacketUtils {
     }
 
     public static void sendActionBar(Player player, String text1) {
-        final TextComponent component = Component.text(text1);
-
-        player.sendActionBar(component);
-
-        //player.sendMessage(ChatMessageType.ACTION_BAR, TextComponent..fromLegacyText(text));
+        CounterStrike.i.myBukkit.sendActionBar(player, text1);
     }
 
 

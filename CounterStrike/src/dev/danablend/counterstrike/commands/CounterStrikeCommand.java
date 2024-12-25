@@ -27,14 +27,12 @@ public class CounterStrikeCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-        if (args.length == 2 && args[0].equalsIgnoreCase("LoadMap")) {
+        if (args.length == 1 && args[0].equalsIgnoreCase("setRandMap")) {
 
-            if (this.plugin.getGameState().equals(GameState.LOBBY) || this.plugin.getGameState().equals(GameState.WAITING) ) {
-                this.plugin.Map = args[1];
-
-                this.plugin.LoadDBMapConfigs(this.plugin.Map);
+            if (this.plugin.getGameState().equals(GameState.LOBBY) || this.plugin.getGameState().equals(GameState.WAITING) || this.plugin.getGameState().equals(GameState.STARTING)) {
+                this.plugin.LoadDBRandomMaps();
             } else {
-                sender.sendMessage(ChatColor.LIGHT_PURPLE + "Too late to change map ");
+                sender.sendMessage(ChatColor.LIGHT_PURPLE + "Too late to change map " + this.plugin.getGameState());
             }
             return true;
         }
@@ -43,13 +41,13 @@ public class CounterStrikeCommand implements CommandExecutor {
 
             if (this.plugin.getGameState().equals(GameState.LOBBY) || this.plugin.getGameState().equals(GameState.WAITING)) {
                 config.addDefault("min-players", args[1]);
-                MIN_PLAYERS=Integer.parseInt(args[1]);
+                MIN_PLAYERS = Integer.parseInt(args[1]);
                 config.options().copyDefaults(true);
 
                 plugin.saveConfig();
                 plugin.loadConfigs();
 
-                sender.sendMessage(ChatColor.GOLD + "setMinPlayers to "+  args[1]);
+                sender.sendMessage(ChatColor.GOLD + "setMinPlayers to " + args[1]);
             } else {
                 sender.sendMessage(ChatColor.LIGHT_PURPLE + "Too late to change player min count ");
             }

@@ -7,8 +7,10 @@ import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
 import dev.danablend.counterstrike.database.Worlds;
 import dev.danablend.counterstrike.enums.Weapon;
+import dev.danablend.counterstrike.utils.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -17,6 +19,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -61,7 +64,7 @@ public class ShopListener implements Listener {
         if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
 
             // Shop Item Checker
-            if (inHandItem.equals(CounterStrike.i.getShopItem())) {
+            if (inHandItem.equals(player.getInventory().getItem(8))) {
 
                 if (plugin.getGameState() != GameState.SHOP) {
                     player.sendMessage(ChatColor.RED + "Sorry, not in ShopPhase.");
@@ -120,7 +123,7 @@ public class ShopListener implements Listener {
                 return;
             }
 
-            if (!event.getClickedInventory().getType().toString().equals("CHEST")) {
+            if (event.getClickedInventory() == null || !event.getClickedInventory().getType().toString().equals("CHEST")) {
                 event.setCancelled(true);
                 return;
             }
@@ -144,6 +147,42 @@ public class ShopListener implements Listener {
                     Shop.getShop().purchaseShopItem(player, gun);
                 }
             }
+        }
+    }
+
+    @EventHandler
+    public void playerMove(PlayerMoveEvent e) {
+
+        if (CounterStrike.i.gameState != GameState.SHOP) return;
+
+        Player player = e.getPlayer();
+
+        String world = player.getWorld().getName();
+
+        if (CounterStrike.i.HashWorlds != null) {
+            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
+
+            if (md != null && !md.modoCs) {
+                Utils.debug("Not a CS Map, aborting");
+                return;
+            }
+        }
+
+        CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
+
+        if (csplayer == null) {
+            Utils.debug("Not a player, aborting");
+            return;
+        }
+
+        final Location from = csplayer.getSpawnLocation();
+        final Location to = e.getTo();
+
+        if (from.getBlockX() > to.getBlockX() +4 || from.getBlockX() < to.getBlockX() -4) {
+            e.setTo(e.getFrom());
+        }
+        if (from.getBlockZ() > to.getBlockZ() +4 || from.getBlockZ() < to.getBlockZ() -4) {
+            e.setTo(e.getFrom());
         }
     }
 

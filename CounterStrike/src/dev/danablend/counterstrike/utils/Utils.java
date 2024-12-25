@@ -12,15 +12,18 @@ public class Utils {
         return ChatColor.translateAlternateColorCodes('&', str);
     }
 
+
     public static void sendMessage(Entity ent, String msg) {
         ent.sendMessage(color(msg));
     }
+
 
     public static void debug(String msg) {
         if (Config.DEBUGGING_ENABLED) {
             Bukkit.getLogger().info(msg);
         }
     }
+
 
     public static String getFormattedTimeString(long timeInSeconds) {
         String timeStr = new String();
@@ -41,9 +44,7 @@ public class Utils {
             timeStr += hour + ":";
         }
 
-//		if (min > 0) {
         timeStr += min + ":";
-//		}
 
         if (sec < 10) {
             timeStr += "0" + sec;

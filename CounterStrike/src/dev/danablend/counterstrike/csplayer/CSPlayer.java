@@ -187,8 +187,18 @@ public class CSPlayer {
     }
 
     public Weapon getGrenade() {
-        Utils.debug("Checking if CSPlayer " + player.getName() + " has any grenades...");
+        Utils.debug("Checking if CSPlayer " + player.getName() + " has any grenades..."+ (player.getInventory().getItem(3) != null));
         return Weapon.getByItem(player.getInventory().getItem(3));
+    }
+
+    public ItemStack getBomb() {
+        Utils.debug("Checking if CSPlayer " + player.getName() + " has any Bombs... "+ (player.getInventory().getItem(4) != null));
+        return player.getInventory().getItem(4);
+    }
+
+    public ItemStack getKnife() {
+        Utils.debug("Checking if CSPlayer " + player.getName() + " has any Knifes... "+ (player.getInventory().getItem(2) != null));
+        return player.getInventory().getItem(2);
     }
 
 

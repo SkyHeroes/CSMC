@@ -29,39 +29,6 @@ public class ShopPhaseManager implements Listener {
         task = plugin.myBukkit.runTaskTimer(null, local, null, () -> run(), 20L, 20L);
     }
 
-    @EventHandler
-    public void playerMove(PlayerMoveEvent e) {
-
-        if (CounterStrike.i.gameState != GameState.SHOP) return;
-
-        Player player = e.getPlayer();
-
-        String world = player.getWorld().getName();
-
-        if (CounterStrike.i.HashWorlds != null) {
-            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
-
-            if (md != null && !md.modoCs) {
-                Utils.debug("Not a CS Map, aborting");
-                return;
-            }
-        }
-
-        CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
-
-        if (csplayer == null) {
-            Utils.debug("Not a player, aborting");
-            return;
-        }
-
-        final Location from = e.getFrom();
-        final Location to = e.getTo();
-
-        if (from.getBlockX() != to.getBlockX() || from.getBlockZ() != to.getBlockZ()) {
-            e.setTo(e.getFrom());
-        }
-    }
-
 
     public void run() {
 

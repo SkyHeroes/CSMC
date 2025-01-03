@@ -33,6 +33,7 @@ public class CSUtil {
         return bomb;
     }
 
+
     public static boolean isHeadShot(Projectile bullet, Player player) {
         double projectile_height = bullet.getLocation().getY();
         double player_bodyheight = player.getLocation().getY() + 1.60;
@@ -44,6 +45,7 @@ public class CSUtil {
         }
         return false;
     }
+
 
     public static void checkForDead() {
         int dead = 0;
@@ -90,5 +92,6 @@ public class CSUtil {
         }
         return true;
     }
+
 
 }

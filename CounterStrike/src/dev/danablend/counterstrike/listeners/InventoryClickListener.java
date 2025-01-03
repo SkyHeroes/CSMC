@@ -16,9 +16,9 @@ public class InventoryClickListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onInventoryClick(InventoryClickEvent e) {
 
-        Player p = (Player) e.getWhoClicked();
+        Player player = (Player) e.getWhoClicked();
 
-        String world = p.getPlayer().getWorld().getName();
+        String world = player.getPlayer().getWorld().getName();
 
         if (CounterStrike.i.HashWorlds != null) {
             Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);

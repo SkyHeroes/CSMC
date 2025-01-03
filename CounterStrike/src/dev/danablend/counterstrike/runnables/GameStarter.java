@@ -1,13 +1,10 @@
 package dev.danablend.counterstrike.runnables;
 
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import dev.danablend.counterstrike.utils.Utils;
-import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.ChatColor;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.Collection;
 
@@ -25,13 +22,12 @@ public class GameStarter {
 
         if (plugin.getTerroristsTeam().getWins() + plugin.getTerroristsTeam().getLosses() == 0) {
             plugin.LoadDBRandomMaps();
-            timeToStart = 15;
+            timeToStart = 20;
         } else {
 
             if (plugin.randomMaps) {
                 plugin.LoadDBRandomMaps();
             }
-            else Utils.debug("#####  Not using random maps... ");
 
             timeToStart = 6;
         }

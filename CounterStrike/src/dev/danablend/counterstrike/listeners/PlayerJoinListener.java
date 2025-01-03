@@ -12,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -19,6 +20,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.server.ServerListPingEvent;
+import org.bukkit.inventory.ItemStack;
 
 import static dev.danablend.counterstrike.Config.*;
 import static org.bukkit.event.player.PlayerResourcePackStatusEvent.Status.ACCEPTED;
@@ -70,14 +72,6 @@ public class PlayerJoinListener implements Listener {
         String world = player.getWorld().getName();
 
         if (plugin.HashWorlds != null) {
-            Worlds md = (Worlds) plugin.HashWorlds.get(world);
-
-            if (md != null && !md.modoCs) {
-                return;
-            }
-        }
-
-        if (plugin.HashWorlds != null) {
             Object obj = plugin.HashWorlds.get(world);
 
             if (obj != null) {
@@ -92,34 +86,32 @@ public class PlayerJoinListener implements Listener {
             }
         }
 
+        if (plugin.getLobbyLocation() != null) {
+            player.setFallDistance(1);
+            player.setGameMode(GameMode.SURVIVAL);
+            player.setFoodLevel(8); //was 6
+            player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40);
+            player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+        }
+
         if (!plugin.getPlayerUpdater().playersWithScoreboard.contains(player.getUniqueId())) {
             Utils.debug("#### Player " + player.getName() + " entered the lobby");
-            plugin.myBukkit.runTask(player, null, null, () -> player.teleportAsync(plugin.getLobbyLocation()));
+           plugin.myBukkit.playerTeleport(player,plugin.getLobbyLocation());
 
             if (plugin.getCSPlayers().size() >= MAX_PLAYERS) {
                 PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "Welcome to CSMC World", ChatColor.RED + "The game is full, please try again later.", 1, 4, 1);
             }
 
-            PacketUtils.sendTitleAndSubtitle(player, ChatColor.GOLD + "Welcome to CSMC World", ChatColor.RED + "Left click to join game.", 1, 4, 1);
+            player.getInventory().clear();
+            player.getInventory().setArmorContents(null);
 
-            if (plugin.getLobbyLocation() != null) {
-                player.setFallDistance(1);
-                player.setGameMode(GameMode.SURVIVAL);
-                player.getInventory().clear();
-                player.getInventory().setArmorContents(null);
-                player.setFoodLevel(8); //was 6
-                player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40);
-                player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
-            }
+            PacketUtils.sendTitleAndSubtitle(player, ChatColor.GOLD + "Welcome to CSMC World", ChatColor.RED + "Left click to join game.", 1, 4, 1);
 
         } else {
             Utils.debug("#### Returning Player " + player.getName() + " to map");
             CSPlayer csplayer = plugin.getCSPlayer(player, false, null);
             csplayer.setPlayer(player);
-
             plugin.returnPlayertoGame(csplayer);
-
-            PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "Get ready", ChatColor.RED + "You will resume playing in next round!", 1, 8, 1);
         }
 
     }
@@ -137,14 +129,27 @@ public class PlayerJoinListener implements Listener {
             return;
         }
 
-        Utils.debug("#### Player " + event.getPlayer().getName() + " left ");
+        Utils.debug("#### Player " + player.getName() + " left ");
+
+        CSPlayer csplayer = plugin.getCSPlayer(player, false, null);
 
         if (plugin.quitExitGame) {
-            CSPlayer csplayer = plugin.getCSPlayer(event.getPlayer(), false, null);
-
             if (csplayer != null) {
-                plugin.getPlayerUpdater().deleteScoreBoards(event.getPlayer());
+                plugin.getPlayerUpdater().deleteScoreBoards(player);
                 csplayer.clear();
+            }
+        } else {
+            //if has bomb drops it
+            if (csplayer != null && csplayer.getBomb() != null) {
+
+                ItemStack item = player.getInventory().getItem(4);
+
+                if (item != null) {
+                    //Utils.debug("Dropping bomb ");
+                    player.getInventory().remove(item);
+                    Item itemDropped = player.getWorld().dropItemNaturally(player.getLocation(), item);
+                    itemDropped.setPickupDelay(40);
+                }
             }
         }
     }
@@ -208,7 +213,7 @@ public class PlayerJoinListener implements Listener {
 
         if (plugin.getLobbyLocation() != null) {
             Location lobbyLoc = plugin.getLobbyLocation();
-            player.teleport(lobbyLoc);
+           plugin.myBukkit.playerTeleport(player,lobbyLoc);
             player.setGameMode(GameMode.SURVIVAL);
             player.getInventory().clear();
             player.getInventory().setArmorContents(null);
@@ -243,7 +248,7 @@ public class PlayerJoinListener implements Listener {
                 Sign s = (Sign) e.getClickedBlock().getState();
 
                 if (s != null && s.getLine(0) != null && (s.getLine(0).equalsIgnoreCase("[CSGo]") || s.getLine(0).equalsIgnoreCase("[CSMC]"))) {
-                    player.teleport(plugin.getLobbyLocation());
+                    plugin.myBukkit.playerTeleport(player,plugin.getLobbyLocation());
                 }
             }
         }

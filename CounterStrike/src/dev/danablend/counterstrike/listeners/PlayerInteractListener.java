@@ -9,7 +9,6 @@ import dev.danablend.counterstrike.runnables.Bomb;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -58,7 +57,7 @@ public class PlayerInteractListener implements Listener {
                 return;
             }
 
-            Block blockUnder = player.getLocation().getBlock().getRelative(BlockFace.DOWN);
+            Block blockUnder = event.getClickedBlock();
 
             String materialColour = blockUnder.getBlockData().getMaterial().toString();
 

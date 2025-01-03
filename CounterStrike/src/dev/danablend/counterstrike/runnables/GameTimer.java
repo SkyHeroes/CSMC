@@ -28,7 +28,6 @@ public class GameTimer {
 
         if ((serverSize == 0 || plugin.getServer().getOnlinePlayers().size() == 0) && plugin.quitExitGame) {
             Utils.debug("Aborting game, no players left");
-
             plugin.myBukkit.cancelTask(task);
             CounterStrike.i.FinishGame(CounterStrike.i.getTerroristsTeam(),CounterStrike.i.getCounterTerroristsTeam());
             return;

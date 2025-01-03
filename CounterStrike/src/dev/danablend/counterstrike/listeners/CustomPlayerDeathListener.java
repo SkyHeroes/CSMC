@@ -5,7 +5,6 @@ import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.events.CustomPlayerDeathEvent;
 import dev.danablend.counterstrike.utils.CSUtil;
 import dev.danablend.counterstrike.utils.PacketUtils;
-import dev.danablend.counterstrike.utils.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.attribute.Attribute;

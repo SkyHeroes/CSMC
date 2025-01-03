@@ -24,11 +24,10 @@ public class PlayerDropItemListener implements Listener {
         if (!event.getPlayer().isOp()) {
             int currentSlot = event.getPlayer().getInventory().getHeldItemSlot();
 
-            if (currentSlot == 0 || currentSlot == 1) {
-                return;
+            //can't drop knife or shop if active
+            if (currentSlot == 2 || currentSlot == 8) {
+                event.setCancelled(true);
             }
-
-            event.setCancelled(true);
         }
     }
 

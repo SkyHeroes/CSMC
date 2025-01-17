@@ -21,7 +21,7 @@ public class GameTimer {
     public void run() {
         int serverSize = CounterStrike.i.getCSPlayers().size();
 
-        if (CounterStrike.i.gameState == GameState.PLANTED) {
+        if (CounterStrike.i.getGameState() == GameState.PLANTED) {
             plugin.myBukkit.cancelTask(task);
             return;
         }

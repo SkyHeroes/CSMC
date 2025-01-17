@@ -29,7 +29,7 @@ public class EntityDamageByEntityListener implements Listener {
                 }
             }
 
-            if (CounterStrike.i.gameState.equals(GameState.LOBBY)) {
+            if (CounterStrike.i.getGameState().equals(GameState.LOBBY)) {
                 event.setCancelled(true);
                 return;
             }

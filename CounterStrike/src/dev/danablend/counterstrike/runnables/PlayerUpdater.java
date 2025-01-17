@@ -44,9 +44,12 @@ public class PlayerUpdater extends BukkitRunnable {
 
         for (CSPlayer csplayer : plugin.getCSPlayers()) {
 
-            if (csplayer.getPlayer() == null) return;
+            if (csplayer.getPlayer() == null) continue;
 
-            csplayer.update();
+            csplayer.manageSpeed();
+
+            //NPCs don't need scoreboard but need speed management
+            if (csplayer.isNPC()) continue;
 
             if (!playersWithScoreboard.contains(csplayer.getPlayer().getUniqueId())) {
                 setScoreBoard(csplayer);
@@ -83,6 +86,9 @@ public class PlayerUpdater extends BukkitRunnable {
     public void setScoreBoard(CSPlayer csplayer) {
         Player player = csplayer.getPlayer();
 
+        //NPCs don't need scoreboard
+        if (csplayer.isNPC()) return;
+
         if (!player.isOnline()) return;
 
         //inits player colour
@@ -96,6 +102,9 @@ public class PlayerUpdater extends BukkitRunnable {
 
 
     public void updateScoreBoard(CSPlayer csplayer) {
+        //NPCs don't need scoreboard
+        if (csplayer.isNPC()) return;
+
         Player player = csplayer.getPlayer();
 
         if (!player.isOnline()) return;
@@ -119,7 +128,7 @@ public class PlayerUpdater extends BukkitRunnable {
         String TeamA = ChatColor.valueOf(csplayer.getColour()) + "" + csplayer.getColour() + ": ";
         String TeamB = ChatColor.valueOf(csplayer.getOpponentColour()) + csplayer.getOpponentColour() + ": ";
 
-        String[] lines = new String[21];
+        String[] lines = new String[20]; //FastBoard is limited to max 20!!
 
         lines[0] = "" + ChatColor.BLACK + ChatColor.BOLD + "Map: " + ChatColor.GRAY + plugin.Map + "  " + ChatColor.BLACK + ChatColor.BOLD + "Round: " + ChatColor.GRAY + "" + (myTeam.getLosses() + myTeam.getWins() + 1) + " of " + MAX_ROUNDS;
         lines[1] = "" + ChatColor.BLACK + ChatColor.BOLD + "Teams: " + TeamA + myTeam.getWins() + ChatColor.GRAY + " vs " + TeamB + myTeam.getLosses();
@@ -166,10 +175,15 @@ public class PlayerUpdater extends BukkitRunnable {
 
 
     public void deleteScoreBoards(Player player) {
+
+        if (player == null) return;
+
+        CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
+
+        if (csplayer == null || csplayer.isNPC()) return;
+
         if (playersWithScoreboard.contains(player.getUniqueId())) {
             playersWithScoreboard.remove(player.getUniqueId());
-
-            CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
             if (csplayer == null) {
                 return;
@@ -186,4 +200,6 @@ public class PlayerUpdater extends BukkitRunnable {
             }
         }
     }
+
+
 }

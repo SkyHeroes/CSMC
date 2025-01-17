@@ -12,7 +12,6 @@ import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -20,11 +19,9 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.server.ServerListPingEvent;
-import org.bukkit.inventory.ItemStack;
 
 import static dev.danablend.counterstrike.Config.*;
-import static org.bukkit.event.player.PlayerResourcePackStatusEvent.Status.ACCEPTED;
-import static org.bukkit.event.player.PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED;
+import static org.bukkit.event.player.PlayerResourcePackStatusEvent.Status.*;
 
 public class PlayerJoinListener implements Listener {
 
@@ -51,8 +48,8 @@ public class PlayerJoinListener implements Listener {
             }
         }
 
-        if (!event.getStatus().equals(ACCEPTED) && !event.getStatus().equals(SUCCESSFULLY_LOADED)) {
-        //    Utils.debug("Loading resource status " + event.getStatus());
+        if (!event.getStatus().equals(ACCEPTED) && !event.getStatus().equals(SUCCESSFULLY_LOADED) && !event.getStatus().equals(DOWNLOADED)) {
+            Utils.debug(player.getName() + "Loading resource status " + event.getStatus());
 
             //goes back in loaded resource pack
             if (plugin.ResourseHash.get(player.getName() + "RES") == null || plugin.ResourseHash.get(player.getName() + "RES") == "DEFAULT") {
@@ -96,7 +93,7 @@ public class PlayerJoinListener implements Listener {
 
         if (!plugin.getPlayerUpdater().playersWithScoreboard.contains(player.getUniqueId())) {
             Utils.debug("#### Player " + player.getName() + " entered the lobby");
-           plugin.myBukkit.playerTeleport(player,plugin.getLobbyLocation());
+            plugin.myBukkit.playerTeleport(player, plugin.getLobbyLocation());
 
             if (plugin.getCSPlayers().size() >= MAX_PLAYERS) {
                 PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "Welcome to CSMC World", ChatColor.RED + "The game is full, please try again later.", 1, 4, 1);
@@ -110,8 +107,11 @@ public class PlayerJoinListener implements Listener {
         } else {
             Utils.debug("#### Returning Player " + player.getName() + " to map");
             CSPlayer csplayer = plugin.getCSPlayer(player, false, null);
-            csplayer.setPlayer(player);
-            plugin.returnPlayertoGame(csplayer);
+
+            if (csplayer != null) {
+                csplayer.setPlayer(player);
+                plugin.returnPlayertoGame(csplayer);
+            }
         }
 
     }
@@ -131,27 +131,10 @@ public class PlayerJoinListener implements Listener {
 
         Utils.debug("#### Player " + player.getName() + " left ");
 
+
         CSPlayer csplayer = plugin.getCSPlayer(player, false, null);
 
-        if (plugin.quitExitGame) {
-            if (csplayer != null) {
-                plugin.getPlayerUpdater().deleteScoreBoards(player);
-                csplayer.clear();
-            }
-        } else {
-            //if has bomb drops it
-            if (csplayer != null && csplayer.getBomb() != null) {
-
-                ItemStack item = player.getInventory().getItem(4);
-
-                if (item != null) {
-                    //Utils.debug("Dropping bomb ");
-                    player.getInventory().remove(item);
-                    Item itemDropped = player.getWorld().dropItemNaturally(player.getLocation(), item);
-                    itemDropped.setPickupDelay(40);
-                }
-            }
-        }
+        plugin.leaveGame(csplayer);
     }
 
 
@@ -179,20 +162,19 @@ public class PlayerJoinListener implements Listener {
 
             if (md_old != null && ((Worlds) md_old).modoCs) {
 
-                CSPlayer csplayer = plugin.getCSPlayer(event.getPlayer(), false, null);
+                CSPlayer csplayer = plugin.getCSPlayer(player, false, null);
 
                 if (csplayer != null) {
-                    plugin.getPlayerUpdater().deleteScoreBoards(event.getPlayer());
+                    plugin.getPlayerUpdater().deleteScoreBoards(player);
                     csplayer.clear();
                 }
 
-                //clears QUALITY resoursepack and loads default
-                if (plugin.ResourseHash.get(player.getName() + "RES") == null || plugin.ResourseHash.get(player.getName() + "RES") == "QUALITY") {
+                //clears QUALITY resoursepack and loads default (inOnline filters NPCs)
+                if (player.isOnline() &&( plugin.ResourseHash.get(player.getName() + "RES") == null || plugin.ResourseHash.get(player.getName() + "RES") == "QUALITY")) {
                     plugin.ResourseHash.remove(player.getName() + "RES");
                     plugin.ResourseHash.put(player.getName() + "RES", "DEFAULT");
 
                     plugin.loadResourcePack(player, DEFAULT_RESOURCE, DEFAULT_RESOURCE_HASH);
-                    //player.setResourcePack(DEFAULT_RESOURCE, DEFAULT_RESOURCE_HASH);  //fast unload
                 }
 
                 player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20);
@@ -213,7 +195,7 @@ public class PlayerJoinListener implements Listener {
 
         if (plugin.getLobbyLocation() != null) {
             Location lobbyLoc = plugin.getLobbyLocation();
-           plugin.myBukkit.playerTeleport(player,lobbyLoc);
+            plugin.myBukkit.playerTeleport(player, lobbyLoc);
             player.setGameMode(GameMode.SURVIVAL);
             player.getInventory().clear();
             player.getInventory().setArmorContents(null);
@@ -228,11 +210,11 @@ public class PlayerJoinListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void ServerListMotd(final ServerListPingEvent event) {
 
-        if (plugin.gameState.equals(GameState.WAITING)) {
+        if (plugin.getGameState().equals(GameState.WAITING)) {
             event.setMotd(ChatColor.AQUA + "CSMC Game is waiting for more players... ");
-        } else if (plugin.gameState.equals(GameState.STARTING)) {
+        } else if (plugin.getGameState().equals(GameState.STARTING)) {
             event.setMotd(ChatColor.AQUA + "CSMC Game is starting... ");
-        } else if (plugin.gameState.equals(GameState.RUN)) {
+        } else if (plugin.getGameState().equals(GameState.RUN)) {
             event.setMotd(ChatColor.AQUA + "CSMC Game is running, next round in " + plugin.getGameTimer().returnTimetoEnd() + " secs");
         }
 
@@ -248,10 +230,11 @@ public class PlayerJoinListener implements Listener {
                 Sign s = (Sign) e.getClickedBlock().getState();
 
                 if (s != null && s.getLine(0) != null && (s.getLine(0).equalsIgnoreCase("[CSGo]") || s.getLine(0).equalsIgnoreCase("[CSMC]"))) {
-                    plugin.myBukkit.playerTeleport(player,plugin.getLobbyLocation());
+                    plugin.myBukkit.playerTeleport(player, plugin.getLobbyLocation());
                 }
             }
         }
+
     }
 
 

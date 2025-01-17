@@ -20,7 +20,7 @@ public class ShopPhaseManager implements Listener {
     private Object task;
 
     public ShopPhaseManager(CounterStrike myplugin) {
-        CounterStrike.i.gameState = GameState.SHOP;
+        CounterStrike.i.setGameState( GameState.SHOP);
 
         plugin = myplugin;
         duration = Config.SHOP_PHASE_DURATION;
@@ -44,7 +44,7 @@ public class ShopPhaseManager implements Listener {
             CounterStrike.i.getCounterTerroristsTeam().setWins(0);
             CounterStrike.i.getCounterTerroristsTeam().setColour("WHITE");
 
-            CounterStrike.i.gameState = GameState.LOBBY;
+            CounterStrike.i.setGameState(GameState.LOBBY);
             plugin.myBukkit.cancelTask(task);
 
             plugin.Shop = null;
@@ -58,7 +58,7 @@ public class ShopPhaseManager implements Listener {
             PacketUtils.sendActionBarToInGame(Utils.color("&6The shop phase has ended!"));
             CounterStrike.i.setGameTimer(new GameTimer());
 
-            plugin.gameState = GameState.RUN;
+            plugin.setGameState(GameState.RUN);
             plugin.myBukkit.cancelTask(task);
             plugin.Shop = null;
         }

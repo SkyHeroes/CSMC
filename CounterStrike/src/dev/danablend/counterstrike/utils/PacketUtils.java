@@ -31,7 +31,7 @@ public class PacketUtils {
 
     public static void sendTitleAndSubtitleToInGame(String titleText, String subtitleText, int fadeInDuration, int duration, int fadeOutDuration) {
         for (CSPlayer csplayer : CounterStrike.i.getCSPlayers()) {
-            sendTitleAndSubtitle(csplayer.getPlayer(), titleText, subtitleText, fadeInDuration, duration, fadeOutDuration);
+          if (!csplayer.isNPC()) sendTitleAndSubtitle(csplayer.getPlayer(), titleText, subtitleText, fadeInDuration, duration, fadeOutDuration);
         }
     }
 
@@ -41,7 +41,7 @@ public class PacketUtils {
             CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
             if (csplayer == null && isInLobbyLocation(player)) {
-                sendTitleAndSubtitle(player, titleText, subtitleText, fadeInDuration, duration, fadeOutDuration);
+                if (!csplayer.isNPC()) sendTitleAndSubtitle(player, titleText, subtitleText, fadeInDuration, duration, fadeOutDuration);
             }
         }
     }
@@ -55,7 +55,7 @@ public class PacketUtils {
 
     public static void sendActionBarToInGame(String text) {
         for (CSPlayer csplayer : CounterStrike.i.getCSPlayers()) {
-            sendActionBar(csplayer.getPlayer(), text);
+            if (!csplayer.isNPC()) sendActionBar(csplayer.getPlayer(), text);
         }
     }
 
@@ -65,7 +65,7 @@ public class PacketUtils {
             CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
             if (csplayer == null && isInLobbyLocation(player)) {
-                sendActionBar(player, text);
+                if (!csplayer.isNPC())  sendActionBar(player, text);
             }
         }
     }

@@ -88,9 +88,17 @@ public class Shop {
 
         int money = csplayer.getMoney();
         int slot = -1;
+
+        if (gun == null) {
+            Utils.debug(" --> "+ChatColor.RED + "Sorry, no gun selected");
+            player.sendMessage(ChatColor.RED + "Sorry, no gun selected");
+            return;
+        }
+
         WeaponType type = gun.getWeaponType();
 
         if (gun.getCost() > money) {
+            Utils.debug(" --> "+ChatColor.RED + "Sorry, but you cannot afford this item.");
             player.sendMessage(ChatColor.RED + "Sorry, but you cannot afford this item.");
             return;
         }

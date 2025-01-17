@@ -1,5 +1,6 @@
 package dev.danablend.counterstrike;
 
+import de.tontito.iacenter.IACenter;
 import dev.danablend.counterstrike.commands.CounterStrikeCommand;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.Team;
@@ -17,7 +18,7 @@ import me.zombie_striker.qg.guns.Gun;
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -34,36 +35,49 @@ import java.sql.Statement;
 import java.util.*;
 
 import static dev.danablend.counterstrike.Config.MAX_ROUNDS;
+import static dev.danablend.counterstrike.GameState.*;
 
 
 public class CounterStrike extends JavaPlugin {
 
     public static CounterStrike i;
-    public GameState gameState = GameState.LOBBY;
+    private GameState gameState = LOBBY;
     public ShopPhaseManager Shop;
     private GameCounter gameCount;
-    public Hashtable HashWorlds = null;
-    public Hashtable ResourseHash = new Hashtable();
+
     public String Map = "";
     public MyBukkit myBukkit;
+
+    public Hashtable HashWorlds = null;
+    public Hashtable ResourseHash = new Hashtable();
     Collection<CSPlayer> csPlayers = new ArrayList<>();
     public Collection<CSPlayer> counterTerrorists = new ArrayList<CSPlayer>();
     public Collection<CSPlayer> terrorists = new ArrayList<CSPlayer>();
     Collection<CSPlayer> tempPlayerList = new ArrayList<CSPlayer>();
     Set<TestCommand> testCommands = new HashSet<TestCommand>();
+
     PluginManager pm = Bukkit.getPluginManager();
     ItemStack shopItem;
+
     private GameTimer timer;
     public Team counterTerroristsTeam;
     public Team terroristsTeam;
     private SQLiteConnection sqlite = null;
     private dev.danablend.counterstrike.runnables.PlayerUpdater pUpdate;
+
     private String SpawnTerrorists;
     private String SpawnCounterTerrorists;
     private String Lobby;
+    private String bombSiteAString;
+    private String bombSiteBString;
+
     private Location SpawnTerroristsLocation;
     private Location SpawnCounterTerroristsLocation;
+    private Location bombSiteA;
+    private Location bombSiteB;
+
     private Object gameCounterTask;
+    public IACenter botManager;
 
     public boolean randomMaps = false;
     public boolean alwaysDay = false;
@@ -77,17 +91,37 @@ public class CounterStrike extends JavaPlugin {
         try {
             myBukkit.runTaskLater(null, null, null, () -> new Metrics(this, 22650), 5);
         } catch (Exception e) {
-            getLogger().info(ChatColor.RED + " Failed to register into Bstats");
+            Utils.debug(ChatColor.RED + " Failed to register into Bstats");
         }
 
-        Scoreboard board1 = Bukkit.getScoreboardManager().getMainScoreboard();
-        if (board1.getTeam("team1") != null) board1.getTeam("team1").unregister();
-        if (board1.getTeam("team2") != null) board1.getTeam("team2").unregister();
+        botManager = ((de.tontito.iacenter.IACenter) getServer().getPluginManager().getPlugin("IACenter"));
+
+        Utils.debug("Checking for Bot system availability: " + (botManager != null));
+
+        myBukkit.runTaskLater(null, null, null, () -> {
+            if (botManager != null) {
+
+                if (bombSiteAString != null && botManager.isEnabled()) {
+                    if (botManager != null) pm.registerEvents(botManager, this);
+                    Utils.debug("Activating bot system...");
+                } else {
+                    Utils.debug("Bot system not available or missing map configurations...");
+                    botManager = null;
+                }
+            }
+        }, 40);
+
+        myBukkit.UpdateChecker(getDescription().getName(),true);
+
+        Utils.debug("Enabled");
     }
+
 
     public void onDisable() {
         //delete tnt and label
         Bomb.cleanUp();
+
+        if (botManager != null) botManager.terminateBots();
     }
 
 
@@ -101,7 +135,7 @@ public class CounterStrike extends JavaPlugin {
         Utils.debug("Preparing maps for game...");
 
         if (!CounterStrike.i.usingQualityArmory()) {
-            Utils.debug("#####  QualityArmory not loaded... ");
+            Utils.debug("#####  QualityArmory not loaded, aborting... ");
             return;
         }
 
@@ -124,7 +158,7 @@ public class CounterStrike extends JavaPlugin {
                 String world = rs.getString("nome");
                 Worlds md = new Worlds(rs.getInt("id"), world, Boolean.parseBoolean(rs.getString("modoCs")));
                 HashWorlds.put(world, md);
-                Utils.debug("Loaded map " + world + "  " + md.modoCs);
+                Utils.debug("Preloaded map " + world + "  " + md.modoCs);
             }
             Utils.debug("Loaded maps! ");
         } catch (SQLException e) {
@@ -168,7 +202,10 @@ public class CounterStrike extends JavaPlugin {
                     Worlds md = (Worlds) obj;
 
                     if (!md.modoCs) {
-                        this.myBukkit.runTask(null, null, null, () -> w.setGameRule(GameRule.NATURAL_REGENERATION, true));
+                        this.myBukkit.runTask(null, null, null, () -> {
+                            w.setGameRule(GameRule.NATURAL_REGENERATION, true);
+                            w.setGameRule(GameRule.DO_MOB_SPAWNING, true);
+                        });
                         continue;
                     }
                 }
@@ -176,6 +213,7 @@ public class CounterStrike extends JavaPlugin {
 
             this.myBukkit.runTask(null, null, null, () -> {
                 w.setGameRule(GameRule.NATURAL_REGENERATION, false);
+                w.setGameRule(GameRule.DO_MOB_SPAWNING, false);
                 w.setGameRule(GameRule.KEEP_INVENTORY, false);
             });
         }
@@ -184,7 +222,7 @@ public class CounterStrike extends JavaPlugin {
         shopItem = new ItemStack(Material.CHEST);
         ItemMeta meta = shopItem.getItemMeta();
 
-        myBukkit.setMeta(meta,ChatColor.YELLOW + "(Right click to open shop)");
+        myBukkit.setMeta(meta, ChatColor.YELLOW + "(Right click to open shop)");
 
         shopItem.setItemMeta(meta);
 
@@ -230,6 +268,12 @@ public class CounterStrike extends JavaPlugin {
 
             } else if (Conf.equals("Counter")) {
                 sqlite.checkLock("update csMaps set SpawnCounter = '" + location + "' where id = " + result);
+
+            } else if (Conf.equals("A")) {
+                sqlite.checkLock("update csMaps set A = '" + location + "' where id = " + result);
+
+            } else if (Conf.equals("B")) {
+                sqlite.checkLock("update csMaps set B = '" + location + "' where id = " + result);
             }
         }
     }
@@ -271,40 +315,31 @@ public class CounterStrike extends JavaPlugin {
                 }
             }
 
-            LoadDBMapConfigs(result1);
-            return;
-        }
+            Integer mapId = Integer.parseInt(sqlite.select("select id from CSMaps where descr = '" + Map + "'"));
 
-        Lobby = getConfig().getString("lobby-location");
-        SpawnTerrorists = getConfig().getString("spawn-locations.terrorist");
-        SpawnCounterTerrorists = getConfig().getString("spawn-locations.counterterrorist");
+            Lobby = sqlite.select("select SpawnLobby from CSMaps where id = " + mapId);
+            SpawnTerrorists = sqlite.select("select SpawnTerrorists from CSMaps where id = " + mapId);
+            SpawnCounterTerrorists = sqlite.select("select SpawnCounter from CSMaps where id = " + mapId);
 
-        SpawnCounterTerroristsLocation = null;
-        SpawnTerroristsLocation = null;
+            bombSiteAString = sqlite.select("select A from CSMaps where id = " + mapId);
+            bombSiteBString = sqlite.select("select B from CSMaps where id = " + mapId);
 
-        myBukkit.runTaskLater(null, getTerroristSpawn(false), null, () -> Preparemap(), 20);
+            SpawnCounterTerroristsLocation = null;
+            SpawnTerroristsLocation = null;
+            bombSiteA = null;
+            bombSiteB = null;
 
-    }
+            if (mapId < 0 || SpawnTerrorists == null || getTerroristSpawn(false) == null) {
+                Utils.debug("Cant load map or spawn...");
+                return;
+            }
 
+        } else {
 
-    public void LoadDBMapConfigs(String Map) {
-
-        Integer Rand = Integer.parseInt(sqlite.select("select id from CSMaps where descr = '" + Map + "'"));
-
-        Lobby = sqlite.select("select SpawnLobby from CSMaps where id = " + Rand);
-        SpawnTerrorists = sqlite.select("select SpawnTerrorists from CSMaps where id = " + Rand);
-        SpawnCounterTerrorists = sqlite.select("select SpawnCounter from CSMaps where id = " + Rand);
-
-        SpawnCounterTerroristsLocation = null;
-        SpawnTerroristsLocation = null;
-
-        if (Rand < 0 || SpawnTerrorists == null || getTerroristSpawn(false) == null) {
-            Utils.debug("Cant load map or spawn...");
-            return;
+            loadConfigs();
         }
 
         myBukkit.runTaskLater(null, getTerroristSpawn(false), null, () -> Preparemap(), 20);
-
     }
 
 
@@ -354,9 +389,9 @@ public class CounterStrike extends JavaPlugin {
                 }
             }
 
-            for (int n = 1; n <= 3; n++) {
-                getCounterTerroristSpawn(true).getWorld().spawnEntity(getCounterTerroristSpawn(true), EntityType.CHICKEN);
-            }
+//            for (int n = 1; n <= 3; n++) {
+//                getCounterTerroristSpawn(true).getWorld().spawnEntity(getCounterTerroristSpawn(true), EntityType.CHICKEN);
+//            }
         });
 
         myBukkit.runTask(null, getTerroristSpawn(false), null, () -> {
@@ -374,15 +409,15 @@ public class CounterStrike extends JavaPlugin {
                 }
             }
 
-            for (int n = 1; n <= 3; n++) {
-                getTerroristSpawn(true).getWorld().spawnEntity(getTerroristSpawn(true), EntityType.CHICKEN);
-            }
+//            for (int n = 1; n <= 3; n++) {
+//                getTerroristSpawn(true).getWorld().spawnEntity(getTerroristSpawn(true), EntityType.CHICKEN);
+//            }
 
         });
 
     }
 
-
+    //for config load/reload
     public void loadConfigs() {
         this.getConfig().options().copyDefaults(true);
 
@@ -391,15 +426,18 @@ public class CounterStrike extends JavaPlugin {
         Lobby = getConfig().getString("lobby-location");
         SpawnTerrorists = getConfig().getString("spawn-locations.terrorist");
         SpawnCounterTerrorists = getConfig().getString("spawn-locations.counterterrorist");
+        bombSiteAString = getConfig().getString("bomb-locations.A");
+        bombSiteBString = getConfig().getString("bomb-locations.B");
 
         SpawnCounterTerroristsLocation = null;
         SpawnTerroristsLocation = null;
+        bombSiteA = null;
+        bombSiteB = null;
 
         randomMaps = getConfig().getBoolean("randomMaps", false);
         alwaysDay = getConfig().getBoolean("alwaysDay", true);
         quitExitGame = getConfig().getBoolean("quitExitGame", false);
     }
-
 
     //more customizable configs
     private void setupConfig() {
@@ -421,7 +459,7 @@ public class CounterStrike extends JavaPlugin {
         ItemStack knife = new ItemStack(Material.IRON_AXE);
         ItemMeta meta = knife.getItemMeta();
 
-        myBukkit.setMeta(meta,ChatColor.GRAY + "Standard Knife");
+        myBukkit.setMeta(meta, ChatColor.GRAY + "Standard Knife");
 
         knife.setItemMeta(meta);
         return knife;
@@ -432,7 +470,6 @@ public class CounterStrike extends JavaPlugin {
         return shopItem;
     }
 
-
     public Set<TestCommand> getTestCommands() {
         Utils.debug("Getting test commands...");
         return testCommands;
@@ -442,6 +479,7 @@ public class CounterStrike extends JavaPlugin {
     public void startGame() {
         Utils.debug("---> Starting game initiated...");
 
+        //needed to create teams and visibility
         Scoreboard board1 = Bukkit.getScoreboardManager().getMainScoreboard();
         if (board1.getTeam("team1") != null) board1.getTeam("team1").unregister();
         if (board1.getTeam("team2") != null) board1.getTeam("team2").unregister();
@@ -502,7 +540,7 @@ public class CounterStrike extends JavaPlugin {
 
         if (winnerTeam.getWins() == (MAX_ROUNDS / 2) + 1) {
 
-            gameState = GameState.LOBBY;
+            gameState = LOBBY;
             PacketUtils.sendTitleAndSubtitleToInGame(winnerText, ChatColor.AQUA + "They also won the whole game! (Left click to join new game)", 0, 10, 1);
             PacketUtils.sendActionBarToInGame(winnerText);
 
@@ -511,7 +549,7 @@ public class CounterStrike extends JavaPlugin {
 
         } else if (winnerTeam.getWins() + winnerTeam.getLosses() == MAX_ROUNDS) {
 
-            gameState = GameState.LOBBY;
+            gameState = LOBBY;
             PacketUtils.sendTitleAndSubtitleToInGame(winnerText, ChatColor.AQUA + "But scores are even! (Left click to join new game)", 0, 10, 1);
             PacketUtils.sendActionBarToInGame(winnerText);
 
@@ -522,7 +560,7 @@ public class CounterStrike extends JavaPlugin {
             PacketUtils.sendTitleAndSubtitleToInGame(winnerText, ChatColor.YELLOW + "The next round will start shortly.", 0, 6, 1);
         }
 
-        gameState = GameState.LOBBY;
+        gameState = LOBBY;
 
         PacketUtils.sendActionBarToInGame(winnerText);
 
@@ -593,19 +631,23 @@ public class CounterStrike extends JavaPlugin {
             }
         }
 
-        for (Player player : Bukkit.getOnlinePlayers()) {   //who ever is in a CS world is teleported
+        for (CSPlayer csplayer : getCSPlayers()) { //who ever is playing is teleported
 
-            String world = player.getWorld().getName();
+            Player player = csplayer.getPlayer();
 
-            if (CounterStrike.i.HashWorlds != null) {
-                Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
+            if (player.isOnline() || csplayer.isNPC()) {
+                String world = player.getWorld().getName();
 
-                if (md != null && !md.modoCs) {
-                    continue;
+                if (CounterStrike.i.HashWorlds != null) {
+                    Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
+
+                    if (md != null && !md.modoCs) {
+                        continue;
+                    }
                 }
-            }
 
-            myBukkit.playerTeleport(player,getLobbyLocation());
+                myBukkit.playerTeleport(player, getLobbyLocation());
+            }
         }
 
         //use delay
@@ -617,7 +659,7 @@ public class CounterStrike extends JavaPlugin {
 
     public void FinishGame(Team winnerTeam, Team loserTeam) {
 
-        gameState = GameState.LOBBY;
+        gameState = LOBBY;
 
         winnerTeam.setLosses(0);
         winnerTeam.setWins(0);
@@ -629,17 +671,20 @@ public class CounterStrike extends JavaPlugin {
         for (CSPlayer csPlayer : csPlayers) {
             Player player = csPlayer.getPlayer();
 
-            CSPlayer csplayer = getCSPlayer(player, false, null);
-
-            if (csplayer != null) {
+            if (csPlayer != null) {
                 getPlayerUpdater().deleteScoreBoards(player);
+
+                //needs delay or will give arraylist exception
+                myBukkit.runTaskLater(player, null, null, () -> {
+                    csPlayer.clear();
+                }, 20);
             }
 
-            if (player.isOnline()) {
+            if (player.isOnline() || csPlayer.isNPC()) {
                 player.getInventory().clear();
 
                 //Clears colors
-                myBukkit.setPlayerListName(player,ChatColor.WHITE + player.getName());
+                myBukkit.setPlayerListName(player, ChatColor.WHITE + player.getName());
 
                 String world = player.getWorld().getName();
 
@@ -648,7 +693,7 @@ public class CounterStrike extends JavaPlugin {
                     if (md != null && !md.modoCs) continue;
                 }
 
-                 myBukkit.playerTeleport(player,getLobbyLocation());
+                myBukkit.playerTeleport(player, getLobbyLocation());
                 player.setGameMode(GameMode.SURVIVAL);
             }
         }
@@ -656,6 +701,7 @@ public class CounterStrike extends JavaPlugin {
         csPlayers.clear();
         getPlayerUpdater().playersWithScoreboard = new ArrayList<>(); //list reset
 
+        if (botManager != null) botManager.terminateBots();
     }
 
 
@@ -669,7 +715,7 @@ public class CounterStrike extends JavaPlugin {
             csPlayer.setColourOpponent(counterTerroristsTeam.getColour());
 
             //put in base
-             myBukkit.playerTeleport(player,getTerroristSpawn(true));
+            myBukkit.playerTeleport(player, getTerroristSpawn(true));
 
             if (player.getInventory().getItem(1) == null || csPlayer.getPistol() == null) {
                 player.getInventory().setItem(1, Weapon.getByName("t-pistol-default").getItem());
@@ -686,7 +732,7 @@ public class CounterStrike extends JavaPlugin {
             csPlayer.setColourOpponent(terroristsTeam.getColour());
 
             //put in base
-           myBukkit.playerTeleport(player,getCounterTerroristSpawn(true));
+            myBukkit.playerTeleport(player, getCounterTerroristSpawn(true));
 
             if (player.getInventory().getItem(1) == null || csPlayer.getPistol() == null) {
                 player.getInventory().setItem(1, Weapon.getByName("ct-pistol-default").getItem());
@@ -704,9 +750,13 @@ public class CounterStrike extends JavaPlugin {
             player.setAllowFlight(false);
 
             player.getInventory().setItem(2, getKnife());
-          //  player.getInventory().setItem(8, getShopItem()); //check PlayerUpdater
+            //  player.getInventory().setItem(8, getShopItem()); //check PlayerUpdater
 
-            player.setHealth(40);
+            try { //npc give exception
+                player.setHealth(40);
+            } catch (Exception e) {
+            }
+
 
             CSPlayer cp = this.getCSPlayer(player, false, null);
             Weapon rifle = cp.getRifle();
@@ -738,12 +788,14 @@ public class CounterStrike extends JavaPlugin {
         if (!terrorists.isEmpty()) {
             CSPlayer playerWithBomb = (CSPlayer) terrorists.toArray()[new Random().nextInt(terrorists.toArray().length)];
             playerWithBomb.getPlayer().getInventory().setItem(4, CSUtil.getBombItem());
+            Utils.debug("------> Bomb with player "+ playerWithBomb.getPlayer().getName() + "    " +new Random().nextInt(terrorists.toArray().length) + "     "+ new Random().nextInt(terrorists.toArray().length));
         }
 
     }
 
 
     public void setupTeams(Player player, String team) {
+        //it is needed for teams and visibility
         Scoreboard board = Bukkit.getScoreboardManager().getMainScoreboard();
         org.bukkit.scoreboard.Team myTeam = board.getTeam(team);
 
@@ -754,7 +806,7 @@ public class CounterStrike extends JavaPlugin {
                 myTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.FOR_OTHER_TEAMS); //the command is hideforotherteams in vanilla
             }
 
-            myBukkit.teamAddEntity(myTeam,player);
+            myBukkit.teamAddEntity(myTeam, player);
         }
     }
 
@@ -779,8 +831,18 @@ public class CounterStrike extends JavaPlugin {
         }
 
         if (create) {
+            CSPlayer csp = new CSPlayer(this, player, colour);
+
+            //online filters NPCs
+            if (player.isOnline() && (ResourseHash.get(player.getName() + "RES") == null || ResourseHash.get(player.getName() + "RES") == "DEFAULT")) {
+                ResourseHash.remove(player.getName() + "RES");
+                ResourseHash.put(player.getName() + "RES", "QUALITY");
+
+                loadResourcePack(player, "https://github.com/ZombieStriker/QualityArmory-Resourcepack/releases/download/latest/QualityArmory.zip", "3a34fc09dcc6f009aa05741f8ab487dd17b13eaf");
+            }
+
             Utils.debug("Returning a new CSPlayer...");
-            return new CSPlayer(this, player, colour);
+            return csp;
         } else {
             return null;
         }
@@ -822,12 +884,17 @@ public class CounterStrike extends JavaPlugin {
     }
 
 
+    public void setGameState(GameState newGameState) {
+         gameState = newGameState;
+    }
+
+
     public boolean isTNTDropped() {
         Location loc = this.getTerroristSpawn(false);
 
         for (Entity ent : loc.getWorld().getEntities()) {
             if (!(ent instanceof Player) && (ent.getType().equals(Material.TNT) || ent.getName().equals("TNT"))) {
-               return true;
+                return true;
             }
         }
 
@@ -864,10 +931,9 @@ public class CounterStrike extends JavaPlugin {
 
     public Location getTerroristSpawn(boolean rand) {
 
-        if (SpawnTerroristsLocation != null) return SpawnTerroristsLocation;
+        if (SpawnTerroristsLocation != null && !rand) return SpawnTerroristsLocation;
         //cache...
 
-        Utils.debug("Getting Terrorist spawn...");
         String locRaw = SpawnTerrorists;
         String[] locList = locRaw.split(",");
         World world = Bukkit.getWorld(locList[0]);
@@ -902,7 +968,7 @@ public class CounterStrike extends JavaPlugin {
 
     public Location getCounterTerroristSpawn(boolean rand) {
 
-        if (SpawnCounterTerroristsLocation != null) return SpawnCounterTerroristsLocation;
+        if (SpawnCounterTerroristsLocation != null && !rand) return SpawnCounterTerroristsLocation;
 
         Utils.debug("Getting Counter Terrorist spawn...");
         String locRaw = SpawnCounterTerrorists;
@@ -929,6 +995,46 @@ public class CounterStrike extends JavaPlugin {
 
         SpawnCounterTerroristsLocation = new Location(world, x, y, z, yaw, pitch);
         return SpawnCounterTerroristsLocation;
+    }
+
+
+    public Location bombSiteA() {
+        if (bombSiteAString == null) return null;
+        if (bombSiteA != null) return bombSiteA;
+
+        Utils.debug("Getting bombSiteAString...");
+        String locRaw = bombSiteAString;
+        String[] locList = locRaw.split(",");
+        World world = Bukkit.getWorld(locList[0]);
+        double x = Double.parseDouble(locList[1]);
+        double y = Double.parseDouble(locList[2]);
+        double z = Double.parseDouble(locList[3]);
+        float yaw = Float.parseFloat(locList[4]);
+        float pitch = Float.parseFloat(locList[5]);
+
+        bombSiteA = new Location(world, x, y, z, yaw, pitch);
+
+        return bombSiteA;
+    }
+
+
+    public Location bombSiteB() {
+        if (bombSiteBString == null) return null;
+        if (bombSiteB != null) return bombSiteB;
+
+        Utils.debug("Getting bombSiteAString...");
+        String locRaw = bombSiteBString;
+        String[] locList = locRaw.split(",");
+        World world = Bukkit.getWorld(locList[0]);
+        double x = Double.parseDouble(locList[1]);
+        double y = Double.parseDouble(locList[2]);
+        double z = Double.parseDouble(locList[3]);
+        float yaw = Float.parseFloat(locList[4]);
+        float pitch = Float.parseFloat(locList[5]);
+
+        bombSiteB = new Location(world, x, y, z, yaw, pitch);
+
+        return bombSiteB;
     }
 
 
@@ -994,7 +1100,7 @@ public class CounterStrike extends JavaPlugin {
 
     public void loadResourcePack(Player player, String resourse, String hash) {
         Utils.debug("Change to pack " + resourse);
-         myBukkit.playerSetResourcePack(player,resourse, hash);
+        myBukkit.playerSetResourcePack(player, resourse, hash);
     }
 
 
@@ -1006,7 +1112,8 @@ public class CounterStrike extends JavaPlugin {
 
         Player player = csplay.getPlayer();
 
-        if (ResourseHash.get(player.getName() + "RES") == null || ResourseHash.get(player.getName() + "RES") == "DEFAULT") {
+        //isOnline filters NPCs
+        if (player.isOnline() && (ResourseHash.get(player.getName() + "RES") == null || ResourseHash.get(player.getName() + "RES") == "DEFAULT")) {
             ResourseHash.remove(player.getName() + "RES");
             ResourseHash.put(player.getName() + "RES", "QUALITY");
 
@@ -1015,8 +1122,8 @@ public class CounterStrike extends JavaPlugin {
 
         if (terrorists.contains(csplay)) {
             csplay.setColourOpponent(counterTerroristsTeam.getColour());
-            //Coloca na base terr
-             myBukkit.playerTeleport(player,getTerroristSpawn(true));
+
+            myBukkit.playerTeleport(player, getTerroristSpawn(true));
 
             if (CounterStrike.i.gameState == GameState.SHOP) {
                 boolean noOneHasTNT = false;
@@ -1028,8 +1135,6 @@ public class CounterStrike extends JavaPlugin {
                     }
                 }
 
-                //Utils.debug(noOneHasTNT +"  vs  "+isTNTDropped());
-
                 if (!noOneHasTNT && !isTNTDropped()) {
                     //Utils.debug("Backup TNT");
                     csplay.getPlayer().getInventory().setItem(4, CSUtil.getBombItem());
@@ -1040,33 +1145,41 @@ public class CounterStrike extends JavaPlugin {
         if (counterTerrorists.contains(csplay)) {
             csplay.setColourOpponent(terroristsTeam.getColour());
             //Coloca na base contra
-             myBukkit.playerTeleport(player,getCounterTerroristSpawn(true));
+            myBukkit.playerTeleport(player, getCounterTerroristSpawn(true));
         }
 
-        getPlayerUpdater().setScoreBoard(csplay);
-
-//        player.getInventory().clear();
-//        myBukkit.runTaskLater(player, null, null, () -> player.setGameMode(GameMode.SPECTATOR), 40);
-//        PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "Get ready", ChatColor.RED + "You will resume playing in next round!", 1, 8, 1);
+        if (!csplay.isNPC()) getPlayerUpdater().setScoreBoard(csplay);
     }
 
 
     public void StartGameCounter(int delay) {
+        if (!myBukkit.isCancelled(gameCounterTask)) return;
 
-        if (gameCounterTask != null && gameCount != null) return; //already running skip
+        Location mylobby = getLobbyLocation();
+
+        if (botManager != null) {
+            myBukkit.runTaskLater(null, mylobby, null, () -> {
+                botManager.setMain(this);
+                botManager.lauchBots(2);
+            }, 20);
+        }
+
         if (delay == 0) delay = 1; //default delay
         if (gameCount == null) gameCount = new GameCounter(this);
 
         gameCounterTask = CounterStrike.i.myBukkit.runTaskTimer(null, null, null, () -> gameCount.run(), delay * 20L, 20L);
+        gameState = GameState.WAITING;
     }
 
 
     public void StopGameCounter() {
-        CounterStrike.i.myBukkit.cancelTask(gameCounterTask);
+        if (myBukkit.isCancelled(gameCounterTask)) return; //not running skip
+
+        myBukkit.cancelTask(gameCounterTask);
         gameCounterTask = null;
     }
 
-
+    //ideas todo or not
     public void ChooseConfigs(boolean virtualOn) {
 
         String locRaw = Lobby;
@@ -1118,4 +1231,46 @@ public class CounterStrike extends JavaPlugin {
         }
 
     }
+
+
+    public void leaveGame(CSPlayer csplayer) {
+
+        if (csplayer == null) {
+            return;
+        }
+
+        Player player = csplayer.getPlayer();
+
+        if (quitExitGame) {
+            if (csplayer != null) {
+                getPlayerUpdater().deleteScoreBoards(player);
+                csplayer.clear();
+            }
+        } else {
+            //if has bomb drops it
+            if (csplayer != null && csplayer.getBomb() != null && (gameState.equals(SHOP) || gameState.equals(RUN))) {
+
+                ItemStack item = player.getInventory().getItem(4);
+
+                if (item != null) {
+                    //Utils.debug("Dropping bomb ");
+                    player.getInventory().remove(item);
+                    Item itemDropped = player.getWorld().dropItemNaturally(player.getLocation(), item);
+                    itemDropped.setPickupDelay(40);
+                }
+            }
+        }
+
+        int serverSize = CounterStrike.i.getCSPlayers().size();
+
+        if ((serverSize == 0 || getServer().getOnlinePlayers().size() == 0) && quitExitGame) {
+
+            if (botManager != null) {
+                myBukkit.runTaskLater(null, getLobbyLocation(), null, () -> {
+                    botManager.terminateBots();
+                }, 20);
+            }
+        }
+    }
+
 }

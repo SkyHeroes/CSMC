@@ -153,7 +153,7 @@ public class ShopListener implements Listener {
     @EventHandler
     public void playerMove(PlayerMoveEvent e) {
 
-        if (CounterStrike.i.gameState != GameState.SHOP) return;
+        if (CounterStrike.i.getGameState() != GameState.SHOP) return;
 
         Player player = e.getPlayer();
 

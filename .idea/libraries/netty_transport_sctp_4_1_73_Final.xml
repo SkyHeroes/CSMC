@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="netty-transport-sctp-4.1.73.Final">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../Libs/netty-transport-sctp-4.1.73.Final.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../Libs/netty-transport-4.1.110.Final.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

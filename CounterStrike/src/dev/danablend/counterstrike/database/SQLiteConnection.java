@@ -87,6 +87,8 @@ public class SQLiteConnection {
         if (!saveTo.exists()) {
             createNewDatabase();
             createNewTable();
+        } else {
+            maintainDB();
         }
     }
 
@@ -144,6 +146,34 @@ public class SQLiteConnection {
 
         for (World w : Bukkit.getWorlds()) {
             checkLock("insert into mundos (nome,modocs) values ('" + w.getName() + "','false')");
+        }
+
+    }
+
+    private void maintainDB() {
+
+       String resultado = select("SELECT COUNT(*) AS CNTREC FROM pragma_table_info('CSMaps') WHERE name='A'");
+
+        if (Integer.parseInt(resultado) ==0) {
+            String sql = "ALTER TABLE CSMaps ADD A TEXT;";
+            try (Connection conn = this.connect();
+                 Statement stmt = conn.createStatement()) {
+                // create a new table
+                stmt.execute(sql);
+
+            } catch (SQLException e) {
+                Utils.debug("Error initing DB " + e.getMessage());
+            }
+
+             sql = "ALTER TABLE CSMaps ADD B TEXT;";
+            try (Connection conn = this.connect();
+                 Statement stmt = conn.createStatement()) {
+                // create a new table
+                stmt.execute(sql);
+
+            } catch (SQLException e) {
+                Utils.debug("Error initing DB " + e.getMessage());
+            }
         }
 
     }

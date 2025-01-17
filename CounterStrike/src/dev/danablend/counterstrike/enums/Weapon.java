@@ -1,6 +1,7 @@
 package dev.danablend.counterstrike.enums;
 
 import dev.danablend.counterstrike.csplayer.TeamEnum;
+import dev.danablend.counterstrike.utils.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -91,6 +92,7 @@ public class Weapon {
     }
 
     public static Weapon getByName(String name) {
+        Utils.debug("#### WeapngetByName "+name);
         return weapons.get(name);
     }
 

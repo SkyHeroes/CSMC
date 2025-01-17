@@ -49,7 +49,7 @@ public class BlockPlaceListener implements Listener {
             event.getPlayer().getInventory().getItemInMainHand().setType(Material.AIR);
 
             Object task = null;
-            Bomb bomb = new Bomb(CounterStrike.i.getGameTimer(), Config.BOMB_TIMER, block.getLocation());
+            Bomb bomb = new Bomb(Config.BOMB_TIMER, block.getLocation());
             task = CounterStrike.i.myBukkit.runTaskTimer(null, null, null, () -> bomb.run(), 20L, 20L);
             bomb.setScheduledTask(task);
 

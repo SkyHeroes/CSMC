@@ -50,7 +50,7 @@ public class CSUtil {
     public static void checkForDead() {
         int dead = 0;
         for (CSPlayer csplayer : CounterStrike.i.getCounterTerrorists()) {
-            if (csplayer.getPlayer().isDead() || csplayer.getPlayer().getGameMode().equals(GameMode.SPECTATOR) || (!csplayer.getPlayer().isOnline())) {
+            if (csplayer.getPlayer().isDead() || csplayer.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
                 dead++;
             }
         }
@@ -59,9 +59,10 @@ public class CSUtil {
             CounterStrike.i.restartGame(CounterStrike.i.getTerroristsTeam());
             return;
         }
+
         dead = 0;
         for (CSPlayer csplayer : CounterStrike.i.getTerrorists()) {
-            if (csplayer.getPlayer().isDead() || csplayer.getPlayer().getGameMode().equals(GameMode.SPECTATOR) || (!csplayer.getPlayer().isOnline())) {
+            if (csplayer.getPlayer().isDead() || csplayer.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
                 dead++;
             }
         }

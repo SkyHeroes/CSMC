@@ -7,6 +7,7 @@ import dev.danablend.counterstrike.csplayer.TeamEnum;
 import dev.danablend.counterstrike.database.Worlds;
 import dev.danablend.counterstrike.runnables.Bomb;
 import dev.danablend.counterstrike.utils.PacketUtils;
+import dev.danablend.counterstrike.utils.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -41,9 +42,15 @@ public class PlayerInteractListener implements Listener {
             }
         }
 
+        int maxPlayers = MAX_PLAYERS;
+
+        if (maxPlayers > 16) {
+            maxPlayers = 16;
+        }
+
         CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
-        if (CounterStrike.i.getCSPlayers().size() >= MAX_PLAYERS && csplayer == null) {
+        if (CounterStrike.i.getCSPlayers().size() > maxPlayers && csplayer == null) {
             PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "We are sorry", ChatColor.GREEN + "The game is full, please try again later.", 1, 4, 1);
             return;
         }

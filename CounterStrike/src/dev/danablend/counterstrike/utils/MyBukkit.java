@@ -2,8 +2,10 @@ package dev.danablend.counterstrike.utils;
 
 import dev.danablend.counterstrike.CounterStrike;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -15,6 +17,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Team;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 import static org.bukkit.Bukkit.getServer;
 import static org.bukkit.Bukkit.isOwnedByCurrentRegion;
 
@@ -22,7 +29,11 @@ public class MyBukkit {
     private CounterStrike main;
     private boolean isFoliaBased;
     private boolean isPaperBased;
+    private boolean isInformed = false;
+    private boolean starting = true;
+
     private MyBukkitPaper myBukkitPaper;
+
 
     public MyBukkit(CounterStrike main) {
         this.main = main;
@@ -32,13 +43,15 @@ public class MyBukkit {
         try {
             classCheck = Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
         } catch (Exception e) {
+            classCheck = null;
         }
 
         isFoliaBased = (classCheck != null);
 
         try {
-            classCheck = Class.forName("net.kyori.adventure.text.Component");
+            classCheck = Class.forName("org.bukkit.inventory.meta.ItemMeta.displayName");
         } catch (Exception e) {
+            classCheck = null;
         }
 
         isPaperBased = (classCheck != null);
@@ -49,6 +62,11 @@ public class MyBukkit {
 
     public boolean isFolia() {
         return isFoliaBased;
+    }
+
+
+    public boolean isPaper() {
+        return isPaperBased;
     }
 
 
@@ -198,6 +216,14 @@ public class MyBukkit {
     }
 
 
+    public void consoleSendMessage(String text, String textComponent, NamedTextColor color) {
+        if (isPaper())
+            myBukkitPaper.consoleSendMessage(text, textComponent, color);
+        else
+            Bukkit.getConsoleSender().sendMessage(text + ChatColor.valueOf(color.toString().toUpperCase()) + textComponent);
+    }
+
+
     public void teamAddEntity(Team myTeam, Player player) {
         if (isPaperBased) {
             myTeam.addEntity(player);
@@ -209,7 +235,7 @@ public class MyBukkit {
 
     public void playerTeleport(Player player, Location loc) {
         if (isPaperBased) {
-            runTask(player, null, null, () -> player.teleportAsync(loc));
+            runTaskLater(player, null, null, () -> player.teleportAsync(loc), 40);
         } else {
             player.teleport(loc);
         }
@@ -222,6 +248,162 @@ public class MyBukkit {
         } else {
             player.setResourcePack(resourse);
         }
+    }
+
+
+    public void setRotation(Entity entity, float yaw) {
+        if (isPaperBased) {
+            entity.setRotation(entity.getLocation().getPitch(), entity.getLocation().getYaw() + yaw);
+        } else {
+            Location loc = entity.getLocation();
+            loc.setYaw((loc.getYaw() + yaw));
+            entity.teleport(loc);
+        }
+    }
+
+
+    public void UpdateChecker(String projectName,boolean loop) {
+        if (loop) {
+            runTaskTimer(null, null, null, () -> {
+                runCheck(projectName);
+            }, 5, (240 * 60 * 20)); // every 6h
+        } else {
+            runTaskLater(null, null, null, () -> {
+                runCheck(projectName);
+            }, 20);
+        }
+    }
+
+
+    public void runCheck(String projectName) {
+        try {
+            StringBuilder page = makeAsyncGetRequest("https://cld.pt/dl/download/51c19f75-8900-49f2-8e1b-a92256bf2d4a/bukkit.txt?download=true/");
+
+            if (page != null && page.length() > 10) {
+                String pagina = page.toString();
+
+                int pointer = pagina.indexOf("project-file-name-container-" + projectName);
+                pagina = pagina.substring(pointer); //smaller data
+
+                String tmp = pagina.substring(pagina.indexOf("https://cdn.modrinth.com/"));
+                String version = tmp.substring(tmp.indexOf("data-name=\"") + 11).split("\"")[0];
+                String url = tmp.split("\"")[0];
+                String features = tmp.substring(tmp.indexOf("features=\"") + 10).split("\"")[0];
+
+                promptUpdate(version, url, projectName, features);
+            }
+        } catch (Exception e) {
+            String versionMessage = "[" + projectName + "] Connection exception: " + e.getMessage();
+            NamedTextColor intColor = NamedTextColor.RED;
+
+            consoleSendMessage("[" + projectName + "]", versionMessage, intColor);
+        }
+    }
+
+
+    private StringBuilder makeAsyncGetRequest(String url) {
+        StringBuilder response = new StringBuilder();
+        try {
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.connect();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+                for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+                    response.append(line);
+                }
+            }
+        } catch (Exception ex) {
+        }
+        return response;
+    }
+
+
+    private void promptUpdate(String serverVersion, String Url, String projectName, String features) {
+        String versionMessage;
+        NamedTextColor intColor = NamedTextColor.GRAY;
+
+        if (serverVersion == null) {
+            versionMessage = " Unknown error checking version";
+            intColor = NamedTextColor.RED;
+
+            consoleSendMessage("[" + projectName + "]", versionMessage, intColor);
+
+            return;
+        }
+
+        String tmpServerVersion = null;
+        if (serverVersion.split(" v").length > 1) tmpServerVersion = serverVersion.split(" v")[1];
+        if (tmpServerVersion == null) tmpServerVersion = serverVersion.split(" ")[1];
+        serverVersion = tmpServerVersion;
+
+        String currentVersion = main.getDescription().getVersion();
+        int versionStatus = checkGreater(serverVersion, currentVersion);
+
+        if (versionStatus == -1) {
+            if (features.length() > 1) {
+                features = "\nFeaturing: " + features.replace("<br>","\n") + "\n";
+            } else {
+                features = "";
+            }
+
+            versionMessage = "[" + projectName + "] " + " NEW VERSION: " + serverVersion + features +
+                    "Available at: " + Url;
+
+            if (!isInformed) {
+                for (Player myPlayer : main.getServer().getOnlinePlayers()) {
+                    if (myPlayer.isOp()) {
+                        myPlayer.sendMessage(ChatColor.GREEN + versionMessage);
+                        isInformed = true;
+                    }
+                }
+            }
+
+            versionMessage = " THERE IS A NEW UPDATE AVAILABLE Version: " + serverVersion +
+                    " at: " + Url + "   " + features;
+            intColor = NamedTextColor.GREEN;
+
+        } else if (versionStatus == 0) {
+            if (!starting) return;
+            versionMessage = " You have the latest released version";
+            intColor = NamedTextColor.GREEN;
+        } else if (versionStatus == 1) {
+            if (!starting) return;
+            versionMessage = " Congrats, you are testing a new version!";
+            intColor = NamedTextColor.YELLOW;
+        } else {
+            if (!starting) return;
+            versionMessage = " Unknown error checking version (" + versionStatus + ")" + serverVersion + "   " + currentVersion;
+            intColor = NamedTextColor.RED;
+        }
+
+        consoleSendMessage("[" + projectName + "]", versionMessage, intColor);
+
+        starting = false;
+    }
+
+
+    public int checkGreater(String v1, String v2) {
+        int counter = v1.split("\\.").length;
+
+        if (counter > v2.split("\\.").length) v2 = v2 + ".0";
+        if (counter < v2.split("\\.").length) {
+            v1 = v1 + ".0";
+            counter++;
+        }
+
+        for (int k = 0; k < counter; k++) {
+            try {
+                if (Integer.parseInt(v1.split("\\.")[k]) > Integer.parseInt(v2.split("\\.")[k])) {
+                    return -1;
+                } else if (Integer.parseInt(v1.split("\\.")[k]) < Integer.parseInt(v2.split("\\.")[k])) {
+                    return 1;
+                } else {
+                    //next loop
+                }
+            } catch (Exception e) {
+                return -2;
+            }
+        }
+        return 0;//same version
     }
 
 }

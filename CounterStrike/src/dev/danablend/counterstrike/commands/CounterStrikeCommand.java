@@ -27,6 +27,13 @@ public class CounterStrikeCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("You need to be a player to execute this command.");
+            return true;
+        }
+
+        Player player = (Player) sender;
+
         if (args.length == 1 && args[0].equalsIgnoreCase("setRandMap")) {
 
             if (this.plugin.getGameState().equals(GameState.LOBBY) || this.plugin.getGameState().equals(GameState.WAITING) || this.plugin.getGameState().equals(GameState.STARTING)) {
@@ -54,12 +61,12 @@ public class CounterStrikeCommand implements CommandExecutor {
             return true;
         }
 
-        if (args.length == 1 && args[0].equalsIgnoreCase("setlobby")) {
-            if (!(sender instanceof Player)) {
-                sender.sendMessage("You need to be a player to execute this command.");
-                return true;
-            }
-            Player player = (Player) sender;
+        if (args.length == 2 && args[0].equalsIgnoreCase("setMap")) {
+            Map = args[1];
+            player.sendMessage(ChatColor.GOLD + "Assuming map " + Map);
+
+        } else if (args.length == 1 && args[0].equalsIgnoreCase("setlobby")) {
+
             Location loc = player.getLocation();
             String world = loc.getWorld().getName();
             double x = loc.getX();
@@ -72,26 +79,27 @@ public class CounterStrikeCommand implements CommandExecutor {
             config.options().copyDefaults(true);
 
             plugin.saveConfig();
-            plugin.loadConfigs();
+
+            if (this.plugin.getGameState().equals(GameState.LOBBY)) {
+                plugin.loadConfigs();
+            } else {
+                player.sendMessage(ChatColor.GOLD + "Game is active so no config reload done");
+            }
 
             if (Map == null) {
-                player.sendMessage(ChatColor.GOLD + "Map not set, assuming " + world);
+                player.sendMessage(ChatColor.GOLD + "Map not set, assuming map name " + world);
                 Map = world;
             }
 
             if (Map != null) {
                 plugin.SaveDBCOnfig(Map, "Lobby", location);
-                player.sendMessage(ChatColor.GOLD + "Lobby location has been successfully set.");
+                player.sendMessage(ChatColor.GOLD + "Lobby location has been successfully set for map " + Map);
             }
 
             return true;
 
         } else if (args.length == 2 && args[0].equalsIgnoreCase("setspawn")) {
-            if (!(sender instanceof Player)) {
-                sender.sendMessage("You need to be a player to execute this command.");
-                return true;
-            }
-            Player player = (Player) sender;
+
             if (args[1].equalsIgnoreCase("ct") || args[1].equalsIgnoreCase("counterterrorist")) {
                 Location loc = player.getLocation();
                 String world = loc.getWorld().getName();
@@ -103,16 +111,21 @@ public class CounterStrikeCommand implements CommandExecutor {
                 String location = world + "," + x + "," + y + "," + z + "," + yaw + "," + pitch;
                 config.addDefault("spawn-locations.counterterrorist", location);
                 plugin.saveConfig();
-                plugin.loadConfigs();
+
+                if (this.plugin.getGameState().equals(GameState.LOBBY)) {
+                    plugin.loadConfigs();
+                } else {
+                    player.sendMessage(ChatColor.GOLD + "Game is active so no config reload done");
+                }
 
                 if (Map == null) {
-                    player.sendMessage(ChatColor.GOLD + "Map not set, assuming " + world);
+                    player.sendMessage(ChatColor.GOLD + "Map not set, assuming map name " + world);
                     Map = world;
                 }
 
                 if (Map != null) {
                     plugin.SaveDBCOnfig(Map, "Counter", location);
-                    player.sendMessage(ChatColor.GOLD + "Counter Terrorist spawn has been successfully set.");
+                    player.sendMessage(ChatColor.GOLD + "Counter Terrorist spawn has been successfully set for map " + Map);
                 }
 
             } else if (args[1].equalsIgnoreCase("t") || args[1].equalsIgnoreCase("terrorist")) {
@@ -126,24 +139,68 @@ public class CounterStrikeCommand implements CommandExecutor {
                 String location = world + "," + x + "," + y + "," + z + "," + yaw + "," + pitch;
                 config.addDefault("spawn-locations.terrorist", location);
                 plugin.saveConfig();
-                plugin.loadConfigs();
+
+                if (this.plugin.getGameState().equals(GameState.LOBBY)) {
+                    plugin.loadConfigs();
+                } else {
+                    player.sendMessage(ChatColor.GOLD + "Game is active so no config reload done");
+                }
 
                 if (Map == null) {
-                    player.sendMessage(ChatColor.GOLD + "Map not set, assuming " + world);
+                    player.sendMessage(ChatColor.GOLD + "Map not set, assuming map name " + world);
                     Map = world;
                 }
 
                 if (Map != null) {
                     plugin.SaveDBCOnfig(Map, "Terrorist", location);
-                    player.sendMessage(ChatColor.GOLD + "Terrorist spawn has been successfully set.");
+                    player.sendMessage(ChatColor.GOLD + "Terrorist spawn has been successfully set for map " + Map);
                 }
 
             } else {
                 player.sendMessage(ChatColor.RED + "/counterstrike setspawn <counterterrorist/terrorist>");
             }
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("setbombsite")) {
+
+            String bombSiteName = args[1];
+
+            if (!bombSiteName.equals("A") && !bombSiteName.equals("B")) {
+                sender.sendMessage("Bom site name needs to be A or B.");
+                return true;
+            }
+
+            Location loc = player.getLocation();
+            String world = loc.getWorld().getName();
+            double x = loc.getX();
+            double y = loc.getY();
+            double z = loc.getZ();
+            float yaw = loc.getYaw();
+            float pitch = loc.getPitch();
+            String location = world + "," + x + "," + y + "," + z + "," + yaw + "," + pitch;
+
+            config.addDefault("bomb-locations." + bombSiteName, location);
+            plugin.saveConfig();
+
+            if (this.plugin.getGameState().equals(GameState.LOBBY)) {
+                plugin.loadConfigs();
+            } else {
+                player.sendMessage(ChatColor.GOLD + "Game is active so no config reload done");
+            }
+
+            if (Map == null) {
+                player.sendMessage(ChatColor.GOLD + "Map not set, assuming map name " + world);
+                Map = world;
+            }
+
+            if (Map != null) {
+                plugin.SaveDBCOnfig(Map, bombSiteName, location);
+                player.sendMessage(ChatColor.GOLD + bombSiteName + " bomb site has been successfully set for map " + Map);
+            }
+
         } else {
+            sender.sendMessage(ChatColor.GREEN + "/counterstrike setMap - " + ChatColor.GRAY + "Sets the current map been setup with next commeads.");
             sender.sendMessage(ChatColor.GREEN + "/counterstrike setlobby - " + ChatColor.GRAY + "Sets the spawn point for when the game is in lobby state.");
             sender.sendMessage(ChatColor.GREEN + "/counterstrike setspawn <counterterrorist/terrorist> - " + ChatColor.GRAY + "Sets the spawn point for each team for when the game has started.");
+            sender.sendMessage(ChatColor.GREEN + "/counterstrike setbombsite <A/B> - " + ChatColor.GRAY + "Sets the bomb site for A or B (Required for AI).");
         }
         return true;
     }

@@ -15,6 +15,7 @@ public class GameCounter {
 
     CounterStrike plugin;
     FileConfiguration config;
+    private int counter = 0;
 
     public GameCounter(CounterStrike plugin) {
         this.plugin = plugin;
@@ -35,7 +36,7 @@ public class GameCounter {
     public void run() {
 
         if (!Config.GAME_ENABLED) {
-            CounterStrike.i.gameState = GameState.LOBBY;
+            CounterStrike.i.setGameState(GameState.LOBBY);
             plugin.StopGameCounter();
             return;
         }
@@ -43,7 +44,7 @@ public class GameCounter {
 
         if ((serverSize == 0 || plugin.getServer().getOnlinePlayers().size() == 0) && plugin.quitExitGame) {
             Utils.debug("Aborting Counter, no players left");
-            CounterStrike.i.gameState = GameState.LOBBY;
+            CounterStrike.i.setGameState(GameState.LOBBY);
             plugin.StopGameCounter();
             return;
         }
@@ -52,23 +53,28 @@ public class GameCounter {
 
         if (serverSize >= minPlayers) {
 
-            if (CounterStrike.i.gameState != GameState.STARTING) {
+            if (CounterStrike.i.getGameState() != GameState.STARTING) {
                 GameStarter start = new GameStarter(plugin);
                 Object task;
                 task = plugin.myBukkit.runTaskTimer(null, null, null, () -> start.run(), 40L, 20L);
                 start.setScheduledTask(task);
 
-                CounterStrike.i.gameState = GameState.STARTING;
+                CounterStrike.i.setGameState(GameState.STARTING);
             }
 
             plugin.StopGameCounter();
 
         } else {
-            CounterStrike.i.gameState = GameState.WAITING;
-            String msg = (minPlayers - serverSize <= 1) ? Utils.color("&6The game needs &a" + (minPlayers - serverSize) + " &6more player to start!") : Utils.color("&6The game needs &a" + (minPlayers - serverSize) + " &6more players to start!");
-            plugin.broadcastMessage(msg);
+            CounterStrike.i.setGameState(GameState.WAITING);
 
-            PacketUtils.sendActionBarToWaitingInLobby(msg);
+            String msg = (minPlayers - serverSize <= 1) ? Utils.color("&6The game needs &a" + (minPlayers - serverSize) + " &6more player to start!") : Utils.color("&6The game needs &a" + (minPlayers - serverSize) + " &6more players to start!");
+
+            if ((counter % 5) == 0) {
+                plugin.broadcastMessage(msg);
+                PacketUtils.sendActionBarToWaitingInLobby(msg);
+            }
+
+            counter++;
         }
     }
 }

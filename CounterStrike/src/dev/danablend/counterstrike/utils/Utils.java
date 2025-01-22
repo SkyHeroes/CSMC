@@ -1,7 +1,7 @@
 package dev.danablend.counterstrike.utils;
 
 import dev.danablend.counterstrike.Config;
-import org.bukkit.Bukkit;
+import dev.danablend.counterstrike.CounterStrike;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 
@@ -20,7 +20,7 @@ public class Utils {
 
     public static void debug(String msg) {
         if (Config.DEBUGGING_ENABLED) {
-            Bukkit.getLogger().info(msg);
+            CounterStrike.i.getLogger().info(msg);
         }
     }
 

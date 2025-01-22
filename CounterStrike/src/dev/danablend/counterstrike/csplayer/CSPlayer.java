@@ -12,12 +12,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
-import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 
 public class CSPlayer {
 
@@ -37,8 +33,8 @@ public class CSPlayer {
     private String colour;
     private String opponentColour;
     private boolean status = false;
-    private Date date = Date.from(Instant.now());
     private FastBoard board;
+    private boolean isNPC = false;
 
     public CSPlayer(CounterStrike plugin, Player player, String colour) {
         Utils.debug("#### New CSPlayer " + player.getName() + " with requested colour " + colour);
@@ -105,15 +101,6 @@ public class CSPlayer {
         }
         csPlayers.add(this);
 
-        Utils.debug(player.getName() + " resource " + plugin.ResourseHash.get(player.getName() + "RES"));
-
-        if (plugin.ResourseHash.get(player.getName() + "RES") == null || plugin.ResourseHash.get(player.getName() + "RES") == "DEFAULT") {
-            plugin.ResourseHash.remove(player.getName() + "RES");
-            plugin.ResourseHash.put(player.getName() + "RES", "QUALITY");
-
-            plugin.loadResourcePack(player, "https://github.com/ZombieStriker/QualityArmory-Resourcepack/releases/download/latest/QualityArmory.zip", "3a34fc09dcc6f009aa05741f8ab487dd17b13eaf");
-        }
-
         if (getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
             PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "You are a " + ChatColor.BLUE + "Counter Terrorist", ChatColor.BLUE + "Defend the sites from terrorists, defuse the bomb.", 1, 4, 1);
         } else if (getTeam().equals(TeamEnum.TERRORISTS)) {
@@ -122,16 +109,18 @@ public class CSPlayer {
 
         status = true;
 
-        update();
+        manageSpeed();
     }
 
-    public void update() {
+    public void manageSpeed() {
         if (player == null) return;
 
         if (player.getInventory().getItemInMainHand().getType().equals(Material.IRON_AXE)) {
-            CounterStrike.i.myBukkit.runTask(player,null,null, () -> player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 99999, (int) (player.getWalkSpeed() * 0.7))));
+          //  CounterStrike.i.myBukkit.runTask(player, null, null, () -> player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 99999, (int) (player.getWalkSpeed() * 0.7))));
+            player.setWalkSpeed((float)0.233);
         } else {
-            CounterStrike.i.myBukkit.runTask(player,null,null, () -> player.removePotionEffect(PotionEffectType.SPEED));
+          //  CounterStrike.i.myBukkit.runTask(player, null, null, () -> player.removePotionEffect(PotionEffectType.SPEED));
+            player.setWalkSpeed((float)0.2);
         }
     }
 
@@ -153,8 +142,13 @@ public class CSPlayer {
         money = 0;
         kills = 0;
         deaths = 0;
-        Utils.debug("Clearing CSPlayer data for " + player.getName() + "   " + test1 + "    " + test2 + "    " + test3);
-        player = null;
+
+        if (player != null) {
+            Utils.debug("Clearing CSPlayer data for " + player.getName() + "   " + test1 + "    " + test2 + "    " + test3);
+            player.setWalkSpeed((float)0.2);
+        }
+
+      //uhm?  player = null;
         team = null;
     }
 
@@ -187,17 +181,17 @@ public class CSPlayer {
     }
 
     public Weapon getGrenade() {
-        Utils.debug("Checking if CSPlayer " + player.getName() + " has any grenades..."+ (player.getInventory().getItem(3) != null));
+        Utils.debug("Checking if CSPlayer " + player.getName() + " has any grenades..." + (player.getInventory().getItem(3) != null));
         return Weapon.getByItem(player.getInventory().getItem(3));
     }
 
     public ItemStack getBomb() {
-        Utils.debug("Checking if CSPlayer " + player.getName() + " has any Bombs... "+ (player.getInventory().getItem(4) != null));
+        Utils.debug("Checking if CSPlayer " + player.getName() + " has any Bombs... " + (player.getInventory().getItem(4) != null));
         return player.getInventory().getItem(4);
     }
 
     public ItemStack getKnife() {
-        Utils.debug("Checking if CSPlayer " + player.getName() + " has any Knifes... "+ (player.getInventory().getItem(2) != null));
+        Utils.debug("Checking if CSPlayer " + player.getName() + " has any Knifes... " + (player.getInventory().getItem(2) != null));
         return player.getInventory().getItem(2);
     }
 
@@ -310,11 +304,27 @@ public class CSPlayer {
         this.team = team;
     }
 
+    public boolean isTerrorist() {
+
+        if (getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
+            return false;
+        } else if (getTeam().equals(TeamEnum.TERRORISTS)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void setNPC() {
+        isNPC = true;
+    }
+
+    public boolean isNPC() {
+        return isNPC;
+    }
+
     public boolean returStatus() {
         return status;
     }
 
-    public Date getDate() {
-        return date;
-    }
 }

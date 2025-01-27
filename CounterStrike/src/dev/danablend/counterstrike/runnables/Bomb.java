@@ -2,7 +2,7 @@ package dev.danablend.counterstrike.runnables;
 
 import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.GameState;
+import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.events.WeaponFireEvent;
 import dev.danablend.counterstrike.utils.PacketUtils;
@@ -45,7 +45,7 @@ public class Bomb {
         this.defuser = null;
         this.location = location;
 
-        CounterStrike.i.setGameState( GameState.PLANTED);
+        CounterStrike.i.setGameState(GameState.PLANTED);
 
         hologram = CounterStrike.i.myBukkit.startLabel(location);
         CounterStrike.i.myBukkit.showLabel(hologram, ChatColor.YELLOW + "Exploding in " + countdown + " seconds.", true);
@@ -56,7 +56,7 @@ public class Bomb {
 
     public static void cleanUp() {
 
-        if (CounterStrike.i.getGameState() != GameState.PLANTED) return;
+        if (!CounterStrike.i.getGameState().equals(GameState.PLANTED)) return;
 
         cleaning = true;
         bomb = null;

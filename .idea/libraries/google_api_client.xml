@@ -2,7 +2,7 @@
   <library name="google.api.client" type="repository">
     <properties maven-id="com.google.api-client:google-api-client:LATEST" />
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/com/google/api-client/google-api-client/2.7.1/google-api-client-2.7.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/api-client/google-api-client/2.7.2/google-api-client-2.7.2.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/commons-codec/commons-codec/1.17.1/commons-codec-1.17.1.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/com/google/oauth-client/google-oauth-client/1.36.0/google-oauth-client-1.36.0.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/com/google/auth/google-auth-library-credentials/1.30.0/google-auth-library-credentials-1.30.0.jar!/" />

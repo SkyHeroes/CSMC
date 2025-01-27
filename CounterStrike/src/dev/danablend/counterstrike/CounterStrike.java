@@ -7,6 +7,7 @@ import dev.danablend.counterstrike.csplayer.Team;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
 import dev.danablend.counterstrike.database.SQLiteConnection;
 import dev.danablend.counterstrike.database.Worlds;
+import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.enums.Weapon;
 import dev.danablend.counterstrike.listeners.*;
 import dev.danablend.counterstrike.runnables.*;
@@ -16,6 +17,7 @@ import dev.danablend.counterstrike.tests.TestCommand;
 import dev.danablend.counterstrike.utils.*;
 import me.zombie_striker.qg.guns.Gun;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
@@ -35,7 +37,7 @@ import java.sql.Statement;
 import java.util.*;
 
 import static dev.danablend.counterstrike.Config.MAX_ROUNDS;
-import static dev.danablend.counterstrike.GameState.*;
+import static dev.danablend.counterstrike.enums.GameState.*;
 
 
 public class CounterStrike extends JavaPlugin {
@@ -49,7 +51,7 @@ public class CounterStrike extends JavaPlugin {
     public MyBukkit myBukkit;
 
     public Hashtable HashWorlds = null;
-    public Hashtable ResourseHash = new Hashtable();
+    public Hashtable ResourceHash = new Hashtable();
     Collection<CSPlayer> csPlayers = new ArrayList<>();
     public Collection<CSPlayer> counterTerrorists = new ArrayList<CSPlayer>();
     public Collection<CSPlayer> terrorists = new ArrayList<CSPlayer>();
@@ -64,6 +66,15 @@ public class CounterStrike extends JavaPlugin {
     public Team terroristsTeam;
     private SQLiteConnection sqlite = null;
     private dev.danablend.counterstrike.runnables.PlayerUpdater pUpdate;
+
+    public static final int RIFLE_SLOT = 0;
+    public static final int PISTOL_SLOT = 1;
+    public static final int KNIFE_SLOT  = 2;
+    public static final int GRENADE_SLOT = 3;
+    public static final int TNT_SLOT = 4;
+    public static final int RIFLE_AMO_SLOT = 6;
+    public static final int PISTOL_AMO_SLOT = 7;
+    public static final int SHOP_SLOT = 8;
 
     private String SpawnTerrorists;
     private String SpawnCounterTerrorists;
@@ -88,6 +99,10 @@ public class CounterStrike extends JavaPlugin {
         i = this;
         setup();
 
+        if (myBukkit.checkGreater("1.21.1", Bukkit.getServer().getBukkitVersion()) == -1) {
+            getLogger().severe(" You are using a Minecraft Server version with possible problems of data loss and known exploits, get informed and evaluate updating to at least 1.21.1");
+        }
+
         try {
             myBukkit.runTaskLater(null, null, null, () -> new Metrics(this, 22650), 5);
         } catch (Exception e) {
@@ -111,7 +126,7 @@ public class CounterStrike extends JavaPlugin {
             }
         }, 40);
 
-        myBukkit.UpdateChecker(getDescription().getName(),true);
+        myBukkit.UpdateChecker(getDescription().getName(), true);
 
         Utils.debug("Enabled");
     }
@@ -717,8 +732,8 @@ public class CounterStrike extends JavaPlugin {
             //put in base
             myBukkit.playerTeleport(player, getTerroristSpawn(true));
 
-            if (player.getInventory().getItem(1) == null || csPlayer.getPistol() == null) {
-                player.getInventory().setItem(1, Weapon.getByName("t-pistol-default").getItem());
+            if (player.getInventory().getItem(PISTOL_SLOT) == null || csPlayer.getPistol() == null) {
+                player.getInventory().setItem(PISTOL_SLOT, Weapon.getByName("t-pistol-default").getItem());
             }
             giveEquipment(csPlayer);
             csPlayer.settempMVP(0);
@@ -734,8 +749,8 @@ public class CounterStrike extends JavaPlugin {
             //put in base
             myBukkit.playerTeleport(player, getCounterTerroristSpawn(true));
 
-            if (player.getInventory().getItem(1) == null || csPlayer.getPistol() == null) {
-                player.getInventory().setItem(1, Weapon.getByName("ct-pistol-default").getItem());
+            if (player.getInventory().getItem(PISTOL_SLOT) == null || csPlayer.getPistol() == null) {
+                player.getInventory().setItem(PISTOL_SLOT, Weapon.getByName("ct-pistol-default").getItem());
             }
             giveEquipment(csPlayer);
             csPlayer.settempMVP(0);
@@ -749,14 +764,11 @@ public class CounterStrike extends JavaPlugin {
             player.setFlying(false);
             player.setAllowFlight(false);
 
-            player.getInventory().setItem(2, getKnife());
-            //  player.getInventory().setItem(8, getShopItem()); //check PlayerUpdater
+            player.getInventory().setItem(KNIFE_SLOT, getKnife());
+            //  player.getInventory().setItem(TNT_SLOT, getShopItem()); //check PlayerUpdater
 
-            try { //npc give exception
-                player.setHealth(40);
-            } catch (Exception e) {
-            }
-
+            player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40);
+            player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
 
             CSPlayer cp = this.getCSPlayer(player, false, null);
             Weapon rifle = cp.getRifle();
@@ -764,31 +776,33 @@ public class CounterStrike extends JavaPlugin {
 
             if (rifle != null) {
                 Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(rifle.getName());
-                Gun.updateAmmo(gun, player.getInventory().getItem(0), rifle.getMagazineCapacity());
+                Gun.updateAmmo(gun, player.getInventory().getItem(RIFLE_SLOT), rifle.getMagazineCapacity());
 
                 Utils.debug(rifle.getMagazineCapacity() + " ###### rifle " + rifle.getName());
 
                 ItemStack ammo = gun.getAmmoType().getItemStack().clone();
                 ammo.setAmount((rifle.getMagazines() - 1) * rifle.getMagazineCapacity());
-                player.getInventory().setItem(6, ammo);
+                player.getInventory().setItem(RIFLE_AMO_SLOT, ammo);
             }
 
             if (pistol != null) {
                 Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(pistol.getName());
-                Gun.updateAmmo(gun, player.getInventory().getItem(1), pistol.getMagazineCapacity());
+                Gun.updateAmmo(gun, player.getInventory().getItem(PISTOL_SLOT), pistol.getMagazineCapacity());
 
                 ItemStack ammo = gun.getAmmoType().getItemStack().clone();
                 ammo.setAmount((pistol.getMagazines() - 1) * pistol.getMagazineCapacity());
-                player.getInventory().setItem(7, ammo);
+                player.getInventory().setItem(PISTOL_AMO_SLOT, ammo);
             }
 
             player.getInventory().remove(Material.TNT);
         }
 
         if (!terrorists.isEmpty()) {
-            CSPlayer playerWithBomb = (CSPlayer) terrorists.toArray()[new Random().nextInt(terrorists.toArray().length)];
-            playerWithBomb.getPlayer().getInventory().setItem(4, CSUtil.getBombItem());
-            Utils.debug("------> Bomb with player "+ playerWithBomb.getPlayer().getName() + "    " +new Random().nextInt(terrorists.toArray().length) + "     "+ new Random().nextInt(terrorists.toArray().length));
+            int rand =new Random().nextInt(terrorists.toArray().length);
+
+            CSPlayer playerWithBomb = (CSPlayer) terrorists.toArray()[rand];
+            playerWithBomb.getPlayer().getInventory().setItem(TNT_SLOT, CSUtil.getBombItem());
+            Utils.debug("------> Bomb with player " + playerWithBomb.getPlayer().getName() + "  rand:"+rand);
         }
 
     }
@@ -832,11 +846,11 @@ public class CounterStrike extends JavaPlugin {
 
         if (create) {
             CSPlayer csp = new CSPlayer(this, player, colour);
+            String resPackName = player.getName() + "RES";
 
             //online filters NPCs
-            if (player.isOnline() && (ResourseHash.get(player.getName() + "RES") == null || ResourseHash.get(player.getName() + "RES") == "DEFAULT")) {
-                ResourseHash.remove(player.getName() + "RES");
-                ResourseHash.put(player.getName() + "RES", "QUALITY");
+            if (player.isOnline() && (ResourceHash.get(resPackName) == null || ResourceHash.get(resPackName).equals("DEFAULT"))) {
+                ResourceHash.put(resPackName, "QUALITY");
 
                 loadResourcePack(player, "https://github.com/ZombieStriker/QualityArmory-Resourcepack/releases/download/latest/QualityArmory.zip", "3a34fc09dcc6f009aa05741f8ab487dd17b13eaf");
             }
@@ -885,7 +899,7 @@ public class CounterStrike extends JavaPlugin {
 
 
     public void setGameState(GameState newGameState) {
-         gameState = newGameState;
+        gameState = newGameState;
     }
 
 
@@ -970,7 +984,6 @@ public class CounterStrike extends JavaPlugin {
 
         if (SpawnCounterTerroristsLocation != null && !rand) return SpawnCounterTerroristsLocation;
 
-        Utils.debug("Getting Counter Terrorist spawn...");
         String locRaw = SpawnCounterTerrorists;
         String[] locList = locRaw.split(",");
         World world = Bukkit.getWorld(locList[0]);
@@ -1111,11 +1124,11 @@ public class CounterStrike extends JavaPlugin {
         }
 
         Player player = csplay.getPlayer();
+        String resPackName = player.getName() + "RES";
 
         //isOnline filters NPCs
-        if (player.isOnline() && (ResourseHash.get(player.getName() + "RES") == null || ResourseHash.get(player.getName() + "RES") == "DEFAULT")) {
-            ResourseHash.remove(player.getName() + "RES");
-            ResourseHash.put(player.getName() + "RES", "QUALITY");
+        if (player.isOnline() && (ResourceHash.get(resPackName) == null || ResourceHash.get(resPackName).equals("DEFAULT"))) {
+            ResourceHash.put(resPackName, "QUALITY");
 
             loadResourcePack(player, "https://github.com/ZombieStriker/QualityArmory-Resourcepack/releases/download/latest/QualityArmory.zip", "3a34fc09dcc6f009aa05741f8ab487dd17b13eaf");
         }
@@ -1137,7 +1150,7 @@ public class CounterStrike extends JavaPlugin {
 
                 if (!noOneHasTNT && !isTNTDropped()) {
                     //Utils.debug("Backup TNT");
-                    csplay.getPlayer().getInventory().setItem(4, CSUtil.getBombItem());
+                    csplay.getPlayer().getInventory().setItem(TNT_SLOT, CSUtil.getBombItem());
                 }
             }
         }
@@ -1160,7 +1173,7 @@ public class CounterStrike extends JavaPlugin {
         if (botManager != null) {
             myBukkit.runTaskLater(null, mylobby, null, () -> {
                 botManager.setMain(this);
-                botManager.lauchBots(2);
+                botManager.lauchBots(3);
             }, 20);
         }
 
@@ -1241,16 +1254,20 @@ public class CounterStrike extends JavaPlugin {
 
         Player player = csplayer.getPlayer();
 
+        if (csplayer.isNPC()) {
+            getPlayerUpdater().deleteScoreBoards(player);
+            csplayer.clear();
+            return;
+        }
+
         if (quitExitGame) {
-            if (csplayer != null) {
-                getPlayerUpdater().deleteScoreBoards(player);
-                csplayer.clear();
-            }
+            getPlayerUpdater().deleteScoreBoards(player);
+            csplayer.clear();
         } else {
             //if has bomb drops it
             if (csplayer != null && csplayer.getBomb() != null && (gameState.equals(SHOP) || gameState.equals(RUN))) {
 
-                ItemStack item = player.getInventory().getItem(4);
+                ItemStack item = player.getInventory().getItem(TNT_SLOT);
 
                 if (item != null) {
                     //Utils.debug("Dropping bomb ");

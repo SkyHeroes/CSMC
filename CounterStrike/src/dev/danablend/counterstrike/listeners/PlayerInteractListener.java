@@ -1,13 +1,12 @@
 package dev.danablend.counterstrike.listeners;
 
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.GameState;
+import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
 import dev.danablend.counterstrike.database.Worlds;
 import dev.danablend.counterstrike.runnables.Bomb;
 import dev.danablend.counterstrike.utils.PacketUtils;
-import dev.danablend.counterstrike.utils.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -55,7 +54,7 @@ public class PlayerInteractListener implements Listener {
             return;
         }
 
-        if (csplayer == null && event.getAction() == Action.LEFT_CLICK_BLOCK) {
+        if (csplayer == null && event.getAction().equals(Action.LEFT_CLICK_BLOCK)) {
 
             if (CounterStrike.i.getGameState().equals(GameState.RUN)) {
                 dev.danablend.counterstrike.csplayer.Team myTeam = CounterStrike.i.getTerroristsTeam();
@@ -121,11 +120,11 @@ public class PlayerInteractListener implements Listener {
 
         CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
-        if (csplayer != null && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+        if (csplayer != null && event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
 
             if (Bomb.bomb == null) return;
 
-            if (csplayer.getTeam() != TeamEnum.COUNTER_TERRORISTS) return;
+            if (!csplayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) return;
 
             Bomb bomb = Bomb.bomb;
 

@@ -17,8 +17,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 
-import static dev.danablend.counterstrike.GameState.PLANTED;
-import static dev.danablend.counterstrike.GameState.RUN;
+import static dev.danablend.counterstrike.enums.GameState.PLANTED;
+import static dev.danablend.counterstrike.enums.GameState.RUN;
 
 public class PlayerDeathListener implements Listener {
     CounterStrike plugin = CounterStrike.i;

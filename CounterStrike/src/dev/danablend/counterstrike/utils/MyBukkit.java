@@ -1,6 +1,8 @@
 package dev.danablend.counterstrike.utils;
 
 import dev.danablend.counterstrike.CounterStrike;
+import dev.danablend.counterstrike.utils.compatibility.MyBukkitPaperLegacy;
+import dev.danablend.counterstrike.utils.compatibility.MyBukkitPaper;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.md_5.bungee.api.ChatMessageType;
@@ -13,6 +15,7 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Team;
@@ -29,11 +32,12 @@ public class MyBukkit {
     private CounterStrike main;
     private boolean isFoliaBased;
     private boolean isPaperBased;
+    private boolean isLegacy;
     private boolean isInformed = false;
     private boolean starting = true;
 
     private MyBukkitPaper myBukkitPaper;
-
+    private MyBukkitPaperLegacy myBukkitPaperLegacy;
 
     public MyBukkit(CounterStrike main) {
         this.main = main;
@@ -56,7 +60,11 @@ public class MyBukkit {
 
         isPaperBased = (classCheck != null);
 
+        isLegacy = (!Bukkit.getMinecraftVersion().equals("1.20.1"));
+
         if (isPaperBased) myBukkitPaper = new MyBukkitPaper();
+
+        if (isLegacy) myBukkitPaperLegacy = new MyBukkitPaperLegacy();
     }
 
 
@@ -259,6 +267,13 @@ public class MyBukkit {
             loc.setYaw((loc.getYaw() + yaw));
             entity.teleport(loc);
         }
+    }
+
+
+    public boolean isDownloded(PlayerResourcePackStatusEvent event) {
+
+        if (isLegacy) return myBukkitPaperLegacy.isDownloded(event);
+       return false;
     }
 
 

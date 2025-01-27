@@ -2,7 +2,7 @@ package dev.danablend.counterstrike.runnables;
 
 import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.GameState;
+import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import dev.danablend.counterstrike.utils.Utils;
 import org.bukkit.Bukkit;
@@ -53,7 +53,7 @@ public class GameCounter {
 
         if (serverSize >= minPlayers) {
 
-            if (CounterStrike.i.getGameState() != GameState.STARTING) {
+            if (!CounterStrike.i.getGameState().equals(GameState.STARTING)) {
                 GameStarter start = new GameStarter(plugin);
                 Object task;
                 task = plugin.myBukkit.runTaskTimer(null, null, null, () -> start.run(), 40L, 20L);

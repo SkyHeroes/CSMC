@@ -2,7 +2,7 @@ package dev.danablend.counterstrike.runnables;
 
 import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.GameState;
+import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
 import dev.danablend.counterstrike.utils.CSUtil;
@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.UUID;
 
 import static dev.danablend.counterstrike.Config.MAX_ROUNDS;
+import static dev.danablend.counterstrike.CounterStrike.SHOP_SLOT;
 
 public class PlayerUpdater extends BukkitRunnable {
 
@@ -62,14 +63,14 @@ public class PlayerUpdater extends BukkitRunnable {
         for (CSPlayer csplayer : plugin.getCSPlayers()) {
             Player player = csplayer.getPlayer();
 
-            if (CSUtil.isOutOfShopZone(player) || plugin.getGameState() != GameState.SHOP) {
+            if (CSUtil.isOutOfShopZone(player) || !plugin.getGameState().equals(GameState.SHOP)) {
 
-                if (player.getInventory().getItem(8) != null) {
-                    player.getInventory().remove(player.getInventory().getItem(8));
+                if (player.getInventory().getItem(SHOP_SLOT) != null) {
+                    player.getInventory().remove(player.getInventory().getItem(SHOP_SLOT));
                 }
             } else {
-                if (player.getInventory().getItem(8) == null) {
-                    player.getInventory().setItem(8, CounterStrike.i.getShopItem());
+                if (player.getInventory().getItem(SHOP_SLOT) == null) {
+                    player.getInventory().setItem(SHOP_SLOT, CounterStrike.i.getShopItem());
                 }
             }
 

@@ -2,7 +2,7 @@ package dev.danablend.counterstrike.runnables;
 
 import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.GameState;
+import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import dev.danablend.counterstrike.utils.Utils;
 import org.bukkit.ChatColor;
@@ -21,7 +21,7 @@ public class GameTimer {
     public void run() {
         int serverSize = CounterStrike.i.getCSPlayers().size();
 
-        if (CounterStrike.i.getGameState() == GameState.PLANTED) {
+        if (CounterStrike.i.getGameState().equals(GameState.PLANTED)) {
             plugin.myBukkit.cancelTask(task);
             return;
         }
@@ -33,7 +33,7 @@ public class GameTimer {
             return;
         }
 
-        if (CounterStrike.i.getGameState() != GameState.RUN) {
+        if (!CounterStrike.i.getGameState().equals(GameState.RUN)) {
             plugin.myBukkit.cancelTask(task);
             return;
         }

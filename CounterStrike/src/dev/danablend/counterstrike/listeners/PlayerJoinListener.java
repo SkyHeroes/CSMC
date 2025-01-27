@@ -1,9 +1,9 @@
 package dev.danablend.counterstrike.listeners;
 
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.database.Worlds;
+import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import dev.danablend.counterstrike.utils.Utils;
 import org.bukkit.ChatColor;
@@ -37,27 +37,36 @@ public class PlayerJoinListener implements Listener {
     public void onPlayerResourcePackStatusEvent(PlayerResourcePackStatusEvent event) {
         Player player = event.getPlayer();
         String world = player.getWorld().getName();
+        String resPackName = player.getName() + "RES";
 
         if (CounterStrike.i.HashWorlds != null) {
             Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
             if (md != null && !md.modoCs) {
-                if (plugin.ResourseHash.get(player.getName() + "RES") == null) {
-                    plugin.ResourseHash.put(player.getName() + "RES", "DEFAULT");
+                if (plugin.ResourceHash.get(resPackName) == null) {
+                    plugin.ResourceHash.put(resPackName, "DEFAULT");
                 }
             }
         }
 
-        if (!event.getStatus().equals(ACCEPTED) && !event.getStatus().equals(SUCCESSFULLY_LOADED) && !event.getStatus().equals(DOWNLOADED)) {
-            Utils.debug(player.getName() + "Loading resource status " + event.getStatus());
+        boolean success = true;
 
-            //goes back in loaded resource pack
-            if (plugin.ResourseHash.get(player.getName() + "RES") == null || plugin.ResourseHash.get(player.getName() + "RES") == "DEFAULT") {
-                plugin.ResourseHash.remove(player.getName() + "RES");
-                plugin.ResourseHash.put(player.getName() + "RES", "QUALITY");
+        if (!event.getStatus().equals(ACCEPTED) && !event.getStatus().equals(SUCCESSFULLY_LOADED)) {
+            Utils.debug(" ResourcePack load status: " + event.getStatus());
+            success = false;
+        }
+
+        if (success && !CounterStrike.i.myBukkit.isDownloded(event)) {
+            Utils.debug(" ResourcePack load status: " + event.getStatus());
+            success = false;
+        }
+
+        if (!success) {
+            //goes back in loaded resource pack cache status
+            if (plugin.ResourceHash.get(resPackName) == null || plugin.ResourceHash.get(resPackName).equals("DEFAULT")) {
+                plugin.ResourceHash.put(resPackName, "QUALITY");
             } else {
-                plugin.ResourseHash.remove(player.getName() + "RES");
-                plugin.ResourseHash.put(player.getName() + "RES", "DEFAULT");
+                plugin.ResourceHash.put(resPackName, "DEFAULT");
             }
         }
     }
@@ -91,7 +100,7 @@ public class PlayerJoinListener implements Listener {
             player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
         }
 
-        if (!plugin.getPlayerUpdater().playersWithScoreboard.contains(player.getUniqueId())) {
+        if (!plugin.getPlayerUpdater().playersWithScoreboard.contains(player.getUniqueId()) && (CounterStrike.i.getGameState().equals(GameState.LOBBY) || CounterStrike.i.getGameState().equals(GameState.WAITING))) {
             Utils.debug("#### Player " + player.getName() + " entered the lobby");
             plugin.myBukkit.playerTeleport(player, plugin.getLobbyLocation());
 
@@ -123,7 +132,7 @@ public class PlayerJoinListener implements Listener {
         String world = player.getWorld().getName();
         Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
 
-        plugin.ResourseHash.remove(player.getName() + "RES");
+        plugin.ResourceHash.remove(player.getName() + "RES");
 
         if (md != null && !md.modoCs) {
             return;
@@ -143,6 +152,7 @@ public class PlayerJoinListener implements Listener {
         Player player = event.getPlayer();
         String world = player.getWorld().getName();
         Worlds md = null;
+        String resPackName = player.getName() + "RES";
 
         if (CounterStrike.i.HashWorlds != null) {
             Object obj = plugin.HashWorlds.get(world);
@@ -170,9 +180,8 @@ public class PlayerJoinListener implements Listener {
                 }
 
                 //clears QUALITY resoursepack and loads default (inOnline filters NPCs)
-                if (player.isOnline() &&( plugin.ResourseHash.get(player.getName() + "RES") == null || plugin.ResourseHash.get(player.getName() + "RES") == "QUALITY")) {
-                    plugin.ResourseHash.remove(player.getName() + "RES");
-                    plugin.ResourseHash.put(player.getName() + "RES", "DEFAULT");
+                if (player.isOnline() && (plugin.ResourceHash.get(resPackName) == null || plugin.ResourceHash.get(resPackName).equals("QUALITY"))) {
+                    plugin.ResourceHash.put(resPackName, "DEFAULT");
 
                     plugin.loadResourcePack(player, DEFAULT_RESOURCE, DEFAULT_RESOURCE_HASH);
                 }

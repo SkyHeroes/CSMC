@@ -15,6 +15,8 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Collection;
 
+import static dev.danablend.counterstrike.CounterStrike.*;
+
 public class CSPlayer {
 
     private Collection<CSPlayer> csPlayers;
@@ -117,19 +119,19 @@ public class CSPlayer {
 
         if (player.getInventory().getItemInMainHand().getType().equals(Material.IRON_AXE)) {
           //  CounterStrike.i.myBukkit.runTask(player, null, null, () -> player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 99999, (int) (player.getWalkSpeed() * 0.7))));
-            player.setWalkSpeed((float)0.233);
+            player.setWalkSpeed(0.234f);
         } else {
           //  CounterStrike.i.myBukkit.runTask(player, null, null, () -> player.removePotionEffect(PotionEffectType.SPEED));
-            player.setWalkSpeed((float)0.2);
+            player.setWalkSpeed(0.2f);
         }
     }
 
     public Location getSpawnLocation() {
 
         if (getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
-            return CounterStrike.i.getCounterTerroristSpawn(true);
+            return CounterStrike.i.getCounterTerroristSpawn(false);
         } else if (getTeam().equals(TeamEnum.TERRORISTS)) {
-            return CounterStrike.i.getTerroristSpawn(true);
+            return CounterStrike.i.getTerroristSpawn(false);
         } else {
             return null;
         }
@@ -145,7 +147,7 @@ public class CSPlayer {
 
         if (player != null) {
             Utils.debug("Clearing CSPlayer data for " + player.getName() + "   " + test1 + "    " + test2 + "    " + test3);
-            player.setWalkSpeed((float)0.2);
+            player.setWalkSpeed(0.2f);
         }
 
       //uhm?  player = null;
@@ -172,27 +174,27 @@ public class CSPlayer {
 
     public Weapon getRifle() {
         Utils.debug("Checking if CSPlayer " + player.getName() + " has any rifles...");
-        return Weapon.getByItem(player.getInventory().getItem(0));
+        return Weapon.getByItem(player.getInventory().getItem(RIFLE_SLOT));
     }
 
     public Weapon getPistol() {
         Utils.debug("Checking if CSPlayer " + player.getName() + " has any pistols...");
-        return Weapon.getByItem(player.getInventory().getItem(1));
+        return Weapon.getByItem(player.getInventory().getItem(PISTOL_SLOT));
     }
 
     public Weapon getGrenade() {
-        Utils.debug("Checking if CSPlayer " + player.getName() + " has any grenades..." + (player.getInventory().getItem(3) != null));
-        return Weapon.getByItem(player.getInventory().getItem(3));
+        Utils.debug("Checking if CSPlayer " + player.getName() + " has any grenades..." + (player.getInventory().getItem(GRENADE_SLOT) != null));
+        return Weapon.getByItem(player.getInventory().getItem(GRENADE_SLOT));
     }
 
     public ItemStack getBomb() {
-        Utils.debug("Checking if CSPlayer " + player.getName() + " has any Bombs... " + (player.getInventory().getItem(4) != null));
-        return player.getInventory().getItem(4);
+        Utils.debug("Checking if CSPlayer " + player.getName() + " has any Bombs... " + (player.getInventory().getItem(TNT_SLOT) != null));
+        return player.getInventory().getItem(TNT_SLOT);
     }
 
     public ItemStack getKnife() {
-        Utils.debug("Checking if CSPlayer " + player.getName() + " has any Knifes... " + (player.getInventory().getItem(2) != null));
-        return player.getInventory().getItem(2);
+        Utils.debug("Checking if CSPlayer " + player.getName() + " has any Knifes... " + (player.getInventory().getItem(KNIFE_SLOT) != null));
+        return player.getInventory().getItem(KNIFE_SLOT);
     }
 
 

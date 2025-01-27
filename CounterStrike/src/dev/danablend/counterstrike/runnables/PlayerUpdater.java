@@ -2,7 +2,7 @@ package dev.danablend.counterstrike.runnables;
 
 import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.GameState;
+import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
 import dev.danablend.counterstrike.utils.CSUtil;
@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.UUID;
 
 import static dev.danablend.counterstrike.Config.MAX_ROUNDS;
+import static dev.danablend.counterstrike.CounterStrike.SHOP_SLOT;
 
 public class PlayerUpdater extends BukkitRunnable {
 
@@ -44,9 +45,12 @@ public class PlayerUpdater extends BukkitRunnable {
 
         for (CSPlayer csplayer : plugin.getCSPlayers()) {
 
-            if (csplayer.getPlayer() == null) return;
+            if (csplayer.getPlayer() == null) continue;
 
-            csplayer.update();
+            csplayer.manageSpeed();
+
+            //NPCs don't need scoreboard but need speed management
+            if (csplayer.isNPC()) continue;
 
             if (!playersWithScoreboard.contains(csplayer.getPlayer().getUniqueId())) {
                 setScoreBoard(csplayer);
@@ -59,14 +63,14 @@ public class PlayerUpdater extends BukkitRunnable {
         for (CSPlayer csplayer : plugin.getCSPlayers()) {
             Player player = csplayer.getPlayer();
 
-            if (CSUtil.isOutOfShopZone(player) || plugin.getGameState() != GameState.SHOP) {
+            if (CSUtil.isOutOfShopZone(player) || !plugin.getGameState().equals(GameState.SHOP)) {
 
-                if (player.getInventory().getItem(8) != null) {
-                    player.getInventory().remove(player.getInventory().getItem(8));
+                if (player.getInventory().getItem(SHOP_SLOT) != null) {
+                    player.getInventory().remove(player.getInventory().getItem(SHOP_SLOT));
                 }
             } else {
-                if (player.getInventory().getItem(8) == null) {
-                    player.getInventory().setItem(8, CounterStrike.i.getShopItem());
+                if (player.getInventory().getItem(SHOP_SLOT) == null) {
+                    player.getInventory().setItem(SHOP_SLOT, CounterStrike.i.getShopItem());
                 }
             }
 
@@ -83,6 +87,9 @@ public class PlayerUpdater extends BukkitRunnable {
     public void setScoreBoard(CSPlayer csplayer) {
         Player player = csplayer.getPlayer();
 
+        //NPCs don't need scoreboard
+        if (csplayer.isNPC()) return;
+
         if (!player.isOnline()) return;
 
         //inits player colour
@@ -96,6 +103,9 @@ public class PlayerUpdater extends BukkitRunnable {
 
 
     public void updateScoreBoard(CSPlayer csplayer) {
+        //NPCs don't need scoreboard
+        if (csplayer.isNPC()) return;
+
         Player player = csplayer.getPlayer();
 
         if (!player.isOnline()) return;
@@ -119,7 +129,7 @@ public class PlayerUpdater extends BukkitRunnable {
         String TeamA = ChatColor.valueOf(csplayer.getColour()) + "" + csplayer.getColour() + ": ";
         String TeamB = ChatColor.valueOf(csplayer.getOpponentColour()) + csplayer.getOpponentColour() + ": ";
 
-        String[] lines = new String[21];
+        String[] lines = new String[20]; //FastBoard is limited to max 20!!
 
         lines[0] = "" + ChatColor.BLACK + ChatColor.BOLD + "Map: " + ChatColor.GRAY + plugin.Map + "  " + ChatColor.BLACK + ChatColor.BOLD + "Round: " + ChatColor.GRAY + "" + (myTeam.getLosses() + myTeam.getWins() + 1) + " of " + MAX_ROUNDS;
         lines[1] = "" + ChatColor.BLACK + ChatColor.BOLD + "Teams: " + TeamA + myTeam.getWins() + ChatColor.GRAY + " vs " + TeamB + myTeam.getLosses();
@@ -166,10 +176,15 @@ public class PlayerUpdater extends BukkitRunnable {
 
 
     public void deleteScoreBoards(Player player) {
+
+        if (player == null) return;
+
+        CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
+
+        if (csplayer == null || csplayer.isNPC()) return;
+
         if (playersWithScoreboard.contains(player.getUniqueId())) {
             playersWithScoreboard.remove(player.getUniqueId());
-
-            CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
             if (csplayer == null) {
                 return;
@@ -186,4 +201,6 @@ public class PlayerUpdater extends BukkitRunnable {
             }
         }
     }
+
+
 }

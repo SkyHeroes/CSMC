@@ -2,16 +2,11 @@ package dev.danablend.counterstrike.runnables;
 
 import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.GameState;
-import dev.danablend.counterstrike.csplayer.CSPlayer;
-import dev.danablend.counterstrike.database.Worlds;
+import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import dev.danablend.counterstrike.utils.Utils;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerMoveEvent;
 
 public class ShopPhaseManager implements Listener {
 
@@ -20,7 +15,7 @@ public class ShopPhaseManager implements Listener {
     private Object task;
 
     public ShopPhaseManager(CounterStrike myplugin) {
-        CounterStrike.i.gameState = GameState.SHOP;
+        CounterStrike.i.setGameState( GameState.SHOP);
 
         plugin = myplugin;
         duration = Config.SHOP_PHASE_DURATION;
@@ -44,7 +39,7 @@ public class ShopPhaseManager implements Listener {
             CounterStrike.i.getCounterTerroristsTeam().setWins(0);
             CounterStrike.i.getCounterTerroristsTeam().setColour("WHITE");
 
-            CounterStrike.i.gameState = GameState.LOBBY;
+            CounterStrike.i.setGameState(GameState.LOBBY);
             plugin.myBukkit.cancelTask(task);
 
             plugin.Shop = null;
@@ -58,7 +53,7 @@ public class ShopPhaseManager implements Listener {
             PacketUtils.sendActionBarToInGame(Utils.color("&6The shop phase has ended!"));
             CounterStrike.i.setGameTimer(new GameTimer());
 
-            plugin.gameState = GameState.RUN;
+            plugin.setGameState(GameState.RUN);
             plugin.myBukkit.cancelTask(task);
             plugin.Shop = null;
         }

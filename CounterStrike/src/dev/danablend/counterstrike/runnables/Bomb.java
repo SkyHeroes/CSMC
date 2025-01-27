@@ -2,7 +2,7 @@ package dev.danablend.counterstrike.runnables;
 
 import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.GameState;
+import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.events.WeaponFireEvent;
 import dev.danablend.counterstrike.utils.PacketUtils;
@@ -31,7 +31,7 @@ public class Bomb {
     private float defuseTimeLeft;
     private CSPlayer defuser;
 
-    public Bomb(GameTimer timer, int countdown, Location location) {
+    public Bomb(int countdown, Location location) {
         bomb = this;
 
         if (bombGlobalTask != null) CounterStrike.i.myBukkit.cancelTask(bombGlobalTask);
@@ -45,7 +45,7 @@ public class Bomb {
         this.defuser = null;
         this.location = location;
 
-        CounterStrike.i.gameState = GameState.PLANTED;
+        CounterStrike.i.setGameState(GameState.PLANTED);
 
         hologram = CounterStrike.i.myBukkit.startLabel(location);
         CounterStrike.i.myBukkit.showLabel(hologram, ChatColor.YELLOW + "Exploding in " + countdown + " seconds.", true);
@@ -56,15 +56,13 @@ public class Bomb {
 
     public static void cleanUp() {
 
-        if (CounterStrike.i.gameState != GameState.PLANTED) return;
+        if (!CounterStrike.i.getGameState().equals(GameState.PLANTED)) return;
 
         cleaning = true;
         bomb = null;
         detonated = false;
 
         if (location == null) return;
-
-        Utils.debug( "    CLEANUP ");
 
         CounterStrike.i.myBukkit.showLabel(hologram, "", false);
 
@@ -96,7 +94,6 @@ public class Bomb {
             Utils.debug("Aborting Counter, no players left");
             cleanUp();
             CounterStrike.i.myBukkit.cancelTask(bombGlobalTask);
-            CounterStrike.i.gameState = GameState.LOBBY;
             CounterStrike.i.StopGameCounter();
             return;
         }
@@ -188,8 +185,6 @@ public class Bomb {
 
 
     public void explode() {
-
-        Utils.debug("    EXPLODE ");
 
         CounterStrike.i.myBukkit.showLabel(hologram, "", false);
 

@@ -6,6 +6,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerDropItemEvent;
 
+import static dev.danablend.counterstrike.CounterStrike.*;
+
 public class PlayerDropItemListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
@@ -25,7 +27,7 @@ public class PlayerDropItemListener implements Listener {
             int currentSlot = event.getPlayer().getInventory().getHeldItemSlot();
 
             //can't drop knife or shop if active
-            if (currentSlot == 2 || currentSlot == 8) {
+            if (currentSlot == KNIFE_SLOT || currentSlot == SHOP_SLOT) {
                 event.setCancelled(true);
             }
         }

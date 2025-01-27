@@ -12,12 +12,10 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
-import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
+
+import static dev.danablend.counterstrike.CounterStrike.*;
 
 public class CSPlayer {
 
@@ -37,8 +35,8 @@ public class CSPlayer {
     private String colour;
     private String opponentColour;
     private boolean status = false;
-    private Date date = Date.from(Instant.now());
     private FastBoard board;
+    private boolean isNPC = false;
 
     public CSPlayer(CounterStrike plugin, Player player, String colour) {
         Utils.debug("#### New CSPlayer " + player.getName() + " with requested colour " + colour);
@@ -105,15 +103,6 @@ public class CSPlayer {
         }
         csPlayers.add(this);
 
-        Utils.debug(player.getName() + " resource " + plugin.ResourseHash.get(player.getName() + "RES"));
-
-        if (plugin.ResourseHash.get(player.getName() + "RES") == null || plugin.ResourseHash.get(player.getName() + "RES") == "DEFAULT") {
-            plugin.ResourseHash.remove(player.getName() + "RES");
-            plugin.ResourseHash.put(player.getName() + "RES", "QUALITY");
-
-            plugin.loadResourcePack(player, "https://github.com/ZombieStriker/QualityArmory-Resourcepack/releases/download/latest/QualityArmory.zip", "3a34fc09dcc6f009aa05741f8ab487dd17b13eaf");
-        }
-
         if (getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
             PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "You are a " + ChatColor.BLUE + "Counter Terrorist", ChatColor.BLUE + "Defend the sites from terrorists, defuse the bomb.", 1, 4, 1);
         } else if (getTeam().equals(TeamEnum.TERRORISTS)) {
@@ -122,25 +111,27 @@ public class CSPlayer {
 
         status = true;
 
-        update();
+        manageSpeed();
     }
 
-    public void update() {
+    public void manageSpeed() {
         if (player == null) return;
 
         if (player.getInventory().getItemInMainHand().getType().equals(Material.IRON_AXE)) {
-            CounterStrike.i.myBukkit.runTask(player,null,null, () -> player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 99999, (int) (player.getWalkSpeed() * 0.7))));
+          //  CounterStrike.i.myBukkit.runTask(player, null, null, () -> player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 99999, (int) (player.getWalkSpeed() * 0.7))));
+            player.setWalkSpeed(0.234f);
         } else {
-            CounterStrike.i.myBukkit.runTask(player,null,null, () -> player.removePotionEffect(PotionEffectType.SPEED));
+          //  CounterStrike.i.myBukkit.runTask(player, null, null, () -> player.removePotionEffect(PotionEffectType.SPEED));
+            player.setWalkSpeed(0.2f);
         }
     }
 
     public Location getSpawnLocation() {
 
         if (getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
-            return CounterStrike.i.getCounterTerroristSpawn(true);
+            return CounterStrike.i.getCounterTerroristSpawn(false);
         } else if (getTeam().equals(TeamEnum.TERRORISTS)) {
-            return CounterStrike.i.getTerroristSpawn(true);
+            return CounterStrike.i.getTerroristSpawn(false);
         } else {
             return null;
         }
@@ -153,8 +144,13 @@ public class CSPlayer {
         money = 0;
         kills = 0;
         deaths = 0;
-        Utils.debug("Clearing CSPlayer data for " + player.getName() + "   " + test1 + "    " + test2 + "    " + test3);
-        player = null;
+
+        if (player != null) {
+            Utils.debug("Clearing CSPlayer data for " + player.getName() + "   " + test1 + "    " + test2 + "    " + test3);
+            player.setWalkSpeed(0.2f);
+        }
+
+      //uhm?  player = null;
         team = null;
     }
 
@@ -178,27 +174,27 @@ public class CSPlayer {
 
     public Weapon getRifle() {
         Utils.debug("Checking if CSPlayer " + player.getName() + " has any rifles...");
-        return Weapon.getByItem(player.getInventory().getItem(0));
+        return Weapon.getByItem(player.getInventory().getItem(RIFLE_SLOT));
     }
 
     public Weapon getPistol() {
         Utils.debug("Checking if CSPlayer " + player.getName() + " has any pistols...");
-        return Weapon.getByItem(player.getInventory().getItem(1));
+        return Weapon.getByItem(player.getInventory().getItem(PISTOL_SLOT));
     }
 
     public Weapon getGrenade() {
-        Utils.debug("Checking if CSPlayer " + player.getName() + " has any grenades..."+ (player.getInventory().getItem(3) != null));
-        return Weapon.getByItem(player.getInventory().getItem(3));
+        Utils.debug("Checking if CSPlayer " + player.getName() + " has any grenades..." + (player.getInventory().getItem(GRENADE_SLOT) != null));
+        return Weapon.getByItem(player.getInventory().getItem(GRENADE_SLOT));
     }
 
     public ItemStack getBomb() {
-        Utils.debug("Checking if CSPlayer " + player.getName() + " has any Bombs... "+ (player.getInventory().getItem(4) != null));
-        return player.getInventory().getItem(4);
+        Utils.debug("Checking if CSPlayer " + player.getName() + " has any Bombs... " + (player.getInventory().getItem(TNT_SLOT) != null));
+        return player.getInventory().getItem(TNT_SLOT);
     }
 
     public ItemStack getKnife() {
-        Utils.debug("Checking if CSPlayer " + player.getName() + " has any Knifes... "+ (player.getInventory().getItem(2) != null));
-        return player.getInventory().getItem(2);
+        Utils.debug("Checking if CSPlayer " + player.getName() + " has any Knifes... " + (player.getInventory().getItem(KNIFE_SLOT) != null));
+        return player.getInventory().getItem(KNIFE_SLOT);
     }
 
 
@@ -310,11 +306,27 @@ public class CSPlayer {
         this.team = team;
     }
 
+    public boolean isTerrorist() {
+
+        if (getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
+            return false;
+        } else if (getTeam().equals(TeamEnum.TERRORISTS)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void setNPC() {
+        isNPC = true;
+    }
+
+    public boolean isNPC() {
+        return isNPC;
+    }
+
     public boolean returStatus() {
         return status;
     }
 
-    public Date getDate() {
-        return date;
-    }
 }

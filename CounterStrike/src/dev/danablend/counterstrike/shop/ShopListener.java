@@ -2,7 +2,7 @@ package dev.danablend.counterstrike.shop;
 
 import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.GameState;
+import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
 import dev.danablend.counterstrike.database.Worlds;
@@ -22,6 +22,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+
+import static dev.danablend.counterstrike.CounterStrike.SHOP_SLOT;
 
 public class ShopListener implements Listener {
 
@@ -64,9 +66,9 @@ public class ShopListener implements Listener {
         if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
 
             // Shop Item Checker
-            if (inHandItem.equals(player.getInventory().getItem(8))) {
+            if (inHandItem.equals(player.getInventory().getItem(SHOP_SLOT))) {
 
-                if (plugin.getGameState() != GameState.SHOP) {
+                if (!plugin.getGameState().equals(GameState.SHOP)) {
                     player.sendMessage(ChatColor.RED + "Sorry, not in ShopPhase.");
                     return;
                 }
@@ -86,7 +88,7 @@ public class ShopListener implements Listener {
 
                     Material mat = block.getType();
 
-                    if (mat == Material.CHEST || mat == Material.SHULKER_BOX) {
+                    if (mat.equals(Material.CHEST) || mat.equals(Material.SHULKER_BOX)) {
                         event.setCancelled(true);
 
                     } else if (mat.toString().contains("DOOR") || mat.toString().contains("BUTTON") || mat.toString().contains("PLATE") || mat == Material.LEVER) {
@@ -118,7 +120,7 @@ public class ShopListener implements Listener {
         if (event.getWhoClicked() instanceof Player) {
             Player player = (Player) event.getWhoClicked();
 
-            if (plugin.getGameState() != GameState.SHOP) {
+            if (!plugin.getGameState().equals(GameState.SHOP)) {
                 player.sendMessage(ChatColor.RED + "Sorry, not in ShopPhase.");
                 return;
             }
@@ -153,7 +155,7 @@ public class ShopListener implements Listener {
     @EventHandler
     public void playerMove(PlayerMoveEvent e) {
 
-        if (CounterStrike.i.gameState != GameState.SHOP) return;
+        if (!CounterStrike.i.getGameState().equals(GameState.SHOP)) return;
 
         Player player = e.getPlayer();
 

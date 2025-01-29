@@ -1,8 +1,8 @@
 package dev.danablend.counterstrike.utils;
 
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.utils.compatibility.MyBukkitPaperLegacy;
 import dev.danablend.counterstrike.utils.compatibility.MyBukkitPaper;
+import dev.danablend.counterstrike.utils.compatibility.MyBukkitPaperNotLegacy;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.md_5.bungee.api.ChatMessageType;
@@ -37,7 +37,7 @@ public class MyBukkit {
     private boolean starting = true;
 
     private MyBukkitPaper myBukkitPaper;
-    private MyBukkitPaperLegacy myBukkitPaperLegacy;
+    private MyBukkitPaperNotLegacy myBukkitPaperNotLegacy;
 
     public MyBukkit(CounterStrike main) {
         this.main = main;
@@ -53,18 +53,24 @@ public class MyBukkit {
         isFoliaBased = (classCheck != null);
 
         try {
-            classCheck = Class.forName("org.bukkit.inventory.meta.ItemMeta.displayName");
+            classCheck = Class.forName("io.papermc.paper.plugin.provider.classloader.PaperClassLoaderStorageAccess");
         } catch (Exception e) {
             classCheck = null;
         }
 
         isPaperBased = (classCheck != null);
 
-        isLegacy = (!Bukkit.getMinecraftVersion().equals("1.20.1"));
+        if (isPaperBased) {
+            isLegacy = (Bukkit.getMinecraftVersion().equals("1.20.1") || Bukkit.getMinecraftVersion().equals("1.20.2"));
+        } else {
+            isLegacy = (Bukkit.getBukkitVersion().startsWith("1.20.1") || Bukkit.getBukkitVersion().startsWith("1.20.2"));
+        }
 
         if (isPaperBased) myBukkitPaper = new MyBukkitPaper();
 
-        if (isLegacy) myBukkitPaperLegacy = new MyBukkitPaperLegacy();
+        if (!isLegacy) myBukkitPaperNotLegacy = new MyBukkitPaperNotLegacy();
+
+        Utils.debug("Enabled    Paper:"+isPaperBased+"   Folia:"+isFoliaBased+ "   Legacy:"+ isLegacy + "   " +Bukkit.getBukkitVersion());
     }
 
 
@@ -224,11 +230,11 @@ public class MyBukkit {
     }
 
 
-    public void consoleSendMessage(String text, String textComponent, NamedTextColor color) {
+    public void consoleSendMessage(String text, String textComponent, String color) {
         if (isPaper())
-            myBukkitPaper.consoleSendMessage(text, textComponent, color);
+            myBukkitPaper.consoleSendMessage(text, textComponent, getNamedTextColorFromString(color));
         else
-            Bukkit.getConsoleSender().sendMessage(text + ChatColor.valueOf(color.toString().toUpperCase()) + textComponent);
+            Bukkit.getConsoleSender().sendMessage(text + ChatColor.valueOf(color) + textComponent);
     }
 
 
@@ -243,7 +249,7 @@ public class MyBukkit {
 
     public void playerTeleport(Player player, Location loc) {
         if (isPaperBased) {
-            runTaskLater(player, null, null, () -> player.teleportAsync(loc), 40);
+            runTaskLater(player, null, null, () -> player.teleportAsync(loc), 5);
         } else {
             player.teleport(loc);
         }
@@ -272,12 +278,12 @@ public class MyBukkit {
 
     public boolean isDownloded(PlayerResourcePackStatusEvent event) {
 
-        if (isLegacy) return myBukkitPaperLegacy.isDownloded(event);
-       return false;
+        if (!isLegacy) return myBukkitPaperNotLegacy.isDownloded(event);
+        return false;
     }
 
 
-    public void UpdateChecker(String projectName,boolean loop) {
+    public void UpdateChecker(String projectName, boolean loop) {
         if (loop) {
             runTaskTimer(null, null, null, () -> {
                 runCheck(projectName);
@@ -290,7 +296,7 @@ public class MyBukkit {
     }
 
 
-    public void runCheck(String projectName) {
+    private void runCheck(String projectName) {
         try {
             StringBuilder page = makeAsyncGetRequest("https://cld.pt/dl/download/51c19f75-8900-49f2-8e1b-a92256bf2d4a/bukkit.txt?download=true/");
 
@@ -309,7 +315,7 @@ public class MyBukkit {
             }
         } catch (Exception e) {
             String versionMessage = "[" + projectName + "] Connection exception: " + e.getMessage();
-            NamedTextColor intColor = NamedTextColor.RED;
+            String intColor ="RED";
 
             consoleSendMessage("[" + projectName + "]", versionMessage, intColor);
         }
@@ -334,11 +340,11 @@ public class MyBukkit {
 
     private void promptUpdate(String serverVersion, String Url, String projectName, String features) {
         String versionMessage;
-        NamedTextColor intColor = NamedTextColor.GRAY;
+        String intColor = "GRAY";
 
         if (serverVersion == null) {
             versionMessage = " Unknown error checking version";
-            intColor = NamedTextColor.RED;
+            intColor = "RED";
 
             consoleSendMessage("[" + projectName + "]", versionMessage, intColor);
 
@@ -355,7 +361,7 @@ public class MyBukkit {
 
         if (versionStatus == -1) {
             if (features.length() > 1) {
-                features = "\nFeaturing: " + features.replace("<br>","\n") + "\n";
+                features = "\nFeaturing: " + features.replace("<br>", "\n") + "\n";
             } else {
                 features = "";
             }
@@ -374,20 +380,20 @@ public class MyBukkit {
 
             versionMessage = " THERE IS A NEW UPDATE AVAILABLE Version: " + serverVersion +
                     " at: " + Url + "   " + features;
-            intColor = NamedTextColor.GREEN;
+            intColor = "GREEN";
 
         } else if (versionStatus == 0) {
             if (!starting) return;
             versionMessage = " You have the latest released version";
-            intColor = NamedTextColor.GREEN;
+            intColor = "GREEN";
         } else if (versionStatus == 1) {
             if (!starting) return;
             versionMessage = " Congrats, you are testing a new version!";
-            intColor = NamedTextColor.YELLOW;
+            intColor = "YELLOW";
         } else {
             if (!starting) return;
             versionMessage = " Unknown error checking version (" + versionStatus + ")" + serverVersion + "   " + currentVersion;
-            intColor = NamedTextColor.RED;
+            intColor = "RED";
         }
 
         consoleSendMessage("[" + projectName + "]", versionMessage, intColor);
@@ -420,5 +426,49 @@ public class MyBukkit {
         }
         return 0;//same version
     }
+
+
+    public static NamedTextColor getNamedTextColorFromString(String colorName) {
+        // Convert to lowercase and manually map to enum values
+        switch (colorName.toLowerCase()) {
+            case "black":
+                return NamedTextColor.BLACK;
+            case "dark_blue":
+                return NamedTextColor.DARK_BLUE;
+            case "dark_green":
+                return NamedTextColor.DARK_GREEN;
+            case "dark_aqua":
+                return NamedTextColor.DARK_AQUA;
+            case "dark_red":
+                return NamedTextColor.DARK_RED;
+            case "dark_purple":
+                return NamedTextColor.DARK_PURPLE;
+            case "gold":
+                return NamedTextColor.GOLD;
+            case "gray":
+                return NamedTextColor.GRAY;
+            case "dark_gray":
+                return NamedTextColor.DARK_GRAY;
+            case "blue":
+                return NamedTextColor.BLUE;
+            case "green":
+                return NamedTextColor.GREEN;
+            case "aqua":
+                return NamedTextColor.AQUA;
+            case "red":
+                return NamedTextColor.RED;
+            case "light_purple":
+                return NamedTextColor.LIGHT_PURPLE;
+            case "yellow":
+                return NamedTextColor.YELLOW;
+            case "white":
+                return NamedTextColor.WHITE;
+            default:
+                // Return a default color if not found
+                System.out.println("Invalid color name, defaulting to WHITE.");
+                return NamedTextColor.WHITE;
+        }
+    }
+
 
 }

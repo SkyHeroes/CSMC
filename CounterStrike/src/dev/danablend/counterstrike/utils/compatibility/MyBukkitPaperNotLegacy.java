@@ -4,7 +4,7 @@ import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 
 import static org.bukkit.event.player.PlayerResourcePackStatusEvent.Status.DOWNLOADED;
 
-public class MyBukkitPaperLegacy {
+public class MyBukkitPaperNotLegacy {
 
     public boolean isDownloded(PlayerResourcePackStatusEvent event) {
 

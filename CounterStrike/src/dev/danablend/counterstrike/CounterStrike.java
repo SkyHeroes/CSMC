@@ -16,8 +16,12 @@ import dev.danablend.counterstrike.shop.ShopListener;
 import dev.danablend.counterstrike.tests.TestCommand;
 import dev.danablend.counterstrike.utils.*;
 import me.zombie_striker.qg.guns.Gun;
+import org.apache.commons.codec.binary.Base64;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
@@ -38,6 +42,7 @@ import java.util.*;
 
 import static dev.danablend.counterstrike.Config.MAX_ROUNDS;
 import static dev.danablend.counterstrike.enums.GameState.*;
+import static dev.danablend.counterstrike.utils.Utils.sortByValue;
 
 
 public class CounterStrike extends JavaPlugin {
@@ -52,6 +57,7 @@ public class CounterStrike extends JavaPlugin {
 
     public Hashtable HashWorlds = null;
     public Hashtable ResourceHash = new Hashtable();
+    public Hashtable<String, Integer> VoteHash = new Hashtable();
     Collection<CSPlayer> csPlayers = new ArrayList<>();
     public Collection<CSPlayer> counterTerrorists = new ArrayList<CSPlayer>();
     public Collection<CSPlayer> terrorists = new ArrayList<CSPlayer>();
@@ -69,7 +75,7 @@ public class CounterStrike extends JavaPlugin {
 
     public static final int RIFLE_SLOT = 0;
     public static final int PISTOL_SLOT = 1;
-    public static final int KNIFE_SLOT  = 2;
+    public static final int KNIFE_SLOT = 2;
     public static final int GRENADE_SLOT = 3;
     public static final int TNT_SLOT = 4;
     public static final int RIFLE_AMO_SLOT = 6;
@@ -93,11 +99,16 @@ public class CounterStrike extends JavaPlugin {
     public boolean randomMaps = false;
     public boolean alwaysDay = false;
     public boolean quitExitGame = false;
+    public boolean showGameStatusTitle = true;
+    public boolean standardTeamColours = false;
+    public boolean modeValorant = false;
+    public boolean activated = false;
 
 
     public void onEnable() {
         i = this;
         setup();
+        SetupSignConfigs();
 
         if (myBukkit.checkGreater("1.21.1", Bukkit.getServer().getBukkitVersion()) == -1) {
             getLogger().severe(" You are using a Minecraft Server version with possible problems of data loss and known exploits, get informed and evaluate updating to at least 1.21.1");
@@ -126,7 +137,7 @@ public class CounterStrike extends JavaPlugin {
             }
         }, 40);
 
-        myBukkit.UpdateChecker(getDescription().getName(), true);
+        myBukkit.UpdateChecker(true);
 
         Utils.debug("Enabled");
     }
@@ -156,11 +167,7 @@ public class CounterStrike extends JavaPlugin {
 
         myBukkit = new MyBukkit(this);
 
-        File dataFolder = getDataFolder();
-
-        if (!dataFolder.exists()) {
-            setupConfig();
-        }
+        setupConfig();
 
         sqlite = new SQLiteConnection(getDataFolder(), "CSMC.db");
 
@@ -244,13 +251,13 @@ public class CounterStrike extends JavaPlugin {
         Config c = new Config();
         c.loadWeapons();
 
-        randomMaps = getConfig().getBoolean("randomMaps", false);
-        alwaysDay = getConfig().getBoolean("alwaysDay", true);
-        quitExitGame = getConfig().getBoolean("quitExitGame", false);
+        //loads default configs first
+        loadConfigs();
 
         new Shop();
 
-        LoadDBRandomMaps();
+        LoadDBRandomMaps(0);
+        Map = ""; //no map really selected
         Utils.debug("Finished setting up...");
     }
 
@@ -294,43 +301,45 @@ public class CounterStrike extends JavaPlugin {
     }
 
 
-    public void LoadDBRandomMaps() {
+    public void LoadDBRandomMaps(int mapId) {
 
         if (sqlite != null) {
 
-            String result = sqlite.select("select max(id) from CSMaps");
+            if (mapId == 0) {
+                String result = sqlite.select("select max(id) from CSMaps");
 
-            if (result == null || result.equals("")) {
-                Utils.debug("#####  " + ChatColor.RED + "No maps loaded");
-                broadcastMessage(ChatColor.RED + "No maps loaded");
-                return;
-            }
-
-            Long Rand;
-            String result1;
-
-            while (true) {
-                Rand = Math.round(1 + Math.random() * Integer.parseInt(result));
-
-                //hardcoded force map
-                //Rand = 1L;
-
-                result1 = sqlite.select("select descr from CSMaps where id = " + Rand);
-
-                if (result1 != null && !result1.equals("")) {
-                    Map = result1;
-                    Utils.debug("#####  " + ChatColor.WHITE + "Map " + result1 + " was randomly chosen");
-                    broadcastMessage(ChatColor.WHITE + "Map " + result1 + " was randomly chosen");
-                    break;
+                if (result == null || result.equals("")) {
+                    Utils.debug("#####  " + ChatColor.RED + "No maps loaded");
+                    broadcastMessage(ChatColor.RED + "No maps loaded");
+                    return;
                 }
 
-                try {
-                    Thread.sleep(1000);
-                } catch (Exception e) {
-                }
-            }
+                Long Rand;
+                String result1;
 
-            Integer mapId = Integer.parseInt(sqlite.select("select id from CSMaps where descr = '" + Map + "'"));
+                while (true) {
+                    Rand = Math.round(1 + Math.random() * Integer.parseInt(result));
+
+                    result1 = sqlite.select("select descr from CSMaps where id = " + Rand);
+
+                    if (result1 != null && !result1.equals("")) {
+                        Map = result1;
+                        Utils.debug("#####  " + ChatColor.WHITE + "Map " + result1 + " was randomly chosen");
+                        broadcastMessage(ChatColor.WHITE + "Map " + result1 + " was randomly chosen");
+                        break;
+                    }
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (Exception e) {
+                    }
+                }
+
+                mapId = Integer.parseInt(sqlite.select("select id from CSMaps where descr = '" + Map + "'"));
+            } else {
+                Map = sqlite.select("select descr from CSMaps where id = " + mapId);
+                Utils.debug(">>>>>>>>>>>>>>>>>   Preparing voted map..." + Map);
+            }
 
             Lobby = sqlite.select("select SpawnLobby from CSMaps where id = " + mapId);
             SpawnTerrorists = sqlite.select("select SpawnTerrorists from CSMaps where id = " + mapId);
@@ -354,79 +363,61 @@ public class CounterStrike extends JavaPlugin {
             loadConfigs();
         }
 
-        myBukkit.runTaskLater(null, getTerroristSpawn(false), null, () -> Preparemap(), 20);
     }
 
 
     private void Preparemap() {
 
-        Utils.debug("Preparing map...");
+        if (getTerroristsTeam().getWins() + getTerroristsTeam().getLosses() == 0) {
+            //first round
+            if (VoteHash.size() > 0) {
+                LoadDBRandomMaps(sortByValue(VoteHash));
 
-        for (World w : Bukkit.getWorlds()) {
-
-            if (HashWorlds != null) {
-                Object obj = HashWorlds.get(w.getName());
-
-                if (obj != null) {
-                    Worlds md = (Worlds) obj;
-
-                    if (!md.modoCs) {
-                        continue;
-                    }
-                }
+                VoteHash.clear();
+            } else {
+                LoadDBRandomMaps(0);
             }
 
-            this.myBukkit.runTask(null, null, null, () -> {
-                if (alwaysDay) {
-                    Utils.debug("No day cicle...");
-                    w.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
-                    w.setTime(0);
-                } else {
-                    Utils.debug("With day cicle...");
-                    w.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, true);
-                }
-            });
+        } else {
+            if (randomMaps) {
+                LoadDBRandomMaps(0);
+            }
         }
 
-        myBukkit.runTask(null, getCounterTerroristSpawn(false), null, () -> {
+        Location baseLocation = getCounterTerroristSpawn(false);
+        World world = baseLocation.getWorld();
 
-            Location loc = this.getCounterTerroristSpawn(false);
+        if (HashWorlds != null) {
+            Object obj = HashWorlds.get(world.getName());
 
-            for (Entity ent : loc.getWorld().getEntities()) {
+            if (obj != null) {
+                Worlds md = (Worlds) obj;
 
-                if (!(ent instanceof Player) && !ent.isDead()) {
-                    //   Utils.debug(ent.getName() + " bye2");
-                    ent.remove();
-                }
-                if (!(ent instanceof Player) && ent.getType().equals(Material.TNT)) {
-                    Utils.debug(ent.getName() + " removes TNT? " + ent.getType());
-                    ent.remove();
+                if (!md.modoCs) {
+                    return;
                 }
             }
+        }
 
-//            for (int n = 1; n <= 3; n++) {
-//                getCounterTerroristSpawn(true).getWorld().spawnEntity(getCounterTerroristSpawn(true), EntityType.CHICKEN);
-//            }
+        this.myBukkit.runTask(null, null, null, () -> {
+            if (alwaysDay) {
+                Utils.debug("No day cicle...");
+                world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+                world.setTime(0);
+            } else {
+                Utils.debug("With day cicle...");
+                world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, true);
+            }
         });
 
-        myBukkit.runTask(null, getTerroristSpawn(false), null, () -> {
 
-            Location loc = this.getTerroristSpawn(false);
+        myBukkit.runTask(null, baseLocation, null, () -> {
 
-            for (Entity ent : loc.getWorld().getEntities()) {
+            for (Entity ent : world.getEntities()) {
                 if (!(ent instanceof Player) && !ent.isDead()) {
-                    //     Utils.debug(ent.getName() + " bye1");
-                    ent.remove();
-                }
-                if (!(ent instanceof Player) && ent.getType().equals(Material.TNT)) {
-                    Utils.debug(ent.getName() + " removes TNT? " + ent.getType());
                     ent.remove();
                 }
             }
-
-//            for (int n = 1; n <= 3; n++) {
-//                getTerroristSpawn(true).getWorld().spawnEntity(getTerroristSpawn(true), EntityType.CHICKEN);
-//            }
 
         });
 
@@ -452,6 +443,17 @@ public class CounterStrike extends JavaPlugin {
         randomMaps = getConfig().getBoolean("randomMaps", false);
         alwaysDay = getConfig().getBoolean("alwaysDay", true);
         quitExitGame = getConfig().getBoolean("quitExitGame", false);
+        showGameStatusTitle = getConfig().getBoolean("showGameStatusTitle", true);
+        standardTeamColours = getConfig().getBoolean("standardTeamColours", false);
+        modeValorant = getConfig().getBoolean("modeValorant", false);
+
+        String key = getConfig().getString("upgradeKey");
+        String decodedString = new String(Base64.decodeBase64("ZVc5MUlHdHVNSGNnZEdobElIUnlkWFJvUFE9PT0"));
+        decodedString = new String(Base64.decodeBase64(decodedString.substring(0, decodedString.length() - 2)));
+        decodedString = decodedString.substring(0, decodedString.length() - 1);
+        if (key.equals(decodedString)) activated = true;
+
+        Utils.debug(activated + " trueTeamColours:" + standardTeamColours + "  informGameStatus:" + showGameStatusTitle);
     }
 
     //more customizable configs
@@ -459,11 +461,22 @@ public class CounterStrike extends JavaPlugin {
         FileConfiguration config = getConfig();
         File dataFolder = getDataFolder();
 
-        if (!dataFolder.exists()) dataFolder.mkdir();
+        if (!dataFolder.exists()) {
+            dataFolder.mkdir();
+        } else {
+            config.addDefault("upgradeKey", "xpto");
+            config.options().copyDefaults(true);
+            saveConfig();
+            return;
+        }
+
 
         config.addDefault("randomMaps", false);
         config.addDefault("alwaysDay", true);
         config.addDefault("quitExitGame", false);
+        config.addDefault("showGameStatusTitle", true);
+        config.addDefault("standardTeamColours", false);
+        config.addDefault("modeValorant", false);
 
         config.options().copyDefaults(true);
         saveConfig();
@@ -485,6 +498,7 @@ public class CounterStrike extends JavaPlugin {
         return shopItem;
     }
 
+
     public Set<TestCommand> getTestCommands() {
         Utils.debug("Getting test commands...");
         return testCommands;
@@ -493,6 +507,16 @@ public class CounterStrike extends JavaPlugin {
 
     public void startGame() {
         Utils.debug("---> Starting game initiated...");
+
+        if (modeValorant) {
+            Config.terroristShopName = "Buy Menu - Attackers";
+            Config.counterTerroristShopName = "Buy Menu - Defenders";
+        } else {
+            Config.terroristShopName = "Buy Menu - Terrorist";
+            Config.counterTerroristShopName = "Buy Menu - Counter Terrorist";
+        }
+
+        Preparemap();
 
         //needed to create teams and visibility
         Scoreboard board1 = Bukkit.getScoreboardManager().getMainScoreboard();
@@ -509,8 +533,6 @@ public class CounterStrike extends JavaPlugin {
         } else {
             Utils.debug(" ###### avoided duplication thread to Shop ");
         }
-
-        Preparemap();
 
         Utils.debug("Game successfully started...");
     }
@@ -559,7 +581,10 @@ public class CounterStrike extends JavaPlugin {
             PacketUtils.sendTitleAndSubtitleToInGame(winnerText, ChatColor.AQUA + "They also won the whole game! (Left click to join new game)", 0, 10, 1);
             PacketUtils.sendActionBarToInGame(winnerText);
 
-            FinishGame(winnerTeam, loserTeam);
+            myBukkit.runTaskLater(null, getLobbyLocation(), null, () -> {
+                FinishGame(winnerTeam, loserTeam);
+            }, 20);
+
             return; //stops game
 
         } else if (winnerTeam.getWins() + winnerTeam.getLosses() == MAX_ROUNDS) {
@@ -568,7 +593,10 @@ public class CounterStrike extends JavaPlugin {
             PacketUtils.sendTitleAndSubtitleToInGame(winnerText, ChatColor.AQUA + "But scores are even! (Left click to join new game)", 0, 10, 1);
             PacketUtils.sendActionBarToInGame(winnerText);
 
-            FinishGame(winnerTeam, loserTeam);
+            myBukkit.runTaskLater(null, getLobbyLocation(), null, () -> {
+                FinishGame(winnerTeam, loserTeam);
+            }, 20);
+
             return; //stops game
 
         } else {
@@ -717,6 +745,8 @@ public class CounterStrike extends JavaPlugin {
         getPlayerUpdater().playersWithScoreboard = new ArrayList<>(); //list reset
 
         if (botManager != null) botManager.terminateBots();
+
+        Map = "";
     }
 
 
@@ -767,8 +797,14 @@ public class CounterStrike extends JavaPlugin {
             player.getInventory().setItem(KNIFE_SLOT, getKnife());
             //  player.getInventory().setItem(TNT_SLOT, getShopItem()); //check PlayerUpdater
 
-            player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40);
+            if (modeValorant) player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20);
+            else player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40);
+
             player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+            player.setFoodLevel(8); //was 6
+            player.setGameMode(GameMode.SURVIVAL);
+            player.setFallDistance(1);
+
 
             CSPlayer cp = this.getCSPlayer(player, false, null);
             Weapon rifle = cp.getRifle();
@@ -798,11 +834,11 @@ public class CounterStrike extends JavaPlugin {
         }
 
         if (!terrorists.isEmpty()) {
-            int rand =new Random().nextInt(terrorists.toArray().length);
+            int rand = new Random().nextInt(terrorists.toArray().length);
 
             CSPlayer playerWithBomb = (CSPlayer) terrorists.toArray()[rand];
             playerWithBomb.getPlayer().getInventory().setItem(TNT_SLOT, CSUtil.getBombItem());
-            Utils.debug("------> Bomb with player " + playerWithBomb.getPlayer().getName() + "  rand:"+rand);
+            Utils.debug("------> Bomb with player " + playerWithBomb.getPlayer().getName() + "  rand:" + rand);
         }
 
     }
@@ -1123,6 +1159,12 @@ public class CounterStrike extends JavaPlugin {
             return;
         }
 
+        boolean running = true;
+
+        if ((CounterStrike.i.getGameState().equals(GameState.LOBBY) || CounterStrike.i.getGameState().equals(GameState.WAITING))) {
+            running = false;
+        }
+
         Player player = csplay.getPlayer();
         String resPackName = player.getName() + "RES";
 
@@ -1133,10 +1175,20 @@ public class CounterStrike extends JavaPlugin {
             loadResourcePack(player, "https://github.com/ZombieStriker/QualityArmory-Resourcepack/releases/download/latest/QualityArmory.zip", "3a34fc09dcc6f009aa05741f8ab487dd17b13eaf");
         }
 
+
+        if (modeValorant) player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20);
+        else player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40);
+
+        player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+        player.setFoodLevel(8); //was 6
+        player.setGameMode(GameMode.SURVIVAL);
+        player.setFallDistance(1);
+
+
         if (terrorists.contains(csplay)) {
             csplay.setColourOpponent(counterTerroristsTeam.getColour());
 
-            myBukkit.playerTeleport(player, getTerroristSpawn(true));
+            if (running) myBukkit.playerTeleport(player, getTerroristSpawn(true));
 
             if (CounterStrike.i.gameState == GameState.SHOP) {
                 boolean noOneHasTNT = false;
@@ -1158,10 +1210,13 @@ public class CounterStrike extends JavaPlugin {
         if (counterTerrorists.contains(csplay)) {
             csplay.setColourOpponent(terroristsTeam.getColour());
             //Coloca na base contra
-            myBukkit.playerTeleport(player, getCounterTerroristSpawn(true));
+            if (running) myBukkit.playerTeleport(player, getCounterTerroristSpawn(true));
         }
 
         if (!csplay.isNPC()) getPlayerUpdater().setScoreBoard(csplay);
+
+        if (!running) myBukkit.playerTeleport(player, getLobbyLocation());
+
     }
 
 
@@ -1192,8 +1247,10 @@ public class CounterStrike extends JavaPlugin {
         gameCounterTask = null;
     }
 
-    //ideas todo or not
-    public void ChooseConfigs(boolean virtualOn) {
+    //ideas todo or not todo
+    public void SetupSignConfigs() {
+
+        if (!activated) return;
 
         String locRaw = Lobby;
         String[] locList = locRaw.split(",");
@@ -1204,43 +1261,43 @@ public class CounterStrike extends JavaPlugin {
         float yaw = Float.parseFloat(locList[4]);
         float pitch = Float.parseFloat(locList[5]);
 
-        Double init = Math.random();
-
-        if (init > 0.5) {
-            init = -1.0;
-        } else {
-            init = 1.0;
-        }
-
         Location loc = new Location(world, x, y, z, yaw, pitch);
 
-        loc.add(0, 0, 6);
-        Location loc1;
 
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            Utils.debug(virtualOn + "  <<<  #### Player " + player.getName() + " configs virtual");
+        String result = sqlite.select("select max(id) from CSMaps");
 
-            if (virtualOn) {
+        if (result == null || result.equals("")) {
+            Utils.debug("#####  " + ChatColor.RED + "No maps loaded");
+            return;
+        }
 
-                for (int i = 0; i <= 8; i++) {
-                    for (int j = 0; j <= 4; j++) {
-                        loc1 = loc.clone();
-                        player.sendBlockChange(loc1.add(i, j, 0), Material.WHITE_CONCRETE.createBlockData());
-                    }
-                }
+        loc.add(-Integer.parseInt(result), 2, -2);
 
-//                player.sendBlockChange(loc, Material.OAK_SIGN.createBlockData());
-                player.sendBlockChange(loc.add(0, 1, 1), Material.BLUE_CONCRETE.createBlockData());
-                player.sendBlockChange(loc.add(+2, 0, 0), Material.RED_CONCRETE.createBlockData());
-                player.sendBlockChange(loc.add(+2, 0, 0), Material.YELLOW_CONCRETE.createBlockData());
-                player.sendBlockChange(loc.add(+2, 0, 0), Material.GREEN_CONCRETE.createBlockData());
-//
-//                player.sendBlockChange(loc, Material.OAK_SIGN.createBlockData());
-            } else {
-                player.sendBlockChange(loc, loc.getBlock().getBlockData());
+        String result1;
 
+        for (int i = 1; i <= Integer.parseInt(result); i++) {
+            result1 = sqlite.select("select descr from CSMaps where id = " + i);
 
-            }
+            if (result1 == null || result1.equals("")) continue;
+
+            Block block = loc.getBlock();
+            block.setType(Material.BIRCH_HANGING_SIGN);
+            BlockData blockData = block.getBlockData();
+            block.setBlockData(blockData);
+
+            Sign sign = (Sign) block.getState();
+            sign.setLine(0, "[CSMC]");
+            sign.setLine(1, "Vote for");
+            sign.setLine(2, result1);
+            sign.setLine(3, "" + i);
+            sign.update();
+            sign.setEditable(false);
+
+            loc.add(1, 0, 0);
+            block = loc.getBlock();
+            block.setType(Material.AIR);
+            loc.add(1, 0, 0);
+            block.setType(Material.AIR);
         }
 
     }

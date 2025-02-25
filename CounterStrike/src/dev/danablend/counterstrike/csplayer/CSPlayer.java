@@ -37,6 +37,7 @@ public class CSPlayer {
     private boolean status = false;
     private FastBoard board;
     private boolean isNPC = false;
+private CounterStrike plugin;
 
     public CSPlayer(CounterStrike plugin, Player player, String colour) {
         Utils.debug("#### New CSPlayer " + player.getName() + " with requested colour " + colour);
@@ -45,55 +46,72 @@ public class CSPlayer {
         terrorists = plugin.getTerrorists();
         counterTerrorists = plugin.getCounterTerrorists();
 
-        this.colour = colour;
         this.player = player;
         this.money = Config.STARTING_MONEY;
         this.kills = 0;
         this.deaths = 0;
+        this.plugin=plugin;
 
-        if (colour.equals(plugin.getTerroristsTeam().getColour()) && terrorists.size() <= (counterTerrorists.size() + 1)) {
-            this.team = TeamEnum.TERRORISTS;
-            Utils.debug(player.getName() + " got terr1");
+        if (plugin.standardTeamColours) {
 
-        } else if (colour.equals(plugin.getCounterTerroristsTeam().getColour()) && counterTerrorists.size() <= (terrorists.size() + 1)) {
-            this.team = TeamEnum.COUNTER_TERRORISTS;
-            Utils.debug(player.getName() + " got CT1");
+            if (colour.equals("GOLD") || colour.equals("RED")) {
+                this.team = TeamEnum.TERRORISTS;
+                plugin.getTerroristsTeam().setColour(colour);
+                Utils.debug(player.getName() + " selected team terr");
 
-        } else if (plugin.getTerroristsTeam().getColour().equals("WHITE")) {
-            this.team = TeamEnum.TERRORISTS;
-
-            if (colour.equals(plugin.getCounterTerroristsTeam().getColour()))
+            } else {
+                this.team = TeamEnum.COUNTER_TERRORISTS;
                 colour = "AQUA";
-
-            Utils.debug(player.getName() + " got terr2 and colour " + colour);
-
-            plugin.getTerroristsTeam().setColour(colour);
-
-        } else if (plugin.getCounterTerroristsTeam().getColour().equals("WHITE")) {
-            this.team = TeamEnum.COUNTER_TERRORISTS;
-
-            if (colour.equals(plugin.getCounterTerroristsTeam().getColour()))
-                colour = "AQUA";
-
-            Utils.debug(player.getName() + " got CT2 and colour " + colour);
-
-            plugin.getCounterTerroristsTeam().setColour(colour);
-
-        } else if (terrorists.size() <= counterTerrorists.size()) {
-            this.team = TeamEnum.TERRORISTS;
-            this.colour = plugin.getTerroristsTeam().getColour();
-
-            Utils.debug(player.getName() + " got terr3 and colour " + this.colour);
-
-        } else if (counterTerrorists.size() <= terrorists.size()) {
-            this.team = TeamEnum.COUNTER_TERRORISTS;
-            this.colour = plugin.getCounterTerroristsTeam().getColour();
-
-            Utils.debug(player.getName() + " got CT3 and colour " + this.colour);
+                plugin.getCounterTerroristsTeam().setColour(colour);
+                Utils.debug(player.getName() + " selected team counter terr");
+            }
 
         } else {
-            Utils.debug(player.getName() + " salta return " + colour);
-            return;
+
+            if (colour.equals(plugin.getTerroristsTeam().getColour()) && terrorists.size() <= (counterTerrorists.size() + 1)) {
+                this.team = TeamEnum.TERRORISTS;
+                Utils.debug(player.getName() + " got terr1");
+
+            } else if (colour.equals(plugin.getCounterTerroristsTeam().getColour()) && counterTerrorists.size() <= (terrorists.size() + 1)) {
+                this.team = TeamEnum.COUNTER_TERRORISTS;
+                Utils.debug(player.getName() + " got CT1");
+
+            } else if (plugin.getTerroristsTeam().getColour().equals("WHITE")) {
+                this.team = TeamEnum.TERRORISTS;
+
+                if (colour.equals(plugin.getCounterTerroristsTeam().getColour()))
+                    colour = "GOLD";
+
+                Utils.debug(player.getName() + " got terr2 and colour " + colour);
+
+                plugin.getTerroristsTeam().setColour(colour);
+
+            } else if (plugin.getCounterTerroristsTeam().getColour().equals("WHITE")) {
+                this.team = TeamEnum.COUNTER_TERRORISTS;
+
+                if (colour.equals(plugin.getCounterTerroristsTeam().getColour()))
+                    colour = "AQUA";
+
+                Utils.debug(player.getName() + " got CT2 and colour " + colour);
+
+                plugin.getCounterTerroristsTeam().setColour(colour);
+
+            } else if (terrorists.size() <= counterTerrorists.size()) {
+                this.team = TeamEnum.TERRORISTS;
+                this.colour = plugin.getTerroristsTeam().getColour();
+
+                Utils.debug(player.getName() + " got terr3 and colour " + this.colour);
+
+            } else if (counterTerrorists.size() <= terrorists.size()) {
+                this.team = TeamEnum.COUNTER_TERRORISTS;
+                this.colour = plugin.getCounterTerroristsTeam().getColour();
+
+                Utils.debug(player.getName() + " got CT3 and colour " + this.colour);
+
+            } else {
+                Utils.debug(player.getName() + " salta return " + colour);
+                return;
+            }
         }
 
         if (team.equals(TeamEnum.TERRORISTS)) {
@@ -109,6 +127,7 @@ public class CSPlayer {
             PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "You are a " + ChatColor.RED + "Terrorist", ChatColor.RED + "Plant the bomb on the sites, have it explode.", 1, 4, 1);
         }
 
+        this.colour = colour;
         status = true;
 
         manageSpeed();
@@ -117,13 +136,17 @@ public class CSPlayer {
     public void manageSpeed() {
         if (player == null) return;
 
-        if (player.getInventory().getItemInMainHand().getType().equals(Material.IRON_AXE)) {
-          //  CounterStrike.i.myBukkit.runTask(player, null, null, () -> player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 99999, (int) (player.getWalkSpeed() * 0.7))));
+        boolean hasAxe = (player.getInventory().getItemInMainHand().getType().equals(Material.IRON_AXE));
+
+        if (hasAxe && player.getWalkSpeed() == 0.2f) {
+            //  CounterStrike.i.myBukkit.runTask(player, null, null, () -> player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 99999, (int) (player.getWalkSpeed() * 0.7))));
             player.setWalkSpeed(0.234f);
-        } else {
-          //  CounterStrike.i.myBukkit.runTask(player, null, null, () -> player.removePotionEffect(PotionEffectType.SPEED));
+
+        } else if (!hasAxe && player.getWalkSpeed() == 0.234f) {
+            //  CounterStrike.i.myBukkit.runTask(player, null, null, () -> player.removePotionEffect(PotionEffectType.SPEED));
             player.setWalkSpeed(0.2f);
         }
+
     }
 
     public Location getSpawnLocation() {
@@ -150,7 +173,7 @@ public class CSPlayer {
             player.setWalkSpeed(0.2f);
         }
 
-      //uhm?  player = null;
+        //uhm?  player = null;
         team = null;
     }
 
@@ -274,13 +297,13 @@ public class CSPlayer {
 
 
     public int getMoney() {
-        // Utils.debug("Getting money for CSPlayer " + player.getName());
         return money;
     }
 
     public void setMoney(int money) {
-        //  Utils.debug("Setting money for CSPlayer " + player.getName());
-        if (money > 16000) money = 16000;
+        if (!plugin.modeValorant && money > 16000) money = 16000;
+        if (plugin.modeValorant && money > 9000) money = 9000;
+
         this.money = money;
     }
 
@@ -297,7 +320,6 @@ public class CSPlayer {
     }
 
     public TeamEnum getTeam() {
-        // Utils.debug("Getting team for CSPlayer " + player.getName());
         return team;
     }
 

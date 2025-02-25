@@ -14,6 +14,7 @@ import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.SignChangeEvent;
@@ -33,14 +34,15 @@ public class PlayerJoinListener implements Listener {
         this.config = plugin.getConfig();
     }
 
+
     @EventHandler(ignoreCancelled = true)
     public void onPlayerResourcePackStatusEvent(PlayerResourcePackStatusEvent event) {
         Player player = event.getPlayer();
         String world = player.getWorld().getName();
         String resPackName = player.getName() + "RES";
 
-        if (CounterStrike.i.HashWorlds != null) {
-            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
+        if (plugin.HashWorlds != null) {
+            Worlds md = (Worlds) plugin.HashWorlds.get(world);
 
             if (md != null && !md.modoCs) {
                 if (plugin.ResourceHash.get(resPackName) == null) {
@@ -56,7 +58,7 @@ public class PlayerJoinListener implements Listener {
             success = false;
         }
 
-        if (success && !CounterStrike.i.myBukkit.isDownloded(event)) {
+        if (success && !plugin.myBukkit.isDownloded(event)) {
             Utils.debug(" ResourcePack load status: " + event.getStatus());
             success = false;
         }
@@ -92,13 +94,7 @@ public class PlayerJoinListener implements Listener {
             }
         }
 
-        if (plugin.getLobbyLocation() != null) {
-            player.setFallDistance(1);
-            player.setGameMode(GameMode.SURVIVAL);
-            player.setFoodLevel(8); //was 6
-            player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40);
-            player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
-        }
+        player.setGameMode(GameMode.SURVIVAL);
 
         if (!plugin.getPlayerUpdater().playersWithScoreboard.contains(player.getUniqueId()) && (CounterStrike.i.getGameState().equals(GameState.LOBBY) || CounterStrike.i.getGameState().equals(GameState.WAITING))) {
             Utils.debug("#### Player " + player.getName() + " entered the lobby");
@@ -130,7 +126,7 @@ public class PlayerJoinListener implements Listener {
     public void playerQuitEvent(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         String world = player.getWorld().getName();
-        Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
+        Worlds md = (Worlds) plugin.HashWorlds.get(world);
 
         plugin.ResourceHash.remove(player.getName() + "RES");
 
@@ -154,7 +150,7 @@ public class PlayerJoinListener implements Listener {
         Worlds md = null;
         String resPackName = player.getName() + "RES";
 
-        if (CounterStrike.i.HashWorlds != null) {
+        if (plugin.HashWorlds != null) {
             Object obj = plugin.HashWorlds.get(world);
 
             if (obj == null) {
@@ -208,9 +204,6 @@ public class PlayerJoinListener implements Listener {
             player.setGameMode(GameMode.SURVIVAL);
             player.getInventory().clear();
             player.getInventory().setArmorContents(null);
-            player.setFoodLevel(8); //was 6
-            player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40);
-            player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
         }
 
     }
@@ -230,26 +223,72 @@ public class PlayerJoinListener implements Listener {
     }
 
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerJoinLobby(PlayerInteractEvent e) {
+        if (!plugin.activated) return;
+
         Player player = e.getPlayer();
+        String world = player.getWorld().getName();
 
-        if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            if (e.getClickedBlock().getState() instanceof Sign) {
-                Sign s = (Sign) e.getClickedBlock().getState();
+        if (plugin.HashWorlds != null) {
+            Object obj = plugin.HashWorlds.get(world);
 
-                if (s != null && s.getLine(0) != null && (s.getLine(0).equalsIgnoreCase("[CSGo]") || s.getLine(0).equalsIgnoreCase("[CSMC]"))) {
-                    plugin.myBukkit.playerTeleport(player, plugin.getLobbyLocation());
+            if (obj != null) {
+                Worlds md = (Worlds) obj;
+
+                if (md != null && !md.modoCs) { //must not work here
+                    return;
                 }
             }
         }
 
+        if ((plugin.getGameState().equals(GameState.LOBBY) || plugin.getGameState().equals(GameState.WAITING))) {
+
+            if (e.getAction() == Action.LEFT_CLICK_BLOCK) {
+
+                if (e.getClickedBlock().getState() instanceof Sign) {
+
+                    Sign s = (Sign) e.getClickedBlock().getState();
+
+                    if (s != null && s.getLine(0) != null && (s.getLine(0).equalsIgnoreCase("[CSGo]") || s.getLine(0).equalsIgnoreCase("[CSMC]"))) {
+
+                        if (s.getLine(1).equalsIgnoreCase("Vote for")) {
+                            plugin.VoteHash.put(player.getName(), Integer.parseInt(s.getLine(3)));
+                            player.sendMessage("Vote registered for map " + s.getLine(2));
+                            plugin.Map = "Under voting";
+
+                        } else if (s.getLine(1) == null || (s.getLine(0).equalsIgnoreCase("Join Lobby"))) {
+                            plugin.myBukkit.playerTeleport(player, plugin.getLobbyLocation());
+                            player.sendMessage("Joined Lobby");
+                        }
+                    }
+
+                    e.setCancelled(true);
+                }
+            }
+        } else {
+            player.sendMessage("Game is already running");
+        }
     }
 
 
     @EventHandler(ignoreCancelled = true)
     public void onSignChangeEvent(SignChangeEvent e) {
+
         Player player = e.getPlayer();
+        String world = player.getWorld().getName();
+
+        if (plugin.HashWorlds != null) {
+            Object obj = plugin.HashWorlds.get(world);
+
+            if (obj != null) {
+                Worlds md = (Worlds) obj;
+
+                if (md != null && !md.modoCs) { //must not work here
+                    return;
+                }
+            }
+        }
 
         Sign s = (Sign) e.getBlock().getState();
 
@@ -261,6 +300,7 @@ public class PlayerJoinListener implements Listener {
             s.setEditable(false);
         }
 
+        e.setCancelled(true);
     }
 
 

@@ -11,6 +11,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,11 +24,12 @@ import static dev.danablend.counterstrike.enums.GameState.RUN;
 public class PlayerDeathListener implements Listener {
     CounterStrike plugin = CounterStrike.i;
 
+
     @EventHandler(ignoreCancelled = true)
     public void playerDeathEvent(PlayerDeathEvent event) {
-        Player player = event.getPlayer();
+        Entity myEntity = event.getEntity();
 
-        String world = player.getWorld().getName();
+        String world = myEntity.getWorld().getName();
 
         if (plugin.HashWorlds != null) {
             Worlds md = (Worlds) plugin.HashWorlds.get(world);
@@ -43,9 +45,9 @@ public class PlayerDeathListener implements Listener {
             }
         }
 
-        if (!(event.getEntity() instanceof Player)) return;
+        if (!(myEntity instanceof Player)) return;
 
-        Player victim = event.getEntity();
+        Player victim = (Player)myEntity;
 
         CSPlayer csplayerVictim = plugin.getCSPlayer(victim, false, null);
         //if not playing

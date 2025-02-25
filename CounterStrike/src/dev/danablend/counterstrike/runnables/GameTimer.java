@@ -50,4 +50,9 @@ public class GameTimer {
     public Integer returnTimetoEnd() {
         return timeToEnd;
     }
+
+
+    public void terminateTimer() {
+        plugin.myBukkit.cancelTask(task);
+    }
 }

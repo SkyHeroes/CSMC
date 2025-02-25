@@ -283,7 +283,9 @@ public class MyBukkit {
     }
 
 
-    public void UpdateChecker(String projectName, boolean loop) {
+    public void UpdateChecker(boolean loop) {
+        String projectName = main.getDescription().getName();
+
         if (loop) {
             runTaskTimer(null, null, null, () -> {
                 runCheck(projectName);

@@ -22,14 +22,8 @@ public class GameStarter {
         csPlayers = plugin.getCSPlayers();
 
         if (plugin.getTerroristsTeam().getWins() + plugin.getTerroristsTeam().getLosses() == 0) {
-            plugin.LoadDBRandomMaps();
             timeToStart = (Config.SHOP_PHASE_DURATION / 2);
         } else {
-
-            if (plugin.randomMaps) {
-                plugin.LoadDBRandomMaps();
-            }
-
             timeToStart = 6;
         }
     }

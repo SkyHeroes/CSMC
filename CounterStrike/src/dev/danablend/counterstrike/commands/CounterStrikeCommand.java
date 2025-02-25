@@ -34,10 +34,21 @@ public class CounterStrikeCommand implements CommandExecutor {
 
         Player player = (Player) sender;
 
+        if (args.length == 1 && args[0].equalsIgnoreCase("stop")) {
+
+            if (plugin.getGameState().equals(GameState.LOBBY) || plugin.getGameState().equals(GameState.WAITING) || plugin.getGameState().equals(GameState.STARTING) || plugin.getGameState().equals(GameState.SHOP)) {
+                sender.sendMessage(ChatColor.LIGHT_PURPLE + "Game hasn't start yet");
+            } else {
+                plugin.getGameTimer().terminateTimer();
+                plugin.FinishGame(CounterStrike.i.getTerroristsTeam(), CounterStrike.i.getCounterTerroristsTeam());
+            }
+            return true;
+        }
+
         if (args.length == 1 && args[0].equalsIgnoreCase("setRandMap")) {
 
             if (this.plugin.getGameState().equals(GameState.LOBBY) || this.plugin.getGameState().equals(GameState.WAITING) || this.plugin.getGameState().equals(GameState.STARTING)) {
-                this.plugin.LoadDBRandomMaps();
+                this.plugin.LoadDBRandomMaps(0);
             } else {
                 sender.sendMessage(ChatColor.LIGHT_PURPLE + "Too late to change map " + this.plugin.getGameState());
             }

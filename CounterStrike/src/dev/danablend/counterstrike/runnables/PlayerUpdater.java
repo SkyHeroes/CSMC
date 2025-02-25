@@ -2,9 +2,9 @@ package dev.danablend.counterstrike.runnables;
 
 import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
+import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.utils.CSUtil;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import fr.mrmicky.fastboard.FastBoard;
@@ -96,7 +96,13 @@ public class PlayerUpdater extends BukkitRunnable {
         player.setPlayerListName(ChatColor.valueOf(csplayer.getColour()) + player.getName());
 
         FastBoard board = new FastBoard(player);
-        board.updateTitle(ChatColor.BOLD + "----Mine Strike v" + CounterStrike.i.getDescription().getVersion() + "----");
+
+        if (plugin.modeValorant) {
+            board.updateTitle(ChatColor.BOLD + "----Valocraft v" + CounterStrike.i.getDescription().getVersion() + "----");
+        } else {
+            board.updateTitle(ChatColor.BOLD + "----MineStrike v" + CounterStrike.i.getDescription().getVersion() + "----");
+        }
+
         csplayer.setBoard(board);
 
     }
@@ -135,7 +141,13 @@ public class PlayerUpdater extends BukkitRunnable {
         lines[1] = "" + ChatColor.BLACK + ChatColor.BOLD + "Teams: " + TeamA + myTeam.getWins() + ChatColor.GRAY + " vs " + TeamB + myTeam.getLosses();
 
         ChatColor c1 = ChatColor.valueOf(plugin.counterTerroristsTeam.getColour());
-        lines[2] = ChatColor.BOLD + "(" + plugin.counterTerrorists.size() + ") " + c1 + "Counters" + ChatColor.WHITE + " with " + plugin.counterTerroristsTeam.getWins() + " wins: ";
+
+        if (plugin.modeValorant) {
+            lines[2] = ChatColor.BOLD + "(" + plugin.counterTerrorists.size() + ") " + c1 + "Defenders" + ChatColor.WHITE + " with " + plugin.counterTerroristsTeam.getWins() + " wins: ";
+        } else {
+            lines[2] = ChatColor.BOLD + "(" + plugin.counterTerrorists.size() + ") " + c1 + "Counters" + ChatColor.WHITE + " with " + plugin.counterTerroristsTeam.getWins() + " wins: ";
+        }
+
         int linha = 3;
 
         for (CSPlayer csplayer1 : plugin.counterTerrorists) {
@@ -145,13 +157,19 @@ public class PlayerUpdater extends BukkitRunnable {
             if (play.isDead()) {
                 lines[linha] = play.getName() + ": " + ChatColor.WHITE + ChatColor.UNDERLINE + " DEAD  " + ChatColor.BOLD + "$" + csplayer1.getMoney() + " K: " + "" + csplayer1.getKills() + "  " + "D: " + csplayer1.getDeaths();
             } else {
-                lines[linha] = play.getName() + ": " + ChatColor.GREEN + "$" + csplayer1.getMoney() + ChatColor.BLACK + " K:" + ChatColor.GREEN + "" + csplayer1.getKills() + " " + ChatColor.BLACK + "D:" + ChatColor.GREEN + csplayer1.getDeaths() + " " + ChatColor.BLACK + "MVP:" + ChatColor.GREEN + "" + csplayer1.getMVP();
+                lines[linha] = play.getName() + ": " + ChatColor.GREEN + "$" + csplayer1.getMoney() + ChatColor.BLACK + " K:" + ChatColor.GREEN + "" + csplayer1.getKills() + " " + ChatColor.BLACK + "D:" + ChatColor.GREEN + csplayer1.getDeaths() + (plugin.modeValorant ? "" : " " + ChatColor.BLACK + "MVP:" + ChatColor.GREEN + "" + csplayer1.getMVP());
             }
             linha++;
         }
 
         c1 = ChatColor.valueOf(plugin.terroristsTeam.getColour());
-        lines[linha] = ChatColor.BOLD + "(" + plugin.terrorists.size() + ") " + c1 + "Terrors" + ChatColor.WHITE + " with " + plugin.terroristsTeam.getWins() + " wins: ";
+
+        if (plugin.modeValorant) {
+            lines[linha] = ChatColor.BOLD + "(" + plugin.terrorists.size() + ") " + c1 + "Attackers" + ChatColor.WHITE + " with " + plugin.terroristsTeam.getWins() + " wins: ";
+        } else {
+            lines[linha] = ChatColor.BOLD + "(" + plugin.terrorists.size() + ") " + c1 + "Terrors" + ChatColor.WHITE + " with " + plugin.terroristsTeam.getWins() + " wins: ";
+        }
+
         linha++;
 
         for (CSPlayer csplayer1 : plugin.terrorists) {
@@ -160,7 +178,7 @@ public class PlayerUpdater extends BukkitRunnable {
             if (play.isDead()) {
                 lines[linha] = play.getName() + ": " + ChatColor.WHITE + ChatColor.UNDERLINE + " DEAD  " + ChatColor.BOLD + "$" + csplayer1.getMoney() + " K: " + "" + csplayer1.getKills() + "  " + "D: " + csplayer1.getDeaths();
             } else {
-                lines[linha] = play.getName() + ": " + ChatColor.GREEN + "$" + csplayer1.getMoney() + ChatColor.BLACK + " K:" + ChatColor.GREEN + "" + csplayer1.getKills() + " " + ChatColor.BLACK + "D:" + ChatColor.GREEN + csplayer1.getDeaths() + " " + ChatColor.BLACK + "MVP:" + ChatColor.GREEN + "" + csplayer1.getMVP();
+                lines[linha] = play.getName() + ": " + ChatColor.GREEN + "$" + csplayer1.getMoney() + ChatColor.BLACK + " K:" + ChatColor.GREEN + "" + csplayer1.getKills() + " " + ChatColor.BLACK + "D:" + ChatColor.GREEN + csplayer1.getDeaths() + (plugin.modeValorant ? "" : " " + ChatColor.BLACK + "MVP:" + ChatColor.GREEN + "" + csplayer1.getMVP());
             }
             linha++;
         }

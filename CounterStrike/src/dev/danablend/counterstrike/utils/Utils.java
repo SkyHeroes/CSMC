@@ -5,6 +5,8 @@ import dev.danablend.counterstrike.CounterStrike;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 
+import java.util.*;
+
 
 public class Utils {
 
@@ -52,6 +54,27 @@ public class Utils {
             timeStr += sec;
         }
         return timeStr;
+    }
+
+
+    // Method to sort Hashtable by Values
+    public static int sortByValue(Hashtable<String, Integer> hashtable) {
+
+        if (hashtable.size() == 0) return 0;
+
+        Map<Integer, Integer> frequencyMap = new HashMap<>();
+
+        // Count the frequency of each value
+        for (int mapId : hashtable.values()) {
+            frequencyMap.put(mapId, frequencyMap.getOrDefault(mapId, 0) + 1);
+        }
+
+        List<Map.Entry<Integer, Integer>> list = new ArrayList<>(frequencyMap.entrySet());
+
+        list.sort(Map.Entry.comparingByValue());
+
+        return list.get(list.size() - 1).getKey();
+
     }
 
 }

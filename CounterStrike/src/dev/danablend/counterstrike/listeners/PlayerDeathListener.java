@@ -47,7 +47,7 @@ public class PlayerDeathListener implements Listener {
 
         if (!(myEntity instanceof Player)) return;
 
-        Player victim = (Player)myEntity;
+        Player victim = (Player) myEntity;
 
         CSPlayer csplayerVictim = plugin.getCSPlayer(victim, false, null);
         //if not playing
@@ -61,7 +61,7 @@ public class PlayerDeathListener implements Listener {
             victim.setGameMode(GameMode.SPECTATOR);
         });
 
-        if ((plugin.getGameState().equals(PLANTED) || plugin.getGameState().equals(RUN) )) {
+        if ((plugin.getGameState().equals(PLANTED) || plugin.getGameState().equals(RUN))) {
 
             victim.sendMessage(ChatColor.RED + "Wait until next round for a respawn.");
             PacketUtils.sendTitleAndSubtitle(victim, ChatColor.RED + "You are dead.", ChatColor.YELLOW + "You will respawn in the next round.", 0, 3, 1);
@@ -84,7 +84,13 @@ public class PlayerDeathListener implements Listener {
                     csplayerVictim.setDeaths(csplayerVictim.getDeaths() + 1);
                     csplayerKiller.settempMVP(csplayerKiller.gettempMVP() + 1);
 
-                    if (!csplayerVictim.isNPC()) victim.setSpectatorTarget(killer);
+                    if (!csplayerVictim.isNPC()) {
+                        event.setDeathMessage(ChatColor.GRAY + " Espectating " + killerName);
+
+                        plugin.myBukkit.runTask(victim, null, null, () -> {
+                            victim.setSpectatorTarget(killer);
+                        });
+                    }
 
                     event.setDeathMessage(ChatColor.valueOf(csplayerVictim.getColour()) + deadPlayerName + ChatColor.GRAY + " was killed by " + ChatColor.valueOf(csplayerKiller.getColour()) + killerName);
                 }

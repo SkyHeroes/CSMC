@@ -451,7 +451,7 @@ public class CounterStrike extends JavaPlugin {
         String decodedString = new String(Base64.decodeBase64("ZVc5MUlHdHVNSGNnZEdobElIUnlkWFJvUFE9PT0"));
         decodedString = new String(Base64.decodeBase64(decodedString.substring(0, decodedString.length() - 2)));
         decodedString = decodedString.substring(0, decodedString.length() - 1);
-        if (key.equals(decodedString)) activated = true;
+        if (key != null &&  key.equals(decodedString)) activated = true;
 
         Utils.debug(activated + " trueTeamColours:" + standardTeamColours + "  informGameStatus:" + showGameStatusTitle);
     }
@@ -1228,7 +1228,7 @@ public class CounterStrike extends JavaPlugin {
         if (botManager != null) {
             myBukkit.runTaskLater(null, mylobby, null, () -> {
                 botManager.setMain(this);
-                botManager.lauchBots(3);
+                botManager.lauchBots(5);
             }, 20);
         }
 

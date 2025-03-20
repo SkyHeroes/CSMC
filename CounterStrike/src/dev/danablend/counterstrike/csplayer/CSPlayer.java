@@ -12,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 import java.util.Collection;
 
@@ -37,7 +38,7 @@ public class CSPlayer {
     private boolean status = false;
     private FastBoard board;
     private boolean isNPC = false;
-private CounterStrike plugin;
+    private CounterStrike plugin;
 
     public CSPlayer(CounterStrike plugin, Player player, String colour) {
         Utils.debug("#### New CSPlayer " + player.getName() + " with requested colour " + colour);
@@ -50,7 +51,7 @@ private CounterStrike plugin;
         this.money = Config.STARTING_MONEY;
         this.kills = 0;
         this.deaths = 0;
-        this.plugin=plugin;
+        this.plugin = plugin;
 
         if (plugin.standardTeamColours) {
 
@@ -136,13 +137,28 @@ private CounterStrike plugin;
     public void manageSpeed() {
         if (player == null) return;
 
-        boolean hasAxe = (player.getInventory().getItemInMainHand().getType().equals(Material.IRON_AXE));
+        PlayerInventory inventory = player.getInventory();
 
-        if (hasAxe && player.getWalkSpeed() == 0.2f) {
+        boolean hasHeavy = false;
+        boolean hasAxe = (inventory.getItemInMainHand().getType().equals(Material.IRON_AXE));
+
+        if (!hasAxe) {
+            ItemStack itemInMainHand = inventory.getItemInMainHand(); // Main hand item
+
+            if (inventory.getItem(RIFLE_SLOT) != null && inventory.getItem(RIFLE_SLOT).equals(itemInMainHand)) {
+                hasHeavy = true;
+            }
+        }
+
+        if (hasAxe && player.getWalkSpeed() < 0.234f) {
             //  CounterStrike.i.myBukkit.runTask(player, null, null, () -> player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 99999, (int) (player.getWalkSpeed() * 0.7))));
             player.setWalkSpeed(0.234f);
 
-        } else if (!hasAxe && player.getWalkSpeed() == 0.234f) {
+        } else if (hasHeavy && player.getWalkSpeed() > 0.17f) {
+            //  CounterStrike.i.myBukkit.runTask(player, null, null, () -> player.removePotionEffect(PotionEffectType.SPEED));
+            player.setWalkSpeed(0.17f);
+
+        } else if (!hasAxe && !hasHeavy && player.getWalkSpeed() != 0.2f) {
             //  CounterStrike.i.myBukkit.runTask(player, null, null, () -> player.removePotionEffect(PotionEffectType.SPEED));
             player.setWalkSpeed(0.2f);
         }

@@ -1,5 +1,6 @@
 package dev.danablend.counterstrike.runnables;
 
+import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.utils.PacketUtils;
@@ -21,14 +22,8 @@ public class GameStarter {
         csPlayers = plugin.getCSPlayers();
 
         if (plugin.getTerroristsTeam().getWins() + plugin.getTerroristsTeam().getLosses() == 0) {
-            plugin.LoadDBRandomMaps();
-            timeToStart = 20;
+            timeToStart = (Config.SHOP_PHASE_DURATION / 2);
         } else {
-
-            if (plugin.randomMaps) {
-                plugin.LoadDBRandomMaps();
-            }
-
             timeToStart = 6;
         }
     }

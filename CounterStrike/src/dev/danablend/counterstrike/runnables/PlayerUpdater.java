@@ -2,9 +2,9 @@ package dev.danablend.counterstrike.runnables;
 
 import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
+import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.utils.CSUtil;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import fr.mrmicky.fastboard.FastBoard;
@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.UUID;
 
 import static dev.danablend.counterstrike.Config.MAX_ROUNDS;
+import static dev.danablend.counterstrike.CounterStrike.SHOP_SLOT;
 
 public class PlayerUpdater extends BukkitRunnable {
 
@@ -44,9 +45,12 @@ public class PlayerUpdater extends BukkitRunnable {
 
         for (CSPlayer csplayer : plugin.getCSPlayers()) {
 
-            if (csplayer.getPlayer() == null) return;
+            if (csplayer.getPlayer() == null) continue;
 
-            csplayer.update();
+            csplayer.manageSpeed();
+
+            //NPCs don't need scoreboard but need speed management
+            if (csplayer.isNPC()) continue;
 
             if (!playersWithScoreboard.contains(csplayer.getPlayer().getUniqueId())) {
                 setScoreBoard(csplayer);
@@ -59,14 +63,14 @@ public class PlayerUpdater extends BukkitRunnable {
         for (CSPlayer csplayer : plugin.getCSPlayers()) {
             Player player = csplayer.getPlayer();
 
-            if (CSUtil.isOutOfShopZone(player) || plugin.getGameState() != GameState.SHOP) {
+            if (CSUtil.isOutOfShopZone(player) || !plugin.getGameState().equals(GameState.SHOP)) {
 
-                if (player.getInventory().getItem(8) != null) {
-                    player.getInventory().remove(player.getInventory().getItem(8));
+                if (player.getInventory().getItem(SHOP_SLOT) != null) {
+                    player.getInventory().remove(player.getInventory().getItem(SHOP_SLOT));
                 }
             } else {
-                if (player.getInventory().getItem(8) == null) {
-                    player.getInventory().setItem(8, CounterStrike.i.getShopItem());
+                if (player.getInventory().getItem(SHOP_SLOT) == null) {
+                    player.getInventory().setItem(SHOP_SLOT, CounterStrike.i.getShopItem());
                 }
             }
 
@@ -83,19 +87,31 @@ public class PlayerUpdater extends BukkitRunnable {
     public void setScoreBoard(CSPlayer csplayer) {
         Player player = csplayer.getPlayer();
 
+        //NPCs don't need scoreboard
+        if (csplayer.isNPC()) return;
+
         if (!player.isOnline()) return;
 
         //inits player colour
         player.setPlayerListName(ChatColor.valueOf(csplayer.getColour()) + player.getName());
 
         FastBoard board = new FastBoard(player);
-        board.updateTitle(ChatColor.BOLD + "----Mine Strike v" + CounterStrike.i.getDescription().getVersion() + "----");
+
+        if (plugin.modeValorant) {
+            board.updateTitle(ChatColor.BOLD + "----Valocraft v" + CounterStrike.i.getDescription().getVersion() + "----");
+        } else {
+            board.updateTitle(ChatColor.BOLD + "----MineStrike v" + CounterStrike.i.getDescription().getVersion() + "----");
+        }
+
         csplayer.setBoard(board);
 
     }
 
 
     public void updateScoreBoard(CSPlayer csplayer) {
+        //NPCs don't need scoreboard
+        if (csplayer.isNPC()) return;
+
         Player player = csplayer.getPlayer();
 
         if (!player.isOnline()) return;
@@ -119,13 +135,19 @@ public class PlayerUpdater extends BukkitRunnable {
         String TeamA = ChatColor.valueOf(csplayer.getColour()) + "" + csplayer.getColour() + ": ";
         String TeamB = ChatColor.valueOf(csplayer.getOpponentColour()) + csplayer.getOpponentColour() + ": ";
 
-        String[] lines = new String[21];
+        String[] lines = new String[20]; //FastBoard is limited to max 20!!
 
         lines[0] = "" + ChatColor.BLACK + ChatColor.BOLD + "Map: " + ChatColor.GRAY + plugin.Map + "  " + ChatColor.BLACK + ChatColor.BOLD + "Round: " + ChatColor.GRAY + "" + (myTeam.getLosses() + myTeam.getWins() + 1) + " of " + MAX_ROUNDS;
         lines[1] = "" + ChatColor.BLACK + ChatColor.BOLD + "Teams: " + TeamA + myTeam.getWins() + ChatColor.GRAY + " vs " + TeamB + myTeam.getLosses();
 
         ChatColor c1 = ChatColor.valueOf(plugin.counterTerroristsTeam.getColour());
-        lines[2] = ChatColor.BOLD + "(" + plugin.counterTerrorists.size() + ") " + c1 + "Counters" + ChatColor.WHITE + " with " + plugin.counterTerroristsTeam.getWins() + " wins: ";
+
+        if (plugin.modeValorant) {
+            lines[2] = ChatColor.BOLD + "(" + plugin.counterTerrorists.size() + ") " + c1 + "Defenders" + ChatColor.WHITE + " with " + plugin.counterTerroristsTeam.getWins() + " wins: ";
+        } else {
+            lines[2] = ChatColor.BOLD + "(" + plugin.counterTerrorists.size() + ") " + c1 + "Counters" + ChatColor.WHITE + " with " + plugin.counterTerroristsTeam.getWins() + " wins: ";
+        }
+
         int linha = 3;
 
         for (CSPlayer csplayer1 : plugin.counterTerrorists) {
@@ -135,13 +157,19 @@ public class PlayerUpdater extends BukkitRunnable {
             if (play.isDead()) {
                 lines[linha] = play.getName() + ": " + ChatColor.WHITE + ChatColor.UNDERLINE + " DEAD  " + ChatColor.BOLD + "$" + csplayer1.getMoney() + " K: " + "" + csplayer1.getKills() + "  " + "D: " + csplayer1.getDeaths();
             } else {
-                lines[linha] = play.getName() + ": " + ChatColor.GREEN + "$" + csplayer1.getMoney() + ChatColor.BLACK + " K:" + ChatColor.GREEN + "" + csplayer1.getKills() + " " + ChatColor.BLACK + "D:" + ChatColor.GREEN + csplayer1.getDeaths() + " " + ChatColor.BLACK + "MVP:" + ChatColor.GREEN + "" + csplayer1.getMVP();
+                lines[linha] = play.getName() + ": " + ChatColor.GREEN + "$" + csplayer1.getMoney() + ChatColor.BLACK + " K:" + ChatColor.GREEN + "" + csplayer1.getKills() + " " + ChatColor.BLACK + "D:" + ChatColor.GREEN + csplayer1.getDeaths() + (plugin.modeValorant ? "" : " " + ChatColor.BLACK + "MVP:" + ChatColor.GREEN + "" + csplayer1.getMVP());
             }
             linha++;
         }
 
         c1 = ChatColor.valueOf(plugin.terroristsTeam.getColour());
-        lines[linha] = ChatColor.BOLD + "(" + plugin.terrorists.size() + ") " + c1 + "Terrors" + ChatColor.WHITE + " with " + plugin.terroristsTeam.getWins() + " wins: ";
+
+        if (plugin.modeValorant) {
+            lines[linha] = ChatColor.BOLD + "(" + plugin.terrorists.size() + ") " + c1 + "Attackers" + ChatColor.WHITE + " with " + plugin.terroristsTeam.getWins() + " wins: ";
+        } else {
+            lines[linha] = ChatColor.BOLD + "(" + plugin.terrorists.size() + ") " + c1 + "Terrors" + ChatColor.WHITE + " with " + plugin.terroristsTeam.getWins() + " wins: ";
+        }
+
         linha++;
 
         for (CSPlayer csplayer1 : plugin.terrorists) {
@@ -150,7 +178,7 @@ public class PlayerUpdater extends BukkitRunnable {
             if (play.isDead()) {
                 lines[linha] = play.getName() + ": " + ChatColor.WHITE + ChatColor.UNDERLINE + " DEAD  " + ChatColor.BOLD + "$" + csplayer1.getMoney() + " K: " + "" + csplayer1.getKills() + "  " + "D: " + csplayer1.getDeaths();
             } else {
-                lines[linha] = play.getName() + ": " + ChatColor.GREEN + "$" + csplayer1.getMoney() + ChatColor.BLACK + " K:" + ChatColor.GREEN + "" + csplayer1.getKills() + " " + ChatColor.BLACK + "D:" + ChatColor.GREEN + csplayer1.getDeaths() + " " + ChatColor.BLACK + "MVP:" + ChatColor.GREEN + "" + csplayer1.getMVP();
+                lines[linha] = play.getName() + ": " + ChatColor.GREEN + "$" + csplayer1.getMoney() + ChatColor.BLACK + " K:" + ChatColor.GREEN + "" + csplayer1.getKills() + " " + ChatColor.BLACK + "D:" + ChatColor.GREEN + csplayer1.getDeaths() + (plugin.modeValorant ? "" : " " + ChatColor.BLACK + "MVP:" + ChatColor.GREEN + "" + csplayer1.getMVP());
             }
             linha++;
         }
@@ -166,10 +194,15 @@ public class PlayerUpdater extends BukkitRunnable {
 
 
     public void deleteScoreBoards(Player player) {
+
+        if (player == null) return;
+
+        CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
+
+        if (csplayer == null || csplayer.isNPC()) return;
+
         if (playersWithScoreboard.contains(player.getUniqueId())) {
             playersWithScoreboard.remove(player.getUniqueId());
-
-            CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
             if (csplayer == null) {
                 return;
@@ -186,4 +219,6 @@ public class PlayerUpdater extends BukkitRunnable {
             }
         }
     }
+
+
 }

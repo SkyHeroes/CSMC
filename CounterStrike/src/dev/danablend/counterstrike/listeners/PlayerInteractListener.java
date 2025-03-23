@@ -1,10 +1,10 @@
 package dev.danablend.counterstrike.listeners;
 
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
 import dev.danablend.counterstrike.database.Worlds;
+import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.runnables.Bomb;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import org.bukkit.ChatColor;
@@ -33,22 +33,28 @@ public class PlayerInteractListener implements Listener {
         Player player = event.getPlayer();
         String world = player.getWorld().getName();
 
-        if (CounterStrike.i.HashWorlds != null) {
-            Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
+        if (plugin.HashWorlds != null) {
+            Worlds md = (Worlds) plugin.HashWorlds.get(world);
 
             if (md != null && !md.modoCs) {
                 return;
             }
         }
 
+        int maxPlayers = MAX_PLAYERS;
+
+        if (maxPlayers > 16) {
+            maxPlayers = 16;
+        }
+
         CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
-        if (CounterStrike.i.getCSPlayers().size() >= MAX_PLAYERS && csplayer == null) {
+        if (CounterStrike.i.getCSPlayers().size() > maxPlayers && csplayer == null) {
             PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "We are sorry", ChatColor.GREEN + "The game is full, please try again later.", 1, 4, 1);
             return;
         }
 
-        if (csplayer == null && event.getAction() == Action.LEFT_CLICK_BLOCK) {
+        if (csplayer == null && event.getAction().equals(Action.LEFT_CLICK_BLOCK)) {
 
             if (CounterStrike.i.getGameState().equals(GameState.RUN)) {
                 dev.danablend.counterstrike.csplayer.Team myTeam = CounterStrike.i.getTerroristsTeam();
@@ -69,6 +75,12 @@ public class PlayerInteractListener implements Listener {
                 materialColour = "GREEN";
             } else if (materialColour.contains("YELLOW")) {
                 materialColour = "YELLOW";
+
+            } else if (materialColour.contains("GOLD")) {
+                materialColour = "GOLD";
+            } else if (materialColour.contains("AQUA")) {
+                materialColour = "AQUA";
+
             } else {
                 player.sendMessage("You have to choose one of the floors with colour");
                 return;
@@ -114,11 +126,11 @@ public class PlayerInteractListener implements Listener {
 
         CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
-        if (csplayer != null && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+        if (csplayer != null && event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
 
             if (Bomb.bomb == null) return;
 
-            if (csplayer.getTeam() != TeamEnum.COUNTER_TERRORISTS) return;
+            if (!csplayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) return;
 
             Bomb bomb = Bomb.bomb;
 

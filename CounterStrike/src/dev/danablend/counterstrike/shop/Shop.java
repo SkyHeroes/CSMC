@@ -19,6 +19,8 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 import java.util.Collection;
 
+import static dev.danablend.counterstrike.CounterStrike.*;
+
 public class Shop {
 
     private static Shop shop;
@@ -88,9 +90,17 @@ public class Shop {
 
         int money = csplayer.getMoney();
         int slot = -1;
+
+        if (gun == null) {
+            Utils.debug(" --> " + ChatColor.RED + "Sorry, no gun selected");
+            player.sendMessage(ChatColor.RED + "Sorry, no gun selected");
+            return;
+        }
+
         WeaponType type = gun.getWeaponType();
 
         if (gun.getCost() > money) {
+            Utils.debug(" --> " + ChatColor.RED + "Sorry, but you cannot afford this item.");
             player.sendMessage(ChatColor.RED + "Sorry, but you cannot afford this item.");
             return;
         }
@@ -101,21 +111,21 @@ public class Shop {
                     player.sendMessage(ChatColor.RED + "Sorry, you cannot have two rifles at the same time.");
                     return;
                 }
-                slot = 0;
+                slot = RIFLE_SLOT;
                 break;
             case PISTOL:
                 if (csplayer.getPistol() != null) {
                     player.sendMessage(ChatColor.RED + "Sorry, you cannot have two pistols at the same time.");
                     return;
                 }
-                slot = 1;
+                slot = PISTOL_SLOT;
                 break;
             case GRENADE:
                 if (csplayer.getGrenade() != null) {
                     player.sendMessage(ChatColor.RED + "Sorry, you cannot have two grenades at the same time.");
                     return;
                 }
-                slot = 3;
+                slot = GRENADE_SLOT;
                 break;
             case HELMET:
                 if (csplayer.getHelmet() != null) {
@@ -159,14 +169,16 @@ public class Shop {
 
         if (CounterStrike.i.usingQualityArmory() && type != WeaponType.GRENADE && type != WeaponType.HELMET && type != WeaponType.ARMOUR) {
             Gun gun1 = me.zombie_striker.qg.api.QualityArmory.getGunByName(gun.getName());
-            Gun.updateAmmo(gun1, player.getInventory().getItem(0), gun.getMagazineCapacity());
+            Gun.updateAmmo(gun1, player.getInventory().getItem(RIFLE_SLOT), gun.getMagazineCapacity());
 
             ItemStack ammo = me.zombie_striker.qg.api.QualityArmory.getGunByName(gun.getName()).getAmmoType().getItemStack().clone();
             ammo.setAmount((gun.getMagazines() - 1) * gun.getMagazineCapacity());
 
             if (type == WeaponType.RIFLE) {
-                player.getInventory().setItem(6, ammo);
-            } else player.getInventory().setItem(7, ammo);
+                player.getInventory().setItem(RIFLE_AMO_SLOT, ammo);
+            } else if (type == WeaponType.PISTOL) {
+                player.getInventory().setItem(PISTOL_AMO_SLOT, ammo);
+            }
         }
 
         player.sendMessage(ChatColor.GREEN + "You have purchased " + gun.getDisplayName());

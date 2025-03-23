@@ -12,6 +12,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 
+import static dev.danablend.counterstrike.CounterStrike.*;
+
 /**
  * @author barpec12
  * created on 2020-05-20
@@ -45,9 +47,9 @@ public class EntityPickupItemListener implements Listener {
 
                 e.getItem().remove();
 
-                if (player.getInventory().getItem(4) == null) {
+                if (player.getInventory().getItem(TNT_SLOT) == null) {
                     item.setAmount(1);
-                    player.getInventory().setItem(4, item);
+                    player.getInventory().setItem(TNT_SLOT, item);
                 }
                 e.setCancelled(true); //to cancel event, if has bomb doesn't get another, if has none already picked it up
                 return;
@@ -62,33 +64,33 @@ public class EntityPickupItemListener implements Listener {
 
                 switch (weapon.getWeaponType()) {
                     case RIFLE:
-                        if (player.getInventory().getItem(0) == null) {
+                        if (player.getInventory().getItem(RIFLE_SLOT) == null) {
                             e.getItem().remove();
-                            player.getInventory().setItem(0, item);
+                            player.getInventory().setItem(RIFLE_SLOT, item);
                         }
                         e.setCancelled(true); //to cancel event, if has Rifle doesn't get another, if has none already picked it up
                         break;
 
                     case PISTOL:
-                        if (player.getInventory().getItem(1) == null) {
+                        if (player.getInventory().getItem(PISTOL_SLOT) == null) {
                             e.getItem().remove();
-                            player.getInventory().setItem(1, item);
+                            player.getInventory().setItem(PISTOL_SLOT, item);
                         }
                         e.setCancelled(true); //to cancel event, if has PISTOL doesn't get another, if has none already picked it up
                         break;
 
                     case GRENADE:
 
-                        if (player.getInventory().getItem(3) == null) {
+                        if (player.getInventory().getItem(GRENADE_SLOT) == null) {
                             e.getItem().remove();
-                            player.getInventory().setItem(3, item);
+                            player.getInventory().setItem(GRENADE_SLOT, item);
                         } else {
-                            ItemStack items = player.getInventory().getItem(3);
+                            ItemStack items = player.getInventory().getItem(GRENADE_SLOT);
 
                             if (items.getItemMeta().getDisplayName().equals(item.getItemMeta().getDisplayName())) {
                                 e.getItem().remove();
                                 items.setAmount(item.getAmount() + item.getAmount());
-                                player.getInventory().setItem(3, items);
+                                player.getInventory().setItem(GRENADE_SLOT, items);
                             } else {
                                // player.sendMessage("Unmatch grenade. Discarding...");
                             }
@@ -102,9 +104,9 @@ public class EntityPickupItemListener implements Listener {
                 }
 
             } else if (item.getType() == Material.IRON_AXE) {
-                if (player.getInventory().getItem(2) == null) {
+                if (player.getInventory().getItem(KNIFE_SLOT) == null) {
                     e.getItem().remove();
-                    player.getInventory().setItem(2, item);
+                    player.getInventory().setItem(KNIFE_SLOT, item);
                 }
                 e.setCancelled(true); //to cancel event, if has AXE doesn't get another, if has none already picked it up
 

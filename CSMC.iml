@@ -25,8 +25,10 @@
     <orderEntry type="library" name="realityforge.jetbrains.annotations" level="project" />
     <orderEntry type="library" name="fr.mrmicky.fastboard" level="project" />
     <orderEntry type="library" name="net.kyori.adventure.api" level="project" />
-    <orderEntry type="library" name="folia-api-1.20.6-R0.1-SNAPSHOT" level="project" />
     <orderEntry type="library" name="QualityArmory" level="project" />
     <orderEntry type="library" name="HolographicDisplays" level="project" />
+    <orderEntry type="library" name="netty-transport-sctp-4.1.73.Final" level="project" />
+    <orderEntry type="library" name="iACenter" level="project" />
+    <orderEntry type="library" name="folia-api-1.20.6-R0.1-SNAPSHOT" level="project" />
   </component>
 </module>

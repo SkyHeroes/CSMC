@@ -11,8 +11,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 public class Config {
 
-    public static final String counterTerroristShopName = "Buy Menu - Counter Terrorist";
-    public static final String terroristShopName = "Buy Menu - Terrorist";
+    public static  String counterTerroristShopName = "Buy Menu - Counter Terrorist";
+    public static  String terroristShopName = "Buy Menu - Terrorist";
     public static final double SPAWN_RADIUS_X = 7.0;
     public static final double SPAWN_RADIUS_Z = 7.0;
     private static final FileConfiguration config = CounterStrike.i.getConfig();

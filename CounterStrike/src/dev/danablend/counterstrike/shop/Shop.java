@@ -68,7 +68,6 @@ public class Shop {
     }
 
     public void purchaseShopItem(Player player, Weapon gun) {
-        Utils.debug("Purchase of an item has been initiated...");
         CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
         if (csplayer == null) return;

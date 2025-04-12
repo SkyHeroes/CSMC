@@ -7,14 +7,17 @@ import dev.danablend.counterstrike.database.Worlds;
 import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.enums.Weapon;
 import dev.danablend.counterstrike.utils.PlayerUtils;
-import org.bukkit.Material;
+import me.zombie_striker.qg.guns.Gun;
 import org.bukkit.entity.Chicken;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
+
+import static me.zombie_striker.qg.api.QualityArmory.getGunInHand;
 
 public class EntityDamageByEntityListener implements Listener {
 
@@ -75,12 +78,21 @@ public class EntityDamageByEntityListener implements Listener {
 
                     Weapon gun = Weapon.getByItem(gunItem);
 
+                    //no IronSights
                     if (gun != null) {
-                      //  System.out.println(gun.getName() + "  111     >>>>>>>>>>>>  " + event.getDamage() + "   adjusted to    " + gun.getDamage());
                         event.setDamage(gun.getDamage());
                     } else {
-                        //guns with zoom at least 8
-                        event.setDamage(8d);
+
+                        Gun mygun = getGunInHand((HumanEntity) event.getDamager());
+
+                        if (mygun != null && mygun.hasIronSights()) {
+
+                            Weapon mygun1 = Weapon.getByName(mygun.getName());
+
+                            if (mygun1 != null) event.setDamage(mygun1.getDamage());
+
+                            System.out.println(mygun.getName() + "  debug  2222   >>>>>>>>>>>>  " + event.getDamage() );
+                        }
                     }
                 }
             }

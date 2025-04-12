@@ -2,29 +2,29 @@
   <library name="net.md.5.bungeecord.api" type="repository">
     <properties maven-id="net.md-5:bungeecord-api:LATEST" />
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/net/md-5/bungeecord-api/1.20-R0.2/bungeecord-api-1.20-R0.2.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/net/md-5/bungeecord-chat/1.20-R0.2/bungeecord-chat-1.20-R0.2.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/net/md-5/bungeecord-config/1.20-R0.2/bungeecord-config-1.20-R0.2.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/net/md-5/bungeecord-event/1.20-R0.2/bungeecord-event-1.20-R0.2.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/net/md-5/bungeecord-protocol/1.20-R0.2/bungeecord-protocol-1.20-R0.2.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/net/md-5/bungeecord-api/1.21-R0.2/bungeecord-api-1.21-R0.2.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/net/md-5/bungeecord-chat/1.21-R0.2/bungeecord-chat-1.21-R0.2.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/code/gson/gson/2.11.0/gson-2.11.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/net/md-5/bungeecord-config/1.21-R0.2/bungeecord-config-1.21-R0.2.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/net/md-5/bungeecord-event/1.21-R0.2/bungeecord-event-1.21-R0.2.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/net/md-5/bungeecord-protocol/1.21-R0.2/bungeecord-protocol-1.21-R0.2.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/com/mojang/brigadier/1.2.9/brigadier-1.2.9.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-codec/4.1.106.Final/netty-codec-4.1.106.Final.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-codec/4.1.119.Final/netty-codec-4.1.119.Final.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/net/sf/trove4j/core/3.1.0/core-3.1.0.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/se/llbit/jo-nbt/1.3.0/jo-nbt-1.3.0.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-transport-native-unix-common/4.1.106.Final/netty-transport-native-unix-common-4.1.106.Final.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-common/4.1.106.Final/netty-common-4.1.106.Final.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-buffer/4.1.106.Final/netty-buffer-4.1.106.Final.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-transport/4.1.106.Final/netty-transport-4.1.106.Final.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-resolver/4.1.106.Final/netty-resolver-4.1.106.Final.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-transport-native-unix-common/4.1.119.Final/netty-transport-native-unix-common-4.1.119.Final.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-common/4.1.119.Final/netty-common-4.1.119.Final.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-buffer/4.1.119.Final/netty-buffer-4.1.119.Final.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-transport/4.1.119.Final/netty-transport-4.1.119.Final.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-resolver/4.1.119.Final/netty-resolver-4.1.119.Final.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/com/google/guava/guava/32.1.2-jre/guava-32.1.2-jre.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/guava/guava/33.3.1-jre/guava-33.3.1-jre.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/org/checkerframework/checker-qual/3.33.0/checker-qual-3.33.0.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/com/google/errorprone/error_prone_annotations/2.18.0/error_prone_annotations-2.18.0.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/checkerframework/checker-qual/3.43.0/checker-qual-3.43.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/errorprone/error_prone_annotations/2.28.0/error_prone_annotations-2.28.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

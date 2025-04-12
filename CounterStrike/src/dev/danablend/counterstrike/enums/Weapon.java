@@ -92,7 +92,6 @@ public class Weapon {
     }
 
     public static Weapon getByName(String name) {
-        Utils.debug("#### WeapngetByName "+name);
         return weapons.get(name);
     }
 

@@ -176,8 +176,13 @@ public class MyBukkit {
 
         if (visible) {
 
-            if (isPaperBased) {
-                myBukkitPaper.hologramCustomName(hologram, message);
+            if (isPaperBased) { //Paper or Folia
+
+                ArmorStand finalHologram = hologram;
+                CounterStrike.i.myBukkit.runTaskLater(null, null, hologram, () -> {
+                    myBukkitPaper.hologramCustomName(finalHologram, message);
+                }, 1);
+
             } else {
                 hologram.setCustomName(message);
             }
@@ -200,6 +205,7 @@ public class MyBukkit {
                 hologram = null;
             }
         }
+
     }
 
 

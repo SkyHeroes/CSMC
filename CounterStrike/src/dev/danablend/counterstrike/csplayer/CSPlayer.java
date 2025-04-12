@@ -212,17 +212,14 @@ public class CSPlayer {
     }
 
     public Weapon getRifle() {
-        Utils.debug("Checking if CSPlayer " + player.getName() + " has any rifles...");
         return Weapon.getByItem(player.getInventory().getItem(RIFLE_SLOT));
     }
 
     public Weapon getPistol() {
-        Utils.debug("Checking if CSPlayer " + player.getName() + " has any pistols...");
         return Weapon.getByItem(player.getInventory().getItem(PISTOL_SLOT));
     }
 
     public Weapon getGrenade() {
-        Utils.debug("Checking if CSPlayer " + player.getName() + " has any grenades..." + (player.getInventory().getItem(GRENADE_SLOT) != null));
         return Weapon.getByItem(player.getInventory().getItem(GRENADE_SLOT));
     }
 

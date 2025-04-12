@@ -7,6 +7,7 @@ import dev.danablend.counterstrike.csplayer.TeamEnum;
 import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.utils.CSUtil;
 import dev.danablend.counterstrike.utils.PacketUtils;
+import dev.danablend.counterstrike.utils.Utils;
 import fr.mrmicky.fastboard.FastBoard;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -44,27 +45,13 @@ public class PlayerUpdater extends BukkitRunnable {
         }
 
         for (CSPlayer csplayer : plugin.getCSPlayers()) {
+            Player player = csplayer.getPlayer();
 
-            if (csplayer.getPlayer() == null) continue;
+            if (player == null) continue;
 
             csplayer.manageSpeed();
 
-            //NPCs don't need scoreboard but need speed management
-            if (csplayer.isNPC()) continue;
-
-            if (!playersWithScoreboard.contains(csplayer.getPlayer().getUniqueId())) {
-                setScoreBoard(csplayer);
-                playersWithScoreboard.add(csplayer.getPlayer().getUniqueId());
-            }
-
-            updateScoreBoard(csplayer);
-        }
-
-        for (CSPlayer csplayer : plugin.getCSPlayers()) {
-            Player player = csplayer.getPlayer();
-
             if (CSUtil.isOutOfShopZone(player) || !plugin.getGameState().equals(GameState.SHOP)) {
-
                 if (player.getInventory().getItem(SHOP_SLOT) != null) {
                     player.getInventory().remove(player.getInventory().getItem(SHOP_SLOT));
                 }
@@ -74,11 +61,27 @@ public class PlayerUpdater extends BukkitRunnable {
                 }
             }
 
+            //NPCs don't need scoreboard but need speed management
+            if (csplayer.isNPC()) continue;
+
+            if (plugin.activated && plugin.getGameState().equals(GameState.PLANTED) && csplayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS) && !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                if (CSUtil.isBombZone(player)) {
+                    PacketUtils.sendActionBar(player, Utils.color("DEBUG: &7Right click, next to bomb, to defuse!"));
+                }
+            }
+
             if (player.getGameMode().equals(GameMode.SPECTATOR)) {
                 if (player.getSpectatorTarget() != null) {
                     PacketUtils.sendActionBar(player, Color.YELLOW + "Spectating: " + ChatColor.GREEN + player.getSpectatorTarget().getName());
                 }
             }
+
+            if (!playersWithScoreboard.contains(csplayer.getPlayer().getUniqueId())) {
+                setScoreBoard(csplayer);
+                playersWithScoreboard.add(csplayer.getPlayer().getUniqueId());
+            }
+
+            updateScoreBoard(csplayer);
         }
 
     }

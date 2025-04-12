@@ -44,6 +44,13 @@ public class WeaponQA extends Weapon {
         } else {
             item = me.zombie_striker.qg.api.QualityArmory.getGunByName(name);
             Gun gun = (Gun) item;
+
+            Bukkit.getLogger().warning("Loading " + name + "     " +displayName+" from QualityArmory! " + gun.hasIronSights());
+
+            if (!(name.equals("awp") || name.equals("sg553"))) {
+                gun.setHasIronsights(false);
+            }
+
             gun.setMaxBullets(magazineCapacity);
             gun.setReloadingTimeInSeconds(reloadTime);
         }

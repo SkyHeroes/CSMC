@@ -95,4 +95,29 @@ public class CSUtil {
     }
 
 
+    public static boolean isBombZone(Player player) {
+
+        Location from = CounterStrike.i.bombSiteA();
+        Location to = player.getLocation();
+
+        if (from.getBlockX() < to.getBlockX() + 4 || from.getBlockX() > to.getBlockX() - 4) {
+            return true;
+        }
+        if (from.getBlockZ() < to.getBlockZ() + 4 || from.getBlockZ() > to.getBlockZ() - 4) {
+            return true;
+        }
+
+        from = CounterStrike.i.bombSiteB();
+
+        if (from.getBlockX() < to.getBlockX() + 4 || from.getBlockX() > to.getBlockX() - 4) {
+            return true;
+        }
+        if (from.getBlockZ() < to.getBlockZ() + 4 || from.getBlockZ() > to.getBlockZ() - 4) {
+            return true;
+        }
+
+        return false;
+    }
+
+
 }

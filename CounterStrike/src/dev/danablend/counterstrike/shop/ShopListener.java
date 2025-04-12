@@ -173,7 +173,6 @@ public class ShopListener implements Listener {
         CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
         if (csplayer == null) {
-            Utils.debug("Not a player, aborting");
             return;
         }
 

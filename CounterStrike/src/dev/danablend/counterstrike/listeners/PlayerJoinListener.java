@@ -267,6 +267,11 @@ public class PlayerJoinListener implements Listener {
                 }
             }
         } else {
+
+            CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
+
+            if (csplayer != null) return;
+
             player.sendMessage("Game is already running");
         }
     }

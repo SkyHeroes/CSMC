@@ -8,6 +8,7 @@ import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.runnables.Bomb;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -56,12 +57,13 @@ public class PlayerInteractListener implements Listener {
 
         if (csplayer == null && event.getAction().equals(Action.LEFT_CLICK_BLOCK)) {
 
-            if (CounterStrike.i.getGameState().equals(GameState.RUN)) {
-                dev.danablend.counterstrike.csplayer.Team myTeam = CounterStrike.i.getTerroristsTeam();
-
-                PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "Wait for the end of the current round to join", ChatColor.GREEN + "Current round: " + (myTeam.getLosses() + myTeam.getWins() + 1) + " of " + MAX_ROUNDS + ". Estimated time for new " + CounterStrike.i.getGameTimer().returnTimetoEnd() + "secs", 1, 4, 1);
-                return;
-            }
+            //configurable???
+//            if (CounterStrike.i.getGameState().equals(GameState.RUN)) {
+//                dev.danablend.counterstrike.csplayer.Team myTeam = CounterStrike.i.getTerroristsTeam();
+//
+//                PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "Wait for the end of the current round to join", ChatColor.GREEN + "Current round: " + (myTeam.getLosses() + myTeam.getWins() + 1) + " of " + MAX_ROUNDS + ". Estimated time for new " + CounterStrike.i.getGameTimer().returnTimetoEnd() + "secs", 1, 4, 1);
+//                return;
+//            }
 
             Block blockUnder = event.getClickedBlock();
 
@@ -104,7 +106,18 @@ public class PlayerInteractListener implements Listener {
 
             csplayer.setColourOpponent(corAdversaria);
 
-            plugin.StartGameCounter(0);
+            if ((plugin.getGameState().equals(GameState.LOBBY) || plugin.getGameState().equals(GameState.WAITING))) {
+                plugin.StartGameCounter(0);
+            }
+            else {
+                PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "Waiting for next round to join", ChatColor.GREEN + " please wait", 1, 10, 1);
+
+                //already runnig, will join next round
+                plugin.myBukkit.runTask(player, null, null, () -> {
+                    plugin.myBukkit.playerTeleport(player, plugin.bombSiteA());
+                    player.setGameMode(GameMode.SPECTATOR);
+                });
+            }
 
         }
     }

@@ -93,7 +93,7 @@ public class CounterStrike extends JavaPlugin {
     private Location bombSiteA;
     private Location bombSiteB;
 
-    private Object gameCounterTask;
+    private static Object gameCounterTask;
     public IACenter botManager;
 
     public boolean randomMaps = false;
@@ -451,9 +451,15 @@ public class CounterStrike extends JavaPlugin {
         String decodedString = new String(Base64.decodeBase64("ZVc5MUlHdHVNSGNnZEdobElIUnlkWFJvUFE9PT0"));
         decodedString = new String(Base64.decodeBase64(decodedString.substring(0, decodedString.length() - 2)));
         decodedString = decodedString.substring(0, decodedString.length() - 1);
-        if (key != null &&  key.equals(decodedString)) activated = true;
+        if (key != null && key.equals(decodedString)) activated = true;
 
         Utils.debug(activated + " trueTeamColours:" + standardTeamColours + "  informGameStatus:" + showGameStatusTitle);
+
+        if (!activated) {
+            getLogger().warning(" >>>>   Standard version detected, make sure you have QualityArmory config= 'useDefaultResourcepack: true'");
+        } else {
+            getLogger().warning(" >>>>   Premium version detected, make sure you have QualityArmory config= 'useDefaultResourcepack: false'");
+        }
     }
 
     //more customizable configs
@@ -888,8 +894,20 @@ public class CounterStrike extends JavaPlugin {
             if (player.isOnline() && (ResourceHash.get(resPackName) == null || ResourceHash.get(resPackName).equals("DEFAULT"))) {
                 ResourceHash.put(resPackName, "QUALITY");
 
-                loadResourcePack(player, "https://github.com/ZombieStriker/QualityArmory-Resourcepack/releases/download/latest/QualityArmory.zip", "3a34fc09dcc6f009aa05741f8ab487dd17b13eaf");
+                if (activated) {
+                    if (player.getProtocolVersion() == 768) {
+                        loadResourcePack(player, "https://cld.pt/dl/download/61b7e2c1-95f5-403b-9e64-92e4a2ebd033/Quality1.21.3.zip?download=true", "612c9d93902818d4a9c4e50561c75870f8534058");
+
+                    } else if (player.getProtocolVersion() <= 767) {
+                        loadResourcePack(player, "https://cld.pt/dl/download/bf174949-2d73-4de9-ba80-589441e54d7f/Quality1.20.1.zip?download=true", "3a34fc09dcc6f009aa05741f8ab487dd17b13eaf");
+
+                    } else {
+                        loadResourcePack(player, "https://cld.pt/dl/download/3b3085b1-91c4-457e-b91c-d36c2bddc152/Quality1.21.4.zip?download=true", "3a2d248860719674412cf60ae0f2a30de60ddd57");
+                    }
+                }
             }
+            //player.getClientBrandName() returns optifine on me
+            //player.getProtocolVersion() 769
 
             Utils.debug("Returning a new CSPlayer...");
             return csp;
@@ -1172,7 +1190,18 @@ public class CounterStrike extends JavaPlugin {
         if (player.isOnline() && (ResourceHash.get(resPackName) == null || ResourceHash.get(resPackName).equals("DEFAULT"))) {
             ResourceHash.put(resPackName, "QUALITY");
 
-            loadResourcePack(player, "https://github.com/ZombieStriker/QualityArmory-Resourcepack/releases/download/latest/QualityArmory.zip", "3a34fc09dcc6f009aa05741f8ab487dd17b13eaf");
+            if (activated) {
+                if (player.getProtocolVersion() == 768) {
+                    loadResourcePack(player, "https://cld.pt/dl/download/61b7e2c1-95f5-403b-9e64-92e4a2ebd033/Quality1.21.3.zip?download=true", "612c9d93902818d4a9c4e50561c75870f8534058");
+
+                } else if (player.getProtocolVersion() <= 767) {
+                    loadResourcePack(player, "https://cld.pt/dl/download/bf174949-2d73-4de9-ba80-589441e54d7f/Quality1.20.1.zip?download=true", "3a34fc09dcc6f009aa05741f8ab487dd17b13eaf");
+
+                } else {
+                    loadResourcePack(player, "https://cld.pt/dl/download/3b3085b1-91c4-457e-b91c-d36c2bddc152/Quality1.21.4.zip?download=true", "3a2d248860719674412cf60ae0f2a30de60ddd57");
+                }
+            }
+
         }
 
 
@@ -1221,22 +1250,25 @@ public class CounterStrike extends JavaPlugin {
 
 
     public void StartGameCounter(int delay) {
-        if (!myBukkit.isCancelled(gameCounterTask)) return;
+        if ((getGameState().equals(GameState.LOBBY) || getGameState().equals(GameState.WAITING))) {
 
-        Location mylobby = getLobbyLocation();
+            if (!myBukkit.isCancelled(gameCounterTask)) return;
 
-        if (botManager != null) {
-            myBukkit.runTaskLater(null, mylobby, null, () -> {
-                botManager.setMain(this);
-                botManager.lauchBots(5);
-            }, 20);
+            Location mylobby = getLobbyLocation();
+
+            if (botManager != null) {
+                myBukkit.runTaskLater(null, mylobby, null, () -> {
+                    botManager.setMain(this);
+                    botManager.lauchBots(5);
+                }, 20);
+            }
+
+            if (delay == 0) delay = 1; //default delay
+            if (gameCount == null) gameCount = new GameCounter(this);
+
+            gameCounterTask = CounterStrike.i.myBukkit.runTaskTimer(null, null, null, () -> gameCount.run(), delay * 20L, 20L);
+            gameState = GameState.WAITING;
         }
-
-        if (delay == 0) delay = 1; //default delay
-        if (gameCount == null) gameCount = new GameCounter(this);
-
-        gameCounterTask = CounterStrike.i.myBukkit.runTaskTimer(null, null, null, () -> gameCount.run(), delay * 20L, 20L);
-        gameState = GameState.WAITING;
     }
 
 
@@ -1280,24 +1312,30 @@ public class CounterStrike extends JavaPlugin {
 
             if (result1 == null || result1.equals("")) continue;
 
-            Block block = loc.getBlock();
-            block.setType(Material.BIRCH_HANGING_SIGN);
-            BlockData blockData = block.getBlockData();
-            block.setBlockData(blockData);
+            String finalResult = result1;
+            int finalI = i;
 
-            Sign sign = (Sign) block.getState();
-            sign.setLine(0, "[CSMC]");
-            sign.setLine(1, "Vote for");
-            sign.setLine(2, result1);
-            sign.setLine(3, "" + i);
-            sign.update();
-            sign.setEditable(false);
+            myBukkit.runTaskLater(null, loc, null, () -> {
+                Block block = loc.getBlock();
+                block.setType(Material.BIRCH_HANGING_SIGN);
+                BlockData blockData = block.getBlockData();
+                block.setBlockData(blockData);
 
-            loc.add(1, 0, 0);
-            block = loc.getBlock();
-            block.setType(Material.AIR);
-            loc.add(1, 0, 0);
-            block.setType(Material.AIR);
+                Sign sign = (Sign) block.getState();
+                sign.setLine(0, "[CSMC]");
+                sign.setLine(1, "Vote for");
+                sign.setLine(2, finalResult);
+                sign.setLine(3, "" + finalI);
+                sign.update();
+                sign.setEditable(false);
+
+                loc.add(1, 0, 0);
+                block = loc.getBlock();
+                block.setType(Material.AIR);
+                loc.add(1, 0, 0);
+                block.setType(Material.AIR);
+            }, 1);
+
         }
 
     }

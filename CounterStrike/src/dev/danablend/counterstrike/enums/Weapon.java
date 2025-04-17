@@ -1,7 +1,7 @@
 package dev.danablend.counterstrike.enums;
 
 import dev.danablend.counterstrike.csplayer.TeamEnum;
-import dev.danablend.counterstrike.utils.Utils;
+import me.zombie_striker.qg.guns.Gun;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -14,6 +14,7 @@ import java.util.HashMap;
 public class Weapon {
 
     private static HashMap<String, Weapon> weapons = new HashMap<>();
+    private static HashMap<String, Weapon> auxweapons = new HashMap<>();
 
     protected String name;
     protected String displayName;
@@ -25,15 +26,16 @@ public class Weapon {
     private int ammunition;
     private int magazines;
     private double damage;
-    private TeamEnum team;
+    protected TeamEnum team;
     private ItemStack item;
     private ItemStack shopItem;
-    private String id;
+    protected String keyName;
+    protected Gun myGun;
 
     /**
      * Use only for grenades
      *
-     * @param id
+     * @param keyName
      * @param name
      * @param displayName
      * @param material
@@ -41,8 +43,8 @@ public class Weapon {
      * @param team
      * @param gunType
      */
-    public Weapon(String id, String name, String displayName, Material material, int cost, TeamEnum team, WeaponType gunType) {
-        this(id, name, displayName, material, cost, 0, 0, 0, 0, team, gunType);
+    public Weapon(String keyName, String name, String displayName, Material material, int cost, TeamEnum team, WeaponType gunType) {
+        this(keyName, name, displayName, material, cost, 0, 0, 0, 0, team, gunType);
         addWeapon(this); //will only work for manually added itens
     }
 
@@ -58,9 +60,9 @@ public class Weapon {
      * @param team
      * @param gunType
      */
-    public Weapon(String id, String name, String displayName, Material material, int cost, int magazineCapacity, int magazines, double damage, double reloadTime, TeamEnum team, WeaponType gunType) {
+    public Weapon(String keyName, String name, String displayName, Material material, int cost, int magazineCapacity, int magazines, double damage, double reloadTime, TeamEnum team, WeaponType gunType) {
         this.name = name;
-        this.displayName = displayName;
+        this.displayName = displayName+"("+team.name().toLowerCase().substring(0,1)+")";
         this.material = material;
         this.cost = cost;
         this.magazineCapacity = magazineCapacity > 64 ? 64 : magazineCapacity;
@@ -72,11 +74,12 @@ public class Weapon {
         this.weaponType = gunType;
         this.item = loadItem();
         this.shopItem = loadShopItem();
-        this.id = id;
+        this.keyName = keyName;
     }
 
-    public static void addWeapon(Weapon weapon) {
-        weapons.put(weapon.getId(), weapon);
+    public static void addWeapon(Weapon weapon)    {
+        weapons.put(weapon.getKeyName(), weapon);
+        auxweapons.put(weapon.getDisplayName(), weapon);
     }
 
     public static boolean isWeapon(ItemStack item) {
@@ -91,8 +94,12 @@ public class Weapon {
         return guns;
     }
 
-    public static Weapon getByName(String name) {
-        return weapons.get(name);
+    public static Weapon getBykeyName(String keyname) {
+        return weapons.get(keyname );
+    }
+
+    public static Weapon getByName(String Name) {
+        return auxweapons.get(Name);
     }
 
     public static Weapon getByItem(ItemStack item) {
@@ -101,12 +108,8 @@ public class Weapon {
             return null;
         }
 
-        for (Weapon gun : weapons.values()) {
-            if (item.getItemMeta().getDisplayName().equals(gun.getDisplayName())) {
-                return gun;
-            }
-        }
-        return null;
+       return auxweapons.get(item.getItemMeta().getDisplayName());
+
     }
 
     public ItemStack loadItem() {
@@ -142,8 +145,8 @@ public class Weapon {
         return name;
     }
 
-    public String getId() {
-        return id;
+    public String getKeyName() {
+        return keyName;
     }
 
     public String getDisplayName() {
@@ -191,7 +194,7 @@ public class Weapon {
     }
 
     public ItemStack getItem() {
-        return item;
+        return item.clone();
     }
 
     public ItemStack getShopItem() {

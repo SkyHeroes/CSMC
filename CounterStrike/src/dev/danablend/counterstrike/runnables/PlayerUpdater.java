@@ -66,7 +66,7 @@ public class PlayerUpdater extends BukkitRunnable {
 
             if (plugin.activated && plugin.getGameState().equals(GameState.PLANTED) && csplayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS) && !player.getGameMode().equals(GameMode.SPECTATOR)) {
                 if (CSUtil.isBombZone(player)) {
-                    PacketUtils.sendActionBar(player, Utils.color("DEBUG: &7Right click, next to bomb, to defuse!"));
+                    PacketUtils.sendActionBar(player, Utils.color("DEBUG: &7Right click with knife, next to bomb, to defuse!"));
                 }
             }
 
@@ -101,9 +101,13 @@ public class PlayerUpdater extends BukkitRunnable {
         FastBoard board = new FastBoard(player);
 
         if (plugin.modeValorant) {
-            board.updateTitle(ChatColor.BOLD + "----Valocraft v" + CounterStrike.i.getDescription().getVersion() + "----");
+            board.updateTitle(ChatColor.BOLD + "----ValoCraft v" + CounterStrike.i.getDescription().getVersion() + "----");
         } else {
-            board.updateTitle(ChatColor.BOLD + "----MineStrike v" + CounterStrike.i.getDescription().getVersion() + "----");
+            if (isFolia) {
+                board.updateTitle(ChatColor.BOLD + "----FoliaStrike v" + CounterStrike.i.getDescription().getVersion() + "----");
+            } else {
+                board.updateTitle(ChatColor.BOLD + "----MineStrike v" + CounterStrike.i.getDescription().getVersion() + "----");
+            }
         }
 
         csplayer.setBoard(board);
@@ -126,6 +130,8 @@ public class PlayerUpdater extends BukkitRunnable {
     public void updateFastScoreBoard(CSPlayer csplayer) {
 
         if (csplayer.returnBoard() == null) return;
+
+    //    Bukkit.getLogger().warning("Rifle " + csplayer.getRifle() + "    off  " +csplayer.getPlayer().getInventory().getItemInOffHand());
 
         dev.danablend.counterstrike.csplayer.Team myTeam;
 

@@ -63,46 +63,51 @@ public class PlayerDeathListener implements Listener {
 
         if ((plugin.getGameState().equals(PLANTED) || plugin.getGameState().equals(RUN))) {
 
-            victim.sendMessage(ChatColor.RED + "Wait until next round for a respawn.");
-            PacketUtils.sendTitleAndSubtitle(victim, ChatColor.RED + "You are dead.", ChatColor.YELLOW + "You will respawn in the next round.", 0, 3, 1);
+            // Check if every player on dead player team is dead and restarts game if so
+            if (!CSUtil.checkForDead()) {
 
-            try {
-                Player killer = victim.getKiller();
+                victim.sendMessage(ChatColor.RED + "Wait until next round for a respawn.");
+                PacketUtils.sendTitleAndSubtitle(victim, ChatColor.RED + "You are dead.", ChatColor.YELLOW + "You will respawn in the next round.", 0, 3, 1);
 
-                if (killer == null) {
-                    csplayerVictim.setDeaths(csplayerVictim.getDeaths() + 1);
-                    event.setDeathMessage(deadPlayerName + ChatColor.YELLOW + " was killed...");
-                } else {
+                try {
+                    Player killer = victim.getKiller();
 
-                    CSPlayer csplayerKiller = CounterStrike.i.getCSPlayer(killer, false, null);
+                    if (killer == null) {
+                        csplayerVictim.setDeaths(csplayerVictim.getDeaths() + 1);
+                        event.setDeathMessage(deadPlayerName + ChatColor.YELLOW + " was killed...");
+                    } else {
 
-                    String killerName = (csplayerKiller.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) ? ChatColor.BLUE + killer.getName() : ChatColor.RED + killer.getName();
-                    csplayerKiller.setMoney(csplayerKiller.getMoney() + 300);
-                    killer.sendMessage(ChatColor.GREEN + "+ $300");
+                        CSPlayer csplayerKiller = CounterStrike.i.getCSPlayer(killer, false, null);
 
-                    csplayerKiller.setKills(csplayerKiller.getKills() + 1);
-                    csplayerVictim.setDeaths(csplayerVictim.getDeaths() + 1);
-                    csplayerKiller.settempMVP(csplayerKiller.gettempMVP() + 1);
+                        String killerName = (csplayerKiller.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) ? ChatColor.BLUE + killer.getName() : ChatColor.RED + killer.getName();
+                        csplayerKiller.setMoney(csplayerKiller.getMoney() + 300);
+                        killer.sendMessage(ChatColor.GREEN + "+ $300");
 
-                    if (!csplayerVictim.isNPC()) {
-                        event.setDeathMessage(ChatColor.GRAY + " Espectating " + killerName);
+                        csplayerKiller.setKills(csplayerKiller.getKills() + 1);
+                        csplayerVictim.setDeaths(csplayerVictim.getDeaths() + 1);
+                        csplayerKiller.settempMVP(csplayerKiller.gettempMVP() + 1);
 
-                        plugin.myBukkit.runTask(victim, null, null, () -> {
-                            victim.setSpectatorTarget(killer);
-                        });
+                        if (!csplayerVictim.isNPC()) {
+                            event.setDeathMessage(ChatColor.GRAY + " Espectating " + killerName);
+
+                            plugin.myBukkit.runTask(victim, null, null, () -> {
+                                victim.setSpectatorTarget(killer);
+                            });
+                        }
+
+                        event.setDeathMessage(ChatColor.valueOf(csplayerVictim.getColour()) + deadPlayerName + ChatColor.GRAY + " was killed by " + ChatColor.valueOf(csplayerKiller.getColour()) + killerName);
                     }
+                } catch (Exception e) {
+                    Utils.debug(" --> Death exception " + e.getMessage());
 
-                    event.setDeathMessage(ChatColor.valueOf(csplayerVictim.getColour()) + deadPlayerName + ChatColor.GRAY + " was killed by " + ChatColor.valueOf(csplayerKiller.getColour()) + killerName);
+                    csplayerVictim.setDeaths(csplayerVictim.getDeaths() + 1);
+                    event.setDeathMessage(deadPlayerName + ChatColor.YELLOW + " was killed..");
                 }
-            } catch (Exception e) {
-                Utils.debug(" --> Death exception " + e.getMessage());
-
-                csplayerVictim.setDeaths(csplayerVictim.getDeaths() + 1);
-                event.setDeathMessage(deadPlayerName + ChatColor.YELLOW + " was killed..");
+            }
+            else {
+                event.setDeathMessage(ChatColor.valueOf(csplayerVictim.getColour()) + deadPlayerName + ChatColor.GRAY + " was killed ");
             }
 
-            // Check if every player on dead player team is dead
-            CSUtil.checkForDead();
         }
     }
 

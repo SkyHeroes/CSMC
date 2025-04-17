@@ -1,6 +1,7 @@
 package dev.danablend.counterstrike.enums;
 
 import dev.danablend.counterstrike.csplayer.TeamEnum;
+import dev.danablend.counterstrike.utils.Utils;
 import me.zombie_striker.qg.guns.Gun;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -45,14 +46,12 @@ public class WeaponQA extends Weapon {
             item = me.zombie_striker.qg.api.QualityArmory.getGunByName(name);
             Gun gun = (Gun) item;
 
-            Bukkit.getLogger().warning("Loading " + name + "     " +displayName+" from QualityArmory! " + gun.hasIronSights());
-
             if (!(name.equals("awp") || name.equals("sg553"))) {
                 gun.setHasIronsights(false);
             }
 
-            gun.setMaxBullets(magazineCapacity);
-            gun.setReloadingTimeInSeconds(reloadTime);
+           // gun.setDisplayname(displayName);
+           // myGun =gun.getItemData();
         }
 
         if (item == null) {
@@ -67,6 +66,6 @@ public class WeaponQA extends Weapon {
         item.setDisplayname(displayName);
 
         armoryItem = ((me.zombie_striker.customitemmanager.ArmoryBaseObject) item).getItemStack();
-        return armoryItem;
+        return armoryItem.clone(); //must clone orelse...
     }
 }

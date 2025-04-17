@@ -550,6 +550,17 @@ public class CounterStrike extends JavaPlugin {
 
         Bomb.cleanUp();
 
+        Location baseLocation = getCounterTerroristSpawn(false);
+        World world = baseLocation.getWorld();
+
+        myBukkit.runTask(null, baseLocation, null, () -> {
+            for (Entity ent : world.getEntities()) {
+                if (!(ent instanceof Player)) {
+                    ent.remove();
+                }
+            }
+        });
+
         Integer MVPscore = 0;
         Integer Delay = 1;
 
@@ -654,27 +665,15 @@ public class CounterStrike extends JavaPlugin {
             counterTerrorists = terrorists;
             terrorists = tempPlayerList;
 
-            for (CSPlayer csplayer : loserTeam.getCsPlayers()) {
-                csplayer.setMoney(Config.STARTING_MONEY);
-
-                if (csplayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
-                    PacketUtils.sendTitleAndSubtitle(csplayer.getPlayer(), ChatColor.BLUE + "You are NOW a Counter Terrorist", ChatColor.BLUE + "Defend the sites from terrorists, defuse the bomb.", 1, 5, 1);
-                } else {
-                    PacketUtils.sendTitleAndSubtitle(csplayer.getPlayer(), ChatColor.RED + "You are NOW a Terrorist", ChatColor.RED + "Plant the bomb on the sites, have it explode.", 1, 5, 1);
-                }
-            }
-
-            for (CSPlayer csplayer : winnerTeam.getCsPlayers()) {
-                csplayer.setMoney(Config.STARTING_MONEY);
-
-                if (csplayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
-                    PacketUtils.sendTitleAndSubtitle(csplayer.getPlayer(), ChatColor.BLUE + "You are NOW a Counter Terrorist", ChatColor.BLUE + "Defend the sites from terrorists, defuse the bomb.", 1, 5, 1);
-                } else {
-                    PacketUtils.sendTitleAndSubtitle(csplayer.getPlayer(), ChatColor.RED + "You are NOW a Terrorist", ChatColor.RED + "Plant the bomb on the sites, have it explode.", 1, 5, 1);
-                }
-            }
-
             for (CSPlayer csplayer : getCSPlayers()) {
+                csplayer.setMoney(Config.STARTING_MONEY);
+
+                if (csplayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
+                    PacketUtils.sendTitleAndSubtitle(csplayer.getPlayer(), ChatColor.BLUE + "You are NOW a Counter Terrorist", ChatColor.BLUE + "Defend the sites from terrorists, defuse the bomb.", 1, 5, 1);
+                } else {
+                    PacketUtils.sendTitleAndSubtitle(csplayer.getPlayer(), ChatColor.RED + "You are NOW a Terrorist", ChatColor.RED + "Plant the bomb on the sites, have it explode.", 1, 5, 1);
+                }
+
                 Player player = csplayer.getPlayer();
                 player.getInventory().clear();
             }
@@ -685,10 +684,10 @@ public class CounterStrike extends JavaPlugin {
             Player player = csplayer.getPlayer();
 
             if (player.isOnline() || csplayer.isNPC()) {
-                String world = player.getWorld().getName();
+                String world1 = player.getWorld().getName();
 
                 if (CounterStrike.i.HashWorlds != null) {
-                    Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
+                    Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world1);
 
                     if (md != null && !md.modoCs) {
                         continue;
@@ -769,7 +768,7 @@ public class CounterStrike extends JavaPlugin {
             myBukkit.playerTeleport(player, getTerroristSpawn(true));
 
             if (player.getInventory().getItem(PISTOL_SLOT) == null || csPlayer.getPistol() == null) {
-                player.getInventory().setItem(PISTOL_SLOT, Weapon.getByName("t-pistol-default").getItem());
+                player.getInventory().setItem(PISTOL_SLOT, Weapon.getBykeyName("t-pistol-default").getItem());
             }
             giveEquipment(csPlayer);
             csPlayer.settempMVP(0);
@@ -786,7 +785,7 @@ public class CounterStrike extends JavaPlugin {
             myBukkit.playerTeleport(player, getCounterTerroristSpawn(true));
 
             if (player.getInventory().getItem(PISTOL_SLOT) == null || csPlayer.getPistol() == null) {
-                player.getInventory().setItem(PISTOL_SLOT, Weapon.getByName("ct-pistol-default").getItem());
+                player.getInventory().setItem(PISTOL_SLOT, Weapon.getBykeyName("ct-pistol-default").getItem());
             }
             giveEquipment(csPlayer);
             csPlayer.settempMVP(0);
@@ -820,7 +819,7 @@ public class CounterStrike extends JavaPlugin {
                 Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(rifle.getName());
                 Gun.updateAmmo(gun, player.getInventory().getItem(RIFLE_SLOT), rifle.getMagazineCapacity());
 
-                Utils.debug(rifle.getMagazineCapacity() + " ###### rifle " + rifle.getName());
+                Utils.debug("Capacity: " + rifle.getMagazineCapacity() + " ###### rifle " + rifle.getName() + "   Damage: "+ rifle.getDamage());
 
                 ItemStack ammo = gun.getAmmoType().getItemStack().clone();
                 ammo.setAmount((rifle.getMagazines() - 1) * rifle.getMagazineCapacity());

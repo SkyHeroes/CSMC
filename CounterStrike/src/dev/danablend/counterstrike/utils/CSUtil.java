@@ -47,7 +47,7 @@ public class CSUtil {
     }
 
 
-    public static void checkForDead() {
+    public static boolean checkForDead() {
         int dead = 0;
         for (CSPlayer csplayer : CounterStrike.i.getCounterTerrorists()) {
             if (csplayer.getPlayer().isDead() || csplayer.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
@@ -57,7 +57,7 @@ public class CSUtil {
 
         if (dead >= CounterStrike.i.getCounterTerrorists().size() && Bomb.detonated == false) { //was launching twice
             CounterStrike.i.restartGame(CounterStrike.i.getTerroristsTeam());
-            return;
+            return true;
         }
 
         dead = 0;
@@ -67,9 +67,12 @@ public class CSUtil {
             }
         }
         if (dead >= CounterStrike.i.getTerrorists().size()) {
-            if (Bomb.bomb == null)
+            if (Bomb.bomb == null) {
                 CounterStrike.i.restartGame(CounterStrike.i.getCounterTerroristsTeam());
+                return true;
+            }
         }
+        return false;
     }
 
 
@@ -100,19 +103,19 @@ public class CSUtil {
         Location from = CounterStrike.i.bombSiteA();
         Location to = player.getLocation();
 
-        if (from.getBlockX() < to.getBlockX() + 4 || from.getBlockX() > to.getBlockX() - 4) {
+        if (Math.abs(from.getBlockX() - to.getBlockX()) < 4) {
             return true;
         }
-        if (from.getBlockZ() < to.getBlockZ() + 4 || from.getBlockZ() > to.getBlockZ() - 4) {
+        if (Math.abs(from.getBlockZ() - to.getBlockZ()) < 4) {
             return true;
         }
 
         from = CounterStrike.i.bombSiteB();
 
-        if (from.getBlockX() < to.getBlockX() + 4 || from.getBlockX() > to.getBlockX() - 4) {
+        if (Math.abs(from.getBlockX() - to.getBlockX()) < 4) {
             return true;
         }
-        if (from.getBlockZ() < to.getBlockZ() + 4 || from.getBlockZ() > to.getBlockZ() - 4) {
+        if (Math.abs(from.getBlockZ() - to.getBlockZ()) < 4) {
             return true;
         }
 

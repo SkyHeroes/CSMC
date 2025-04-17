@@ -67,7 +67,7 @@ public class Shop {
         player.openInventory(inv);
     }
 
-    public void purchaseShopItem(Player player, Weapon gun) {
+    public void purchaseShopItem(Player player, ItemStack item) {
         CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
         if (csplayer == null) return;
@@ -89,6 +89,8 @@ public class Shop {
 
         int money = csplayer.getMoney();
         int slot = -1;
+
+        Weapon gun = Weapon.getByItem(item);
 
         if (gun == null) {
             Utils.debug(" --> " + ChatColor.RED + "Sorry, no gun selected");
@@ -133,7 +135,7 @@ public class Shop {
                 }
 
                 try {
-                    LeatherArmorMeta helmetMeta = (LeatherArmorMeta) gun.loadItem().getItemMeta();
+                    LeatherArmorMeta helmetMeta = (LeatherArmorMeta) item.getItemMeta();
                     try {
                         helmetMeta.setColor(mycolor);
                     } catch (Exception e) {
@@ -151,7 +153,7 @@ public class Shop {
                     return;
                 }
 
-                LeatherArmorMeta ArmorMeta = (LeatherArmorMeta) gun.loadItem().getItemMeta();
+                LeatherArmorMeta ArmorMeta = (LeatherArmorMeta) item.getItemMeta();
                 ArmorMeta.setColor(mycolor);
                 ItemStack Arm = gun.loadItem();
                 Arm.setItemMeta(ArmorMeta);
@@ -163,7 +165,7 @@ public class Shop {
         csplayer.setMoney(money - gun.getCost());
 
         if (slot > -1) {
-            player.getInventory().setItem(slot, gun.getItem());
+            player.getInventory().setItem(slot, item);
         }
 
         if (CounterStrike.i.usingQualityArmory() && type != WeaponType.GRENADE && type != WeaponType.HELMET && type != WeaponType.ARMOUR) {

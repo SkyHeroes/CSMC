@@ -170,7 +170,14 @@ public class Shop {
 
         if (CounterStrike.i.usingQualityArmory() && type != WeaponType.GRENADE && type != WeaponType.HELMET && type != WeaponType.ARMOUR) {
             Gun gun1 = me.zombie_striker.qg.api.QualityArmory.getGunByName(gun.getName());
-            Gun.updateAmmo(gun1, player.getInventory().getItem(RIFLE_SLOT), gun.getMagazineCapacity());
+
+            if (gun1 == null) return;
+
+            if (type == WeaponType.RIFLE) {
+                Gun.updateAmmo(gun1, player.getInventory().getItem(RIFLE_SLOT), gun.getMagazineCapacity());
+            } else if (type == WeaponType.PISTOL) {
+                Gun.updateAmmo(gun1, player.getInventory().getItem(PISTOL_SLOT), gun.getMagazineCapacity());
+            }
 
             ItemStack ammo = me.zombie_striker.qg.api.QualityArmory.getGunByName(gun.getName()).getAmmoType().getItemStack().clone();
             ammo.setAmount((gun.getMagazines() - 1) * gun.getMagazineCapacity());
@@ -183,7 +190,7 @@ public class Shop {
         }
 
         player.sendMessage(ChatColor.GREEN + "You have purchased " + gun.getDisplayName());
-        Utils.debug("Purchase of an item has been completed...");
+        // Utils.debug("Purchase of an item has been completed...");
     }
 
     public int getInventorySize(int amountOfItems) {

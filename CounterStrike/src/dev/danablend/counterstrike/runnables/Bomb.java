@@ -175,7 +175,7 @@ public class Bomb {
                 return;
             }
 
-            CounterStrike.i.myBukkit.showLabel(hologram, ChatColor.GREEN + "DEFUSING: " + (new DecimalFormat("##.##").format(defuseTimeLeft)) + " s.", true);
+            CounterStrike.i.myBukkit.showLabel(hologram, ChatColor.WHITE + "DEFUSING: " + (new DecimalFormat("##.##").format(defuseTimeLeft)) + " s.", true);
 
             defuseTimeLeft -= 5.0D / 20.0D;
         }, 1, 5);

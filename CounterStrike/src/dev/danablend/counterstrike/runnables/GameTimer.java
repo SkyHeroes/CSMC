@@ -29,7 +29,7 @@ public class GameTimer {
         if ((serverSize == 0 || plugin.getServer().getOnlinePlayers().size() == 0) && plugin.quitExitGame) {
             Utils.debug("Aborting game, no players left");
             plugin.myBukkit.cancelTask(task);
-            CounterStrike.i.FinishGame(CounterStrike.i.getTerroristsTeam(),CounterStrike.i.getCounterTerroristsTeam());
+            CounterStrike.i.FinishGame(CounterStrike.i.getTerroristsTeam(), CounterStrike.i.getCounterTerroristsTeam());
             return;
         }
 
@@ -38,7 +38,12 @@ public class GameTimer {
             return;
         }
         timeToEnd--;
-        PacketUtils.sendActionBarToInGame(ChatColor.YELLOW + "The Counter Terrorists will win in " + Utils.getFormattedTimeString(timeToEnd));
+
+        if (plugin.modeValorant || plugin.modeRealms) {
+            PacketUtils.sendActionBarToInGame(ChatColor.YELLOW + "The Defenders will win in " + Utils.getFormattedTimeString(timeToEnd));
+        } else {
+            PacketUtils.sendActionBarToInGame(ChatColor.YELLOW + "The Counter Terrorists will win in " + Utils.getFormattedTimeString(timeToEnd));
+        }
 
         if (timeToEnd <= 0) {
             CounterStrike.i.restartGame(CounterStrike.i.getCounterTerroristsTeam());

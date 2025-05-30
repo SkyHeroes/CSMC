@@ -123,9 +123,18 @@ public class CSPlayer {
         csPlayers.add(this);
 
         if (getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
-            PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "You are a " + ChatColor.BLUE + "Counter Terrorist", ChatColor.BLUE + "Defend the sites from terrorists, defuse the bomb.", 1, 4, 1);
+            if (plugin.modeValorant || plugin.modeRealms) {
+                PacketUtils.sendTitleAndSubtitle(player, ChatColor.BLUE + "You are a Defender", ChatColor.BLUE + "Defend the sites from Attackers, defuse the bomb.", 1, 5, 1);
+            } else {
+                PacketUtils.sendTitleAndSubtitle(player, ChatColor.BLUE + "You are a Counter Terrorist", ChatColor.BLUE + "Defend the sites from terrorists, defuse the bomb.", 1, 5, 1);
+            }
         } else if (getTeam().equals(TeamEnum.TERRORISTS)) {
-            PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "You are a " + ChatColor.RED + "Terrorist", ChatColor.RED + "Plant the bomb on the sites, have it explode.", 1, 4, 1);
+
+            if (plugin.modeValorant || plugin.modeRealms) {
+                PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "You are an " + ChatColor.RED + "Attacker", ChatColor.RED + "Plant the bomb on the sites, have it explode.", 1, 4, 1);
+            } else {
+                PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "You are a " + ChatColor.RED + "Terrorist", ChatColor.RED + "Plant the bomb on the sites, have it explode.", 1, 4, 1);
+            }
         }
 
         this.colour = colour;
@@ -314,10 +323,15 @@ public class CSPlayer {
     }
 
     public void setMoney(int money) {
-        if (!plugin.modeValorant && money > 16000) money = 16000;
-        if (plugin.modeValorant && money > 9000) money = 9000;
 
         this.money = money;
+
+        if ((plugin.modeValorant || plugin.modeRealms) && this.money > 9000) {
+            this.money = 9000;
+        } else if (!(plugin.modeValorant || plugin.modeRealms) && this.money > 16000) {
+            this.money = 16000;
+        }
+
     }
 
     public void setColourOpponent(String opponentcolour) {

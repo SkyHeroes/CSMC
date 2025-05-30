@@ -160,11 +160,11 @@ public class MyBukkit {
     public static ArmorStand startLabel(Location location) {
 
         Location loc = location.clone();
+        loc.add(0, -0.75, 0);
         ArmorStand hologram = (ArmorStand) loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
         hologram.setVisible(false);
         hologram.setCustomNameVisible(true);
         hologram.setGravity(false);
-        loc.add(0, 2, 0);
 
         return hologram;
     }
@@ -188,8 +188,7 @@ public class MyBukkit {
             }
         } else {
             if (hologram != null) {
-
-                Utils.debug("    Limpa ArmorStand ");
+               // Utils.debug("    Limpa ArmorStand ");
 
                 if (!CounterStrike.i.isEnabled()) {
                     hologram.remove();

@@ -42,6 +42,7 @@ import java.util.*;
 
 import static dev.danablend.counterstrike.Config.MAX_ROUNDS;
 import static dev.danablend.counterstrike.enums.GameState.*;
+import static dev.danablend.counterstrike.utils.PlayerUtils.isInSpawn;
 import static dev.danablend.counterstrike.utils.Utils.sortByValue;
 
 
@@ -102,6 +103,7 @@ public class CounterStrike extends JavaPlugin {
     public boolean showGameStatusTitle = true;
     public boolean standardTeamColours = false;
     public boolean modeValorant = false;
+    public boolean modeRealms = false;
     public boolean activated = false;
 
 
@@ -253,6 +255,26 @@ public class CounterStrike extends JavaPlugin {
 
         //loads default configs first
         loadConfigs();
+
+        if (modeRealms) {
+            if (!activated) {
+                modeRealms = false;
+                getLogger().warning(" >>>>   Realms mode is only availabe for premium version, activating standard game mode...");
+
+            } else {
+                modeValorant = false;
+                getLogger().warning(" >>>>   Activating Realms mode...");
+            }
+        }
+
+        if (modeValorant || modeRealms) {
+            Config.terroristShopName = "Buy Menu - Attackers";
+            Config.counterTerroristShopName = "Buy Menu - Defenders";
+
+        } else {
+            Config.terroristShopName = "Buy Menu - Terrorist";
+            Config.counterTerroristShopName = "Buy Menu - Counter Terrorist";
+        }
 
         new Shop();
 
@@ -446,6 +468,7 @@ public class CounterStrike extends JavaPlugin {
         showGameStatusTitle = getConfig().getBoolean("showGameStatusTitle", true);
         standardTeamColours = getConfig().getBoolean("standardTeamColours", false);
         modeValorant = getConfig().getBoolean("modeValorant", false);
+        modeRealms = getConfig().getBoolean("modeRealms", false);
 
         String key = getConfig().getString("upgradeKey");
         String decodedString = new String(Base64.decodeBase64("ZVc5MUlHdHVNSGNnZEdobElIUnlkWFJvUFE9PT0"));
@@ -469,13 +492,7 @@ public class CounterStrike extends JavaPlugin {
 
         if (!dataFolder.exists()) {
             dataFolder.mkdir();
-        } else {
-            config.addDefault("upgradeKey", "xpto");
-            config.options().copyDefaults(true);
-            saveConfig();
-            return;
         }
-
 
         config.addDefault("randomMaps", false);
         config.addDefault("alwaysDay", true);
@@ -483,6 +500,9 @@ public class CounterStrike extends JavaPlugin {
         config.addDefault("showGameStatusTitle", true);
         config.addDefault("standardTeamColours", false);
         config.addDefault("modeValorant", false);
+        config.addDefault("modeRealms", false);
+
+        config.addDefault("upgradeKey", "xpto");
 
         config.options().copyDefaults(true);
         saveConfig();
@@ -513,14 +533,6 @@ public class CounterStrike extends JavaPlugin {
 
     public void startGame() {
         Utils.debug("---> Starting game initiated...");
-
-        if (modeValorant) {
-            Config.terroristShopName = "Buy Menu - Attackers";
-            Config.counterTerroristShopName = "Buy Menu - Defenders";
-        } else {
-            Config.terroristShopName = "Buy Menu - Terrorist";
-            Config.counterTerroristShopName = "Buy Menu - Counter Terrorist";
-        }
 
         Preparemap();
 
@@ -669,9 +681,17 @@ public class CounterStrike extends JavaPlugin {
                 csplayer.setMoney(Config.STARTING_MONEY);
 
                 if (csplayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
-                    PacketUtils.sendTitleAndSubtitle(csplayer.getPlayer(), ChatColor.BLUE + "You are NOW a Counter Terrorist", ChatColor.BLUE + "Defend the sites from terrorists, defuse the bomb.", 1, 5, 1);
+                    if (modeValorant || modeRealms) {
+                        PacketUtils.sendTitleAndSubtitle(csplayer.getPlayer(), ChatColor.BLUE + "You are NOW a Defender", ChatColor.BLUE + "Defend the sites from Attackers, defuse the bomb.", 1, 5, 1);
+                    } else {
+                        PacketUtils.sendTitleAndSubtitle(csplayer.getPlayer(), ChatColor.BLUE + "You are NOW a Counter Terrorist", ChatColor.BLUE + "Defend the sites from terrorists, defuse the bomb.", 1, 5, 1);
+                    }
                 } else {
-                    PacketUtils.sendTitleAndSubtitle(csplayer.getPlayer(), ChatColor.RED + "You are NOW a Terrorist", ChatColor.RED + "Plant the bomb on the sites, have it explode.", 1, 5, 1);
+                    if (modeValorant || modeRealms) {
+                        PacketUtils.sendTitleAndSubtitle(csplayer.getPlayer(), ChatColor.RED + "You are NOW an Attacker", ChatColor.RED + "Plant the bomb on the sites, have it explode.", 1, 5, 1);
+                    } else {
+                        PacketUtils.sendTitleAndSubtitle(csplayer.getPlayer(), ChatColor.RED + "You are NOW a Terrorist", ChatColor.RED + "Plant the bomb on the sites, have it explode.", 1, 5, 1);
+                    }
                 }
 
                 Player player = csplayer.getPlayer();
@@ -802,7 +822,7 @@ public class CounterStrike extends JavaPlugin {
             player.getInventory().setItem(KNIFE_SLOT, getKnife());
             //  player.getInventory().setItem(TNT_SLOT, getShopItem()); //check PlayerUpdater
 
-            if (modeValorant) player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20);
+            if (modeValorant || modeRealms) player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20);
             else player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40);
 
             player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
@@ -818,8 +838,6 @@ public class CounterStrike extends JavaPlugin {
             if (rifle != null) {
                 Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(rifle.getName());
                 Gun.updateAmmo(gun, player.getInventory().getItem(RIFLE_SLOT), rifle.getMagazineCapacity());
-
-                Utils.debug("Capacity: " + rifle.getMagazineCapacity() + " ###### rifle " + rifle.getName() + "   Damage: "+ rifle.getDamage());
 
                 ItemStack ammo = gun.getAmmoType().getItemStack().clone();
                 ammo.setAmount((rifle.getMagazines() - 1) * rifle.getMagazineCapacity());
@@ -843,7 +861,26 @@ public class CounterStrike extends JavaPlugin {
 
             CSPlayer playerWithBomb = (CSPlayer) terrorists.toArray()[rand];
             playerWithBomb.getPlayer().getInventory().setItem(TNT_SLOT, CSUtil.getBombItem());
-            Utils.debug("------> Bomb with player " + playerWithBomb.getPlayer().getName() + "  rand:" + rand);
+            Utils.debug("------> Bomb with player " + playerWithBomb.getPlayer().getName());
+        }
+
+        //check if players are in spawn (punctual problems when players go to lobby for some strange reason)
+        for (CSPlayer csplayer : getCSPlayers()) {
+            Player player = csplayer.getPlayer();
+
+            //check after one second
+            CounterStrike.i.myBukkit.runTaskLater(player, null, null, () -> {
+
+                if (!isInSpawn(csplayer)) {
+                    Utils.debug(" #####################  ------> Fixing player spawn position @" + getGameState());
+
+                    if (csplayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
+                        myBukkit.playerTeleport(player, getCounterTerroristSpawn(true));
+                    } else {
+                        myBukkit.playerTeleport(player, getTerroristSpawn(true));
+                    }
+                }
+            }, 80);
         }
 
     }
@@ -893,7 +930,7 @@ public class CounterStrike extends JavaPlugin {
             if (player.isOnline() && (ResourceHash.get(resPackName) == null || ResourceHash.get(resPackName).equals("DEFAULT"))) {
                 ResourceHash.put(resPackName, "QUALITY");
 
-                if (activated) {
+                if (activated && !modeRealms) {
                     if (player.getProtocolVersion() == 768) {
                         loadResourcePack(player, "https://cld.pt/dl/download/61b7e2c1-95f5-403b-9e64-92e4a2ebd033/Quality1.21.3.zip?download=true", "612c9d93902818d4a9c4e50561c75870f8534058");
 
@@ -1189,7 +1226,7 @@ public class CounterStrike extends JavaPlugin {
         if (player.isOnline() && (ResourceHash.get(resPackName) == null || ResourceHash.get(resPackName).equals("DEFAULT"))) {
             ResourceHash.put(resPackName, "QUALITY");
 
-            if (activated) {
+            if (activated && !modeRealms) {
                 if (player.getProtocolVersion() == 768) {
                     loadResourcePack(player, "https://cld.pt/dl/download/61b7e2c1-95f5-403b-9e64-92e4a2ebd033/Quality1.21.3.zip?download=true", "612c9d93902818d4a9c4e50561c75870f8534058");
 
@@ -1200,11 +1237,9 @@ public class CounterStrike extends JavaPlugin {
                     loadResourcePack(player, "https://cld.pt/dl/download/3b3085b1-91c4-457e-b91c-d36c2bddc152/Quality1.21.4.zip?download=true", "3a2d248860719674412cf60ae0f2a30de60ddd57");
                 }
             }
-
         }
 
-
-        if (modeValorant) player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20);
+        if (modeValorant || modeRealms) player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20);
         else player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40);
 
         player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
@@ -1299,6 +1334,11 @@ public class CounterStrike extends JavaPlugin {
 
         if (result == null || result.equals("")) {
             Utils.debug("#####  " + ChatColor.RED + "No maps loaded");
+            return;
+        }
+
+        if (Integer.parseInt(result) == 1) {
+            Utils.debug("#####  " + ChatColor.RED + "Has only one map loaded...");
             return;
         }
 

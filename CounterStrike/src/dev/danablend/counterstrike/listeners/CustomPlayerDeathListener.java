@@ -31,7 +31,7 @@ public class CustomPlayerDeathListener implements Listener {
         victim.setGameMode(GameMode.SPECTATOR);
         victim.sendMessage(ChatColor.RED + "Wait until next round for a respawn.");
         victim.setSpectatorTarget(killer);
-        PacketUtils.sendTitleAndSubtitle(victim, ChatColor.RED + "You are dead.", ChatColor.YELLOW + "You will respawn in the next round.", 0, 3, 1);
+        PacketUtils.sendTitleAndSubtitle(victim, ChatColor.RED + "You are eliminated.", ChatColor.YELLOW + "You will respawn in the next round.", 0, 3, 1);
         CSUtil.checkForDead();
     }
 }

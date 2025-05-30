@@ -1,7 +1,6 @@
 package dev.danablend.counterstrike.enums;
 
 import dev.danablend.counterstrike.csplayer.TeamEnum;
-import dev.danablend.counterstrike.utils.Utils;
 import me.zombie_striker.qg.guns.Gun;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -46,18 +45,16 @@ public class WeaponQA extends Weapon {
             item = me.zombie_striker.qg.api.QualityArmory.getGunByName(name);
             Gun gun = (Gun) item;
 
-            if (!(name.equals("awp") || name.equals("sg553"))) {
+            if (gun != null && !(name.equals("awp") || name.equals("sg553"))) {
                 gun.setHasIronsights(false);
             }
-
-           // gun.setDisplayname(displayName);
-           // myGun =gun.getItemData();
         }
 
         if (item == null) {
             Bukkit.getLogger().warning("Item " + name + " not found in QualityArmory!");
             return new ItemStack(material);
         }
+
         if (!(item instanceof me.zombie_striker.customitemmanager.ArmoryBaseObject)) {
             Bukkit.getLogger().warning("Item " + name + " is not a proper item!");
             return new ItemStack(material);

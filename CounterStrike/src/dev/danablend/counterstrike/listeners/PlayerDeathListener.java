@@ -67,14 +67,14 @@ public class PlayerDeathListener implements Listener {
             if (!CSUtil.checkForDead()) {
 
                 victim.sendMessage(ChatColor.RED + "Wait until next round for a respawn.");
-                PacketUtils.sendTitleAndSubtitle(victim, ChatColor.RED + "You are dead.", ChatColor.YELLOW + "You will respawn in the next round.", 0, 3, 1);
+                PacketUtils.sendTitleAndSubtitle(victim, ChatColor.RED + "You are eliminated.", ChatColor.YELLOW + "You will respawn in the next round.", 0, 3, 1);
 
                 try {
                     Player killer = victim.getKiller();
 
                     if (killer == null) {
                         csplayerVictim.setDeaths(csplayerVictim.getDeaths() + 1);
-                        event.setDeathMessage(deadPlayerName + ChatColor.YELLOW + " was killed...");
+                        event.setDeathMessage(deadPlayerName + ChatColor.YELLOW + " was eliminated...");
                     } else {
 
                         CSPlayer csplayerKiller = CounterStrike.i.getCSPlayer(killer, false, null);
@@ -95,17 +95,17 @@ public class PlayerDeathListener implements Listener {
                             });
                         }
 
-                        event.setDeathMessage(ChatColor.valueOf(csplayerVictim.getColour()) + deadPlayerName + ChatColor.GRAY + " was killed by " + ChatColor.valueOf(csplayerKiller.getColour()) + killerName);
+                        event.setDeathMessage(ChatColor.valueOf(csplayerVictim.getColour()) + deadPlayerName + ChatColor.GRAY + " was eliminated by " + ChatColor.valueOf(csplayerKiller.getColour()) + killerName);
                     }
                 } catch (Exception e) {
                     Utils.debug(" --> Death exception " + e.getMessage());
 
                     csplayerVictim.setDeaths(csplayerVictim.getDeaths() + 1);
-                    event.setDeathMessage(deadPlayerName + ChatColor.YELLOW + " was killed..");
+                    event.setDeathMessage(deadPlayerName + ChatColor.YELLOW + " was eliminated..");
                 }
             }
             else {
-                event.setDeathMessage(ChatColor.valueOf(csplayerVictim.getColour()) + deadPlayerName + ChatColor.GRAY + " was killed ");
+                event.setDeathMessage(ChatColor.valueOf(csplayerVictim.getColour()) + deadPlayerName + ChatColor.GRAY + " was eliminated");
             }
 
         }

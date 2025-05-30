@@ -23,7 +23,6 @@ public class Weapon {
     protected double reloadTime;
     protected WeaponType weaponType;
     private int cost;
-    private int ammunition;
     private int magazines;
     private double damage;
     protected TeamEnum team;
@@ -66,7 +65,6 @@ public class Weapon {
         this.material = material;
         this.cost = cost;
         this.magazineCapacity = magazineCapacity > 64 ? 64 : magazineCapacity;
-        this.ammunition = magazineCapacity;
         this.magazines = magazines;
         this.damage = damage;
         this.reloadTime = reloadTime;
@@ -167,14 +165,6 @@ public class Weapon {
 
     public int getMagazines() {
         return magazines;
-    }
-
-    public int getAmmunition() {
-        return ammunition;
-    }
-
-    public void setAmmunition(Integer amo) {
-        ammunition = amo;
     }
 
     public double getDamage() {

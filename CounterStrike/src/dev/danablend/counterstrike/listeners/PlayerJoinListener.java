@@ -220,8 +220,19 @@ public class PlayerJoinListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void ServerListMotd(final ServerListPingEvent event) {
 
-        if (plugin.getGameState().equals(GameState.WAITING)) {
-            event.setMotd(ChatColor.AQUA + "CSMC Game is waiting for more players...");
+        if (plugin.getGameState().equals(GameState.LOBBY)) {
+
+            if (plugin.VoteHash.size() > 0 && plugin.getServer().getOnlinePlayers().size() > 0) {
+                event.setMotd(ChatColor.AQUA + "CSMC Game has map been voted..");
+            }
+        } else if (plugin.getGameState().equals(GameState.WAITING)) {
+
+            if (plugin.VoteHash.size() > 0) {
+                event.setMotd(ChatColor.AQUA + "CSMC Game has map been voted...");
+            }else {
+                event.setMotd(ChatColor.AQUA + "CSMC Game is waiting for more players...");
+            }
+
         } else if (plugin.getGameState().equals(GameState.STARTING)) {
             event.setMotd(ChatColor.YELLOW + "CSMC Game is starting...");
         } else if (plugin.getGameState().equals(GameState.RUN)) {

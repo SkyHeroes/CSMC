@@ -100,7 +100,10 @@ public class PlayerUpdater extends BukkitRunnable {
 
         FastBoard board = new FastBoard(player);
 
-        if (plugin.modeValorant) {
+        if (plugin.modeRealms) {
+            board.updateTitle(ChatColor.BOLD + "----RealmStrike v" + CounterStrike.i.getDescription().getVersion() + "----");
+        }
+       else if (plugin.modeValorant) {
             board.updateTitle(ChatColor.BOLD + "----ValoCraft v" + CounterStrike.i.getDescription().getVersion() + "----");
         } else {
             if (isFolia) {
@@ -131,8 +134,6 @@ public class PlayerUpdater extends BukkitRunnable {
 
         if (csplayer.returnBoard() == null) return;
 
-    //    Bukkit.getLogger().warning("Rifle " + csplayer.getRifle() + "    off  " +csplayer.getPlayer().getInventory().getItemInOffHand());
-
         dev.danablend.counterstrike.csplayer.Team myTeam;
 
         if (csplayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
@@ -151,7 +152,7 @@ public class PlayerUpdater extends BukkitRunnable {
 
         ChatColor c1 = ChatColor.valueOf(plugin.counterTerroristsTeam.getColour());
 
-        if (plugin.modeValorant) {
+        if (plugin.modeValorant || plugin.modeRealms) {
             lines[2] = ChatColor.BOLD + "(" + plugin.counterTerrorists.size() + ") " + c1 + "Defenders" + ChatColor.WHITE + " with " + plugin.counterTerroristsTeam.getWins() + " wins: ";
         } else {
             lines[2] = ChatColor.BOLD + "(" + plugin.counterTerrorists.size() + ") " + c1 + "Counters" + ChatColor.WHITE + " with " + plugin.counterTerroristsTeam.getWins() + " wins: ";
@@ -164,7 +165,7 @@ public class PlayerUpdater extends BukkitRunnable {
             Player play = csplayer1.getPlayer();
 
             if (play.isDead()) {
-                lines[linha] = play.getName() + ": " + ChatColor.WHITE + ChatColor.UNDERLINE + " DEAD  " + ChatColor.BOLD + "$" + csplayer1.getMoney() + " K: " + "" + csplayer1.getKills() + "  " + "D: " + csplayer1.getDeaths();
+                lines[linha] = play.getName() + ": " + ChatColor.WHITE + ChatColor.UNDERLINE + " Elim.  " + ChatColor.BOLD + "$" + csplayer1.getMoney() + " K: " + "" + csplayer1.getKills() + "  " + "D: " + csplayer1.getDeaths();
             } else {
                 lines[linha] = play.getName() + ": " + ChatColor.GREEN + "$" + csplayer1.getMoney() + ChatColor.BLACK + " K:" + ChatColor.GREEN + "" + csplayer1.getKills() + " " + ChatColor.BLACK + "D:" + ChatColor.GREEN + csplayer1.getDeaths() + (plugin.modeValorant ? "" : " " + ChatColor.BLACK + "MVP:" + ChatColor.GREEN + "" + csplayer1.getMVP());
             }
@@ -173,7 +174,7 @@ public class PlayerUpdater extends BukkitRunnable {
 
         c1 = ChatColor.valueOf(plugin.terroristsTeam.getColour());
 
-        if (plugin.modeValorant) {
+        if (plugin.modeValorant || plugin.modeRealms) {
             lines[linha] = ChatColor.BOLD + "(" + plugin.terrorists.size() + ") " + c1 + "Attackers" + ChatColor.WHITE + " with " + plugin.terroristsTeam.getWins() + " wins: ";
         } else {
             lines[linha] = ChatColor.BOLD + "(" + plugin.terrorists.size() + ") " + c1 + "Terrors" + ChatColor.WHITE + " with " + plugin.terroristsTeam.getWins() + " wins: ";
@@ -185,7 +186,7 @@ public class PlayerUpdater extends BukkitRunnable {
             Player play = csplayer1.getPlayer();
 
             if (play.isDead()) {
-                lines[linha] = play.getName() + ": " + ChatColor.WHITE + ChatColor.UNDERLINE + " DEAD  " + ChatColor.BOLD + "$" + csplayer1.getMoney() + " K: " + "" + csplayer1.getKills() + "  " + "D: " + csplayer1.getDeaths();
+                lines[linha] = play.getName() + ": " + ChatColor.WHITE + ChatColor.UNDERLINE + " Elim.  " + ChatColor.BOLD + "$" + csplayer1.getMoney() + " K: " + "" + csplayer1.getKills() + "  " + "D: " + csplayer1.getDeaths();
             } else {
                 lines[linha] = play.getName() + ": " + ChatColor.GREEN + "$" + csplayer1.getMoney() + ChatColor.BLACK + " K:" + ChatColor.GREEN + "" + csplayer1.getKills() + " " + ChatColor.BLACK + "D:" + ChatColor.GREEN + csplayer1.getDeaths() + (plugin.modeValorant ? "" : " " + ChatColor.BLACK + "MVP:" + ChatColor.GREEN + "" + csplayer1.getMVP());
             }

@@ -58,7 +58,7 @@ public class Bomb {
 
         if (!CounterStrike.i.getGameState().equals(GameState.PLANTED)) return;
 
-        cleaning = true;
+        cleaning = true; //stops bomb timmer
         bomb = null;
         detonated = false;
 

@@ -64,7 +64,7 @@ public class PlayerDeathListener implements Listener {
         if ((plugin.getGameState().equals(PLANTED) || plugin.getGameState().equals(RUN))) {
 
             // Check if every player on dead player team is dead and restarts game if so
-            if (!CSUtil.checkForDead()) {
+            if (!CSUtil.checkForAllTeamDead()) {
 
                 victim.sendMessage(ChatColor.RED + "Wait until next round for a respawn.");
                 PacketUtils.sendTitleAndSubtitle(victim, ChatColor.RED + "You are eliminated.", ChatColor.YELLOW + "You will respawn in the next round.", 0, 3, 1);

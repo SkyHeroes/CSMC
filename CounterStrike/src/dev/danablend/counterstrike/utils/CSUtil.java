@@ -47,7 +47,7 @@ public class CSUtil {
     }
 
 
-    public static boolean checkForDead() {
+    public static boolean checkForAllTeamDead() {
         int dead = 0;
         for (CSPlayer csplayer : CounterStrike.i.getCounterTerrorists()) {
             if (csplayer.getPlayer().isDead() || csplayer.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {

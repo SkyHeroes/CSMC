@@ -19,9 +19,9 @@ public class GameTimer {
     }
 
     public void run() {
-        int serverSize = CounterStrike.i.getCSPlayers().size();
+        int serverSize = plugin.getCSPlayers().size();
 
-        if (CounterStrike.i.getGameState().equals(GameState.PLANTED)) {
+        if (plugin.getGameState().equals(GameState.PLANTED)) {
             plugin.myBukkit.cancelTask(task);
             return;
         }
@@ -29,11 +29,11 @@ public class GameTimer {
         if ((serverSize == 0 || plugin.getServer().getOnlinePlayers().size() == 0) && plugin.quitExitGame) {
             Utils.debug("Aborting game, no players left");
             plugin.myBukkit.cancelTask(task);
-            CounterStrike.i.FinishGame(CounterStrike.i.getTerroristsTeam(), CounterStrike.i.getCounterTerroristsTeam());
+            plugin.FinishGame(plugin.getTerroristsTeam(), plugin.getCounterTerroristsTeam());
             return;
         }
 
-        if (!CounterStrike.i.getGameState().equals(GameState.RUN)) {
+        if (!plugin.getGameState().equals(GameState.RUN)) {
             plugin.myBukkit.cancelTask(task);
             return;
         }
@@ -46,7 +46,7 @@ public class GameTimer {
         }
 
         if (timeToEnd <= 0) {
-            CounterStrike.i.restartGame(CounterStrike.i.getCounterTerroristsTeam());
+            plugin.restartGame(plugin.getCounterTerroristsTeam());
             plugin.myBukkit.cancelTask(task);
         }
     }

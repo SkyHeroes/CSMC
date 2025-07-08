@@ -179,7 +179,7 @@ public class MyBukkit {
             if (isPaperBased) { //Paper or Folia
 
                 ArmorStand finalHologram = hologram;
-                CounterStrike.i.myBukkit.runTaskLater(null, null, hologram, () -> {
+                main.myBukkit.runTaskLater(null, null, hologram, () -> {
                     myBukkitPaper.hologramCustomName(finalHologram, message);
                 }, 1);
 
@@ -190,14 +190,14 @@ public class MyBukkit {
             if (hologram != null) {
                // Utils.debug("    Limpa ArmorStand ");
 
-                if (!CounterStrike.i.isEnabled()) {
+                if (!main.isEnabled()) {
                     hologram.remove();
                     hologram = null;
                     return;
                 }
 
                 ArmorStand finalA = hologram;
-                CounterStrike.i.myBukkit.runTaskLater(null, null, hologram, () -> {
+                main.myBukkit.runTaskLater(null, null, hologram, () -> {
                     finalA.remove();
                 }, 1);
 

@@ -39,6 +39,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 import static dev.danablend.counterstrike.Config.MAX_ROUNDS;
 import static dev.danablend.counterstrike.enums.GameState.*;
@@ -62,15 +63,15 @@ public class CounterStrike extends JavaPlugin {
     Collection<CSPlayer> csPlayers = new ArrayList<>();
     public Collection<CSPlayer> counterTerrorists = new ArrayList<CSPlayer>();
     public Collection<CSPlayer> terrorists = new ArrayList<CSPlayer>();
-    Collection<CSPlayer> tempPlayerList = new ArrayList<CSPlayer>();
+    private Collection<CSPlayer> tempPlayerList = new ArrayList<CSPlayer>();
     Set<TestCommand> testCommands = new HashSet<TestCommand>();
 
-    PluginManager pm = Bukkit.getPluginManager();
-    ItemStack shopItem;
+    private PluginManager pm = Bukkit.getPluginManager();
+    private ItemStack shopItem;
 
     private GameTimer timer;
-    public Team counterTerroristsTeam;
-    public Team terroristsTeam;
+    private Team counterTerroristsTeam;
+    private Team terroristsTeam;
     private SQLiteConnection sqlite = null;
     private dev.danablend.counterstrike.runnables.PlayerUpdater pUpdate;
 
@@ -95,10 +96,10 @@ public class CounterStrike extends JavaPlugin {
     private Location bombSiteB;
 
     private static Object gameCounterTask;
-    public IACenter botManager;
+    private IACenter botManager;
 
-    public boolean randomMaps = false;
-    public boolean alwaysDay = false;
+    private boolean randomMaps = false;
+    private boolean alwaysDay = false;
     public boolean quitExitGame = false;
     public boolean showGameStatusTitle = true;
     public boolean standardTeamColours = false;
@@ -117,7 +118,17 @@ public class CounterStrike extends JavaPlugin {
         }
 
         try {
-            myBukkit.runTaskLater(null, null, null, () -> new Metrics(this, 22650), 5);
+            myBukkit.runTaskLater(null, null, null, () -> {
+                Metrics metrics = new Metrics(this, 22650);
+
+                metrics.addCustomChart(new Metrics.SingleLineChart("playing_players", new Callable<Integer>() {
+                    @Override
+                    public Integer call() throws Exception {
+                        return CounterStrike.i.getCSPlayers().size();
+                    }
+                }));
+            }, 5);
+
         } catch (Exception e) {
             Utils.debug(ChatColor.RED + " Failed to register into Bstats");
         }
@@ -139,6 +150,12 @@ public class CounterStrike extends JavaPlugin {
             }
         }, 40);
 
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) { //
+            new CSMCPlaceholderHandler(this).register(); //
+        } else {
+            Utils.debug("Could not find PlaceholderAPI!");
+        }
+
         myBukkit.UpdateChecker(true);
 
         Utils.debug("Enabled");
@@ -158,7 +175,7 @@ public class CounterStrike extends JavaPlugin {
     }
 
 
-    public void setup() {
+    private void setup() {
 
         Utils.debug("Preparing maps for game...");
 
@@ -606,7 +623,6 @@ public class CounterStrike extends JavaPlugin {
 
         if (winnerTeam.getWins() == (MAX_ROUNDS / 2) + 1) {
 
-            gameState = LOBBY;
             PacketUtils.sendTitleAndSubtitleToInGame(winnerText, ChatColor.AQUA + "They also won the whole game! (Left click to join new game)", 0, 10, 1);
             PacketUtils.sendActionBarToInGame(winnerText);
 
@@ -618,7 +634,6 @@ public class CounterStrike extends JavaPlugin {
 
         } else if (winnerTeam.getWins() + winnerTeam.getLosses() == MAX_ROUNDS) {
 
-            gameState = LOBBY;
             PacketUtils.sendTitleAndSubtitleToInGame(winnerText, ChatColor.AQUA + "But scores are even! (Left click to join new game)", 0, 10, 1);
             PacketUtils.sendActionBarToInGame(winnerText);
 
@@ -726,7 +741,7 @@ public class CounterStrike extends JavaPlugin {
 
 
     public void FinishGame(Team winnerTeam, Team loserTeam) {
-
+        Bomb.cleanUp();
         gameState = LOBBY;
 
         winnerTeam.setLosses(0);
@@ -775,7 +790,7 @@ public class CounterStrike extends JavaPlugin {
     }
 
 
-    public void setupPlayers() {
+    private void setupPlayers() {
 
         for (CSPlayer csPlayer : terrorists) {
             Player player = csPlayer.getPlayer();
@@ -886,7 +901,7 @@ public class CounterStrike extends JavaPlugin {
     }
 
 
-    public void setupTeams(Player player, String team) {
+    private void setupTeams(Player player, String team) {
         //it is needed for teams and visibility
         Scoreboard board = Bukkit.getScoreboardManager().getMainScoreboard();
         org.bukkit.scoreboard.Team myTeam = board.getTeam(team);
@@ -1141,7 +1156,7 @@ public class CounterStrike extends JavaPlugin {
     }
 
 
-    public void giveEquipment(CSPlayer csPlayer) {
+    private void giveEquipment(CSPlayer csPlayer) {
 
         if (true) return;
 
@@ -1314,7 +1329,7 @@ public class CounterStrike extends JavaPlugin {
     }
 
     //ideas todo or not todo
-    public void SetupSignConfigs() {
+    private void SetupSignConfigs() {
 
         if (!activated) return;
 

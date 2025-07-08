@@ -1,8 +1,8 @@
 <component name="libraryTable">
   <library name="fr.mrmicky.fastboard" type="repository">
-    <properties maven-id="fr.mrmicky:fastboard:2.1.2" />
+    <properties maven-id="fr.mrmicky:fastboard:LATEST" />
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/fr/mrmicky/fastboard/2.1.2/fastboard-2.1.2.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/fr/mrmicky/fastboard/2.1.5/fastboard-2.1.5.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

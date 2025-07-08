@@ -43,12 +43,18 @@ public class Shop {
         Utils.debug("Opening Counter Terrorist Shop for " + player.getName());
         Inventory inv = Bukkit.createInventory(null, getInventorySize(counterTerroristGuns.size() + 2), Config.counterTerroristShopName);
 
-        for (Weapon gun : counterTerroristGuns) {
-            inv.addItem(gun.getShopItem());
-        }
+        if (!CounterStrike.i.usingQualityArmory() && false) {
+            inv.addItem(new ItemStack(Material.LEATHER_HELMET));
+            inv.addItem(new ItemStack(Material.LEATHER_CHESTPLATE));
+        } else {
 
-        inv.addItem((new Weapon("Helmet1", "LHelmet1", "Light Helmet", Material.LEATHER_HELMET, 400, TeamEnum.COUNTER_TERRORISTS, WeaponType.HELMET)).getShopItem());
-        inv.addItem((new Weapon("Kevlar1", "Kevlar1", "Kevlar", Material.LEATHER_CHESTPLATE, 650, TeamEnum.COUNTER_TERRORISTS, WeaponType.ARMOUR)).getShopItem());
+            for (Weapon gun : counterTerroristGuns) {
+                inv.addItem(gun.getShopItem());
+            }
+
+            inv.addItem((new Weapon("Helmet1", "LHelmet1", "Light Helmet", Material.LEATHER_HELMET, 400, TeamEnum.COUNTER_TERRORISTS, WeaponType.HELMET)).getShopItem());
+            inv.addItem((new Weapon("Kevlar1", "Kevlar1", "Kevlar", Material.LEATHER_CHESTPLATE, 650, TeamEnum.COUNTER_TERRORISTS, WeaponType.ARMOUR)).getShopItem());
+        }
 
         player.openInventory(inv);
     }
@@ -57,12 +63,19 @@ public class Shop {
         Utils.debug("Opening Terrorist Shop for " + player.getName());
         Inventory inv = Bukkit.createInventory(null, getInventorySize(terroristGuns.size() + 2), Config.terroristShopName);
 
-        for (Weapon gun : terroristGuns) {
-            inv.addItem(gun.getShopItem());
-        }
+        //will be new mode
+        if (!CounterStrike.i.usingQualityArmory() && false) {
+            inv.addItem(new ItemStack(Material.LEATHER_HELMET));
+            inv.addItem(new ItemStack(Material.LEATHER_CHESTPLATE));
+        } else {
 
-        inv.addItem((new Weapon("Helmet2", "LHelmet2", "Light Helmet", Material.LEATHER_HELMET, 400, TeamEnum.TERRORISTS, WeaponType.HELMET)).getShopItem());
-        inv.addItem((new Weapon("Kevlar2", "Kevlar2", "Kevlar", Material.LEATHER_CHESTPLATE, 650, TeamEnum.TERRORISTS, WeaponType.ARMOUR)).getShopItem());
+            for (Weapon gun : terroristGuns) {
+                inv.addItem(gun.getShopItem());
+            }
+
+            inv.addItem((new Weapon("Helmet2", "LHelmet2", "Light Helmet", Material.LEATHER_HELMET, 400, TeamEnum.TERRORISTS, WeaponType.HELMET)).getShopItem());
+            inv.addItem((new Weapon("Kevlar2", "Kevlar2", "Kevlar", Material.LEATHER_CHESTPLATE, 650, TeamEnum.TERRORISTS, WeaponType.ARMOUR)).getShopItem());
+        }
 
         player.openInventory(inv);
     }
@@ -89,6 +102,56 @@ public class Shop {
 
         int money = csplayer.getMoney();
         int slot = -1;
+        String message = "";
+
+        //will be new mode
+        if (!CounterStrike.i.usingQualityArmory() && false) {
+
+            if (item.getType().equals(Material.LEATHER_HELMET)) {
+
+                if (csplayer.getHelmet() != null) {
+                    message = ChatColor.RED + "Fixing current helmet.";
+                }
+
+                try {
+                    LeatherArmorMeta helmetMeta = (LeatherArmorMeta) item.getItemMeta();
+                    helmetMeta.setColor(mycolor);
+                    ItemStack helm = item;
+                    helm.setItemMeta(helmetMeta);
+                    player.getInventory().setHelmet(helm);
+                } catch (Exception e) {
+                }
+            }
+
+            if (item.getType().equals(Material.LEATHER_CHESTPLATE)) {
+
+                if (csplayer.getArmor() != null) {
+                    message = ChatColor.RED + "Fixing current armour.";
+                }
+
+                try {
+                    LeatherArmorMeta ArmorMeta = (LeatherArmorMeta) item.getItemMeta();
+                    ArmorMeta.setColor(mycolor);
+                    ItemStack Arm = item;
+                    Arm.setItemMeta(ArmorMeta);
+
+                    player.getInventory().setChestplate(Arm);
+                } catch (Exception e) {
+                }
+            }
+
+            //axe position 0
+            //sword position 1
+            //mace position 3
+            //bow position 4
+            //trident position 5
+
+            if (message.equals("")) player.sendMessage(ChatColor.GREEN + "You have purchased " + item.getType());
+            else player.sendMessage(message);
+
+            return;
+        }
+
 
         Weapon gun = Weapon.getByItem(item);
 

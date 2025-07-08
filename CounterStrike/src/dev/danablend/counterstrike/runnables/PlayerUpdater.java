@@ -150,12 +150,12 @@ public class PlayerUpdater extends BukkitRunnable {
         lines[0] = "" + ChatColor.BLACK + ChatColor.BOLD + "Map: " + ChatColor.GRAY + plugin.Map + "  " + ChatColor.BLACK + ChatColor.BOLD + "Round: " + ChatColor.GRAY + "" + (myTeam.getLosses() + myTeam.getWins() + 1) + " of " + MAX_ROUNDS;
         lines[1] = "" + ChatColor.BLACK + ChatColor.BOLD + "Teams: " + TeamA + myTeam.getWins() + ChatColor.GRAY + " vs " + TeamB + myTeam.getLosses();
 
-        ChatColor c1 = ChatColor.valueOf(plugin.counterTerroristsTeam.getColour());
+        ChatColor c1 = ChatColor.valueOf(plugin.getCounterTerroristsTeam().getColour());
 
         if (plugin.modeValorant || plugin.modeRealms) {
-            lines[2] = ChatColor.BOLD + "(" + plugin.counterTerrorists.size() + ") " + c1 + "Defenders" + ChatColor.WHITE + " with " + plugin.counterTerroristsTeam.getWins() + " wins: ";
+            lines[2] = ChatColor.BOLD + "(" + plugin.counterTerrorists.size() + ") " + c1 + "Defenders" + ChatColor.WHITE + " with " + plugin.getCounterTerroristsTeam().getWins() + " wins: ";
         } else {
-            lines[2] = ChatColor.BOLD + "(" + plugin.counterTerrorists.size() + ") " + c1 + "Counters" + ChatColor.WHITE + " with " + plugin.counterTerroristsTeam.getWins() + " wins: ";
+            lines[2] = ChatColor.BOLD + "(" + plugin.counterTerrorists.size() + ") " + c1 + "Counters" + ChatColor.WHITE + " with " + plugin.getCounterTerroristsTeam().getWins() + " wins: ";
         }
 
         int linha = 3;
@@ -172,12 +172,12 @@ public class PlayerUpdater extends BukkitRunnable {
             linha++;
         }
 
-        c1 = ChatColor.valueOf(plugin.terroristsTeam.getColour());
+        c1 = ChatColor.valueOf(plugin.getTerroristsTeam().getColour());
 
         if (plugin.modeValorant || plugin.modeRealms) {
-            lines[linha] = ChatColor.BOLD + "(" + plugin.terrorists.size() + ") " + c1 + "Attackers" + ChatColor.WHITE + " with " + plugin.terroristsTeam.getWins() + " wins: ";
+            lines[linha] = ChatColor.BOLD + "(" + plugin.terrorists.size() + ") " + c1 + "Attackers" + ChatColor.WHITE + " with " + plugin.getTerroristsTeam().getWins() + " wins: ";
         } else {
-            lines[linha] = ChatColor.BOLD + "(" + plugin.terrorists.size() + ") " + c1 + "Terrors" + ChatColor.WHITE + " with " + plugin.terroristsTeam.getWins() + " wins: ";
+            lines[linha] = ChatColor.BOLD + "(" + plugin.terrorists.size() + ") " + c1 + "Terrors" + ChatColor.WHITE + " with " + plugin.getTerroristsTeam().getWins() + " wins: ";
         }
 
         linha++;

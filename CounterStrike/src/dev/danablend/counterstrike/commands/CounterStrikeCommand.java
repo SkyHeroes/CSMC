@@ -34,6 +34,11 @@ public class CounterStrikeCommand implements CommandExecutor {
 
         Player player = (Player) sender;
 
+        if (!player.hasPermission("cs.admin")) {
+            sender.sendMessage("You need permissions to execute this command.");
+            return true;
+        }
+
         if (args.length == 1 && args[0].equalsIgnoreCase("stop")) {
 
             if (plugin.getGameState().equals(GameState.LOBBY) || plugin.getGameState().equals(GameState.WAITING) || plugin.getGameState().equals(GameState.STARTING) || plugin.getGameState().equals(GameState.SHOP)) {

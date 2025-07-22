@@ -110,7 +110,15 @@ public class CounterStrike extends JavaPlugin {
 
     public void onEnable() {
         i = this;
+
         setup();
+
+        if (myBukkit.checkGreater("1.20", Bukkit.getServer().getBukkitVersion()) == -1) {
+            getLogger().severe(" You are using a Minecraft Server " + Bukkit.getServer().getBukkitVersion() + " what is not supported");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         SetupSignConfigs();
 
         if (myBukkit.checkGreater("1.21.1", Bukkit.getServer().getBukkitVersion()) == -1) {

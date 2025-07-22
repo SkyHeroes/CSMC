@@ -61,9 +61,9 @@ public class MyBukkit {
         isPaperBased = (classCheck != null);
 
         if (isPaperBased) {
-            isLegacy = (Bukkit.getMinecraftVersion().equals("1.20.1") || Bukkit.getMinecraftVersion().equals("1.20.2"));
+            isLegacy = (Bukkit.getMinecraftVersion().equals("1.20") || Bukkit.getMinecraftVersion().equals("1.20.1") || Bukkit.getMinecraftVersion().equals("1.20.2"));
         } else {
-            isLegacy = (Bukkit.getBukkitVersion().startsWith("1.20.1") || Bukkit.getBukkitVersion().startsWith("1.20.2"));
+            isLegacy = (Bukkit.getMinecraftVersion().equals("1.20") || Bukkit.getBukkitVersion().startsWith("1.20.1") || Bukkit.getBukkitVersion().startsWith("1.20.2"));
         }
 
         if (isPaperBased) myBukkitPaper = new MyBukkitPaper();

@@ -55,7 +55,7 @@ public class CSUtil {
             }
         }
 
-        if (dead >= CounterStrike.i.getCounterTerrorists().size() && Bomb.detonated == false) { //was launching twice
+        if (dead >= CounterStrike.i.getCounterTerrorists().size() && Bomb.detonated == false) { //was launching twice so bomb detonation will do its restartGame
             CounterStrike.i.restartGame(CounterStrike.i.getTerroristsTeam());
             return true;
         }
@@ -73,6 +73,33 @@ public class CSUtil {
             }
         }
         return false;
+    }
+
+    //same without restarting the game
+    public static int checkForAllTeamDead2() {
+        int dead = 0;
+        for (CSPlayer csplayer : CounterStrike.i.getCounterTerrorists()) {
+            if (csplayer.getPlayer().isDead() || csplayer.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
+                dead++;
+            }
+        }
+
+        if (dead >= CounterStrike.i.getCounterTerrorists().size() && Bomb.detonated == false) { //was launching twice so bomb detonation will do its restartGame
+            return 1;
+        }
+
+        dead = 0;
+        for (CSPlayer csplayer : CounterStrike.i.getTerrorists()) {
+            if (csplayer.getPlayer().isDead() || csplayer.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
+                dead++;
+            }
+        }
+        if (dead >= CounterStrike.i.getTerrorists().size()) {
+            if (Bomb.bomb == null) {
+                return 2;
+            }
+        }
+        return 0;
     }
 
 

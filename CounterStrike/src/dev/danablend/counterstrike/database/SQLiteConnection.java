@@ -176,5 +176,25 @@ public class SQLiteConnection {
             }
         }
 
+        resultado = select("SELECT COUNT(*) AS CNTREC FROM pragma_table_info('Skins')");
+
+        if (Integer.parseInt(resultado) ==0) {
+            String sql = "CREATE TABLE Skins (\n"
+                    + "id	INTEGER NOT NULL,\n"
+                    + "Descr	varchar(100) NOT NULL,\n"
+                    + "signature	TEXT,\n"
+                    + "texture	TEXT,\n"
+                    + "PRIMARY KEY(id AUTOINCREMENT)\n);";
+
+            try (Connection conn = this.connect();
+                 Statement stmt = conn.createStatement()) {
+                // create a new table
+                stmt.execute(sql);
+
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+
     }
 }

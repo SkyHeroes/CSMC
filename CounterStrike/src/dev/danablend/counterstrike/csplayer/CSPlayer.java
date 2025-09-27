@@ -69,11 +69,11 @@ public class CSPlayer {
 
         } else {
 
-            if (colour.equals(plugin.getTerroristsTeam().getColour()) && terrorists.size() <= (counterTerrorists.size() + 1)) {
+            if (colour.equals(plugin.getTerroristsTeam().getColour())) {
                 this.team = TeamEnum.TERRORISTS;
                 Utils.debug(player.getName() + " got terr1");
 
-            } else if (colour.equals(plugin.getCounterTerroristsTeam().getColour()) && counterTerrorists.size() <= (terrorists.size() + 1)) {
+            } else if (colour.equals(plugin.getCounterTerroristsTeam().getColour())) {
                 this.team = TeamEnum.COUNTER_TERRORISTS;
                 Utils.debug(player.getName() + " got CT1");
 
@@ -97,22 +97,55 @@ public class CSPlayer {
 
                 plugin.getCounterTerroristsTeam().setColour(colour);
 
-            } else if (terrorists.size() <= counterTerrorists.size()) {
-                this.team = TeamEnum.TERRORISTS;
-                this.colour = plugin.getTerroristsTeam().getColour();
-
-                Utils.debug(player.getName() + " got terr3 and colour " + this.colour);
-
-            } else if (counterTerrorists.size() <= terrorists.size()) {
-                this.team = TeamEnum.COUNTER_TERRORISTS;
-                this.colour = plugin.getCounterTerroristsTeam().getColour();
-
-                Utils.debug(player.getName() + " got CT3 and colour " + this.colour);
-
             } else {
                 Utils.debug(player.getName() + " salta return " + colour);
                 return;
             }
+
+//            if (colour.equals(plugin.getTerroristsTeam().getColour()) && terrorists.size() <= (counterTerrorists.size() + 1)) {
+//                this.team = TeamEnum.TERRORISTS;
+//                Utils.debug(player.getName() + " got terr1");
+//
+//            } else if (colour.equals(plugin.getCounterTerroristsTeam().getColour()) && counterTerrorists.size() <= (terrorists.size() + 1)) {
+//                this.team = TeamEnum.COUNTER_TERRORISTS;
+//                Utils.debug(player.getName() + " got CT1");
+//
+//            } else if (plugin.getTerroristsTeam().getColour().equals("WHITE")) {
+//                this.team = TeamEnum.TERRORISTS;
+//
+//                if (colour.equals(plugin.getCounterTerroristsTeam().getColour()))
+//                    colour = "GOLD";
+//
+//                Utils.debug(player.getName() + " got terr2 and colour " + colour);
+//
+//                plugin.getTerroristsTeam().setColour(colour);
+//
+//            } else if (plugin.getCounterTerroristsTeam().getColour().equals("WHITE")) {
+//                this.team = TeamEnum.COUNTER_TERRORISTS;
+//
+//                if (colour.equals(plugin.getCounterTerroristsTeam().getColour()))
+//                    colour = "AQUA";
+//
+//                Utils.debug(player.getName() + " got CT2 and colour " + colour);
+//
+//                plugin.getCounterTerroristsTeam().setColour(colour);
+//
+//            } else if (terrorists.size() <= counterTerrorists.size()) {
+//                this.team = TeamEnum.TERRORISTS;
+//                this.colour = plugin.getTerroristsTeam().getColour();
+//
+//                Utils.debug(player.getName() + " got terr3 and colour " + this.colour);
+//
+//            } else if (counterTerrorists.size() <= terrorists.size()) {
+//                this.team = TeamEnum.COUNTER_TERRORISTS;
+//                this.colour = plugin.getCounterTerroristsTeam().getColour();
+//
+//                Utils.debug(player.getName() + " got CT3 and colour " + this.colour);
+//
+//            } else {
+//                Utils.debug(player.getName() + " salta return " + colour);
+//                return;
+//            }
         }
 
         if (team.equals(TeamEnum.TERRORISTS)) {
@@ -334,6 +367,7 @@ public class CSPlayer {
 
     }
 
+
     public void setColourOpponent(String opponentcolour) {
         this.opponentColour = opponentcolour;
     }
@@ -356,12 +390,17 @@ public class CSPlayer {
     }
 
     public boolean isTerrorist() {
+        try {
 
-        if (getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
-            return false;
-        } else if (getTeam().equals(TeamEnum.TERRORISTS)) {
-            return true;
-        } else {
+            if (getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
+                return false;
+            } else if (getTeam().equals(TeamEnum.TERRORISTS)) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            Utils.debug(player.getName() + " with error checking team ");
             return false;
         }
     }

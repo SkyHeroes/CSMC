@@ -2,7 +2,7 @@
   <library name="google.api.client" type="repository">
     <properties maven-id="com.google.api-client:google-api-client:LATEST" />
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/com/google/api-client/google-api-client/2.8.0/google-api-client-2.8.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/api-client/google-api-client/2.8.1/google-api-client-2.8.1.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/commons-codec/commons-codec/1.17.1/commons-codec-1.17.1.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/com/google/oauth-client/google-oauth-client/1.36.0/google-oauth-client-1.36.0.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/com/google/auth/google-auth-library-credentials/1.30.0/google-auth-library-credentials-1.30.0.jar!/" />
@@ -10,18 +10,18 @@
       <root url="jar://$MAVEN_REPOSITORY$/com/google/auto/value/auto-value-annotations/1.11.0/auto-value-annotations-1.11.0.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/com/google/errorprone/error_prone_annotations/2.35.1/error_prone_annotations-2.35.1.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/com/google/http-client/google-http-client-gson/1.47.0/google-http-client-gson-1.47.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/http-client/google-http-client-gson/2.0.0/google-http-client-gson-2.0.0.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/com/google/code/gson/gson/2.11.0/gson-2.11.0.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/com/google/guava/guava/33.1.0-jre/guava-33.1.0-jre.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/org/checkerframework/checker-qual/3.42.0/checker-qual-3.42.0.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/com/google/http-client/google-http-client-apache-v2/1.47.0/google-http-client-apache-v2-1.47.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/http-client/google-http-client-apache-v2/2.0.0/google-http-client-apache-v2-2.0.0.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/commons-logging/commons-logging/1.2/commons-logging-1.2.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/com/google/http-client/google-http-client/1.47.0/google-http-client-1.47.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/http-client/google-http-client/2.0.0/google-http-client-2.0.0.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/io/grpc/grpc-context/1.70.0/grpc-context-1.70.0.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/io/grpc/grpc-api/1.70.0/grpc-api-1.70.0.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/io/opencensus/opencensus-api/0.31.1/opencensus-api-0.31.1.jar!/" />

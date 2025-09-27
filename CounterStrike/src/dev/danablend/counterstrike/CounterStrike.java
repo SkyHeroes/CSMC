@@ -43,6 +43,7 @@ import java.util.concurrent.Callable;
 
 import static dev.danablend.counterstrike.Config.MAX_ROUNDS;
 import static dev.danablend.counterstrike.enums.GameState.*;
+import static dev.danablend.counterstrike.utils.PlayerUtils.changeSkin;
 import static dev.danablend.counterstrike.utils.PlayerUtils.isInSpawn;
 import static dev.danablend.counterstrike.utils.Utils.sortByValue;
 
@@ -106,7 +107,7 @@ public class CounterStrike extends JavaPlugin {
     public boolean modeValorant = false;
     public boolean modeRealms = false;
     public boolean activated = false;
-
+    public boolean allowJoinRunningGame = false;
 
     public void onEnable() {
         i = this;
@@ -229,7 +230,6 @@ public class CounterStrike extends JavaPlugin {
         pm.registerEvents(new PlayerDropItemListener(), this);
         pm.registerEvents(new PlayerJoinListener(), this);
         pm.registerEvents(new PlayerDeathListener(), this);
-        pm.registerEvents(new CustomPlayerDeathListener(), this);
         pm.registerEvents(new EntityDamageByEntityListener(), this);
         pm.registerEvents(new WeaponFireListener(), this);
         pm.registerEvents(new ShopListener(this), this);
@@ -348,6 +348,11 @@ public class CounterStrike extends JavaPlugin {
     }
 
 
+    public int DeleteDBConfig(String Map) {
+        return sqlite.checkLock("delete from csMaps where descr = '" + Map + "'");
+    }
+
+
     public void LoadDBRandomMaps(int mapId) {
 
         if (sqlite != null) {
@@ -410,6 +415,39 @@ public class CounterStrike extends JavaPlugin {
             loadConfigs();
         }
 
+    }
+
+
+    public String[] LoadDBSkins(String descr) {
+
+        if (sqlite != null) {
+
+            String signature = sqlite.select("select signature from Skins where descr = '" + descr + "' limit 1");
+
+            if (signature != null && !signature.equals("")) {
+
+                String texture = sqlite.select("select texture from Skins where descr = '" + descr + "' limit 1");
+
+                String[] object = new String[2];
+                object[0] = texture;
+                object[1] = signature;
+                return object;
+            } else {
+                return null;
+            }
+
+        }
+        return null;
+    }
+
+
+    public void StoreSkin(String name, String[] object) {
+        sqlite.checkLock("insert into skins (Descr,signature,texture) values ('" + name + "','" + object[1] + "','" + object[0] + "')");
+    }
+
+
+    public int UpdateStoredSkin(String name, String[] object) {
+        return sqlite.checkLock("update skins set signature = '" + object[1] + "', texture= '" + object[0] + "' where Descr='" + name + "'");
     }
 
 
@@ -494,6 +532,7 @@ public class CounterStrike extends JavaPlugin {
         standardTeamColours = getConfig().getBoolean("standardTeamColours", false);
         modeValorant = getConfig().getBoolean("modeValorant", false);
         modeRealms = getConfig().getBoolean("modeRealms", false);
+        allowJoinRunningGame= getConfig().getBoolean("allowJoinRunningGame", false);
 
         String key = getConfig().getString("upgradeKey");
         String decodedString = new String(Base64.decodeBase64("ZVc5MUlHdHVNSGNnZEdobElIUnlkWFJvUFE9PT0"));
@@ -526,6 +565,7 @@ public class CounterStrike extends JavaPlugin {
         config.addDefault("standardTeamColours", false);
         config.addDefault("modeValorant", false);
         config.addDefault("modeRealms", false);
+        config.addDefault("allowJoinRunningGame", false);
 
         config.addDefault("upgradeKey", "xpto");
 
@@ -557,6 +597,8 @@ public class CounterStrike extends JavaPlugin {
 
 
     public void startGame() {
+        CheckBalancedTeams();
+
         Utils.debug("---> Starting game initiated...");
 
         Preparemap();
@@ -612,16 +654,19 @@ public class CounterStrike extends JavaPlugin {
             csplayer.setMoney(csplayer.getMoney() + Config.MONEY_ON_VICTORY);
             csplayer.getPlayer().sendMessage(ChatColor.GREEN + "+ $" + Config.MONEY_ON_VICTORY);
 
+            //Checking most MVP of the round
             if (csplayer.gettempMVP() > MVPscore) {
                 MVPscore = csplayer.gettempMVP();
                 csMVPPlayer = csplayer;
             }
         }
 
+        //Setting most MVP of the round
         if (csMVPPlayer != null) {
             csMVPPlayer.setMVP(csMVPPlayer.getMVP() + 1);
             MVPPlayer = ChatColor.AQUA + " Round's MVP " + csMVPPlayer.getPlayer().getName();
         }
+
         winnerTeam.addVictory();
         loserTeam.addLoss();
 
@@ -786,6 +831,8 @@ public class CounterStrike extends JavaPlugin {
 
                 myBukkit.playerTeleport(player, getLobbyLocation());
                 player.setGameMode(GameMode.SURVIVAL);
+
+                changeSkin(player, player.getName());
             }
         }
 
@@ -799,6 +846,8 @@ public class CounterStrike extends JavaPlugin {
 
 
     private void setupPlayers() {
+
+        int i = 1;
 
         for (CSPlayer csPlayer : terrorists) {
             Player player = csPlayer.getPlayer();
@@ -815,7 +864,11 @@ public class CounterStrike extends JavaPlugin {
             }
             giveEquipment(csPlayer);
             csPlayer.settempMVP(0);
+
+            changeSkin(player, "terr" + i++);
         }
+
+        i = 1;
 
         for (CSPlayer csPlayer : counterTerrorists) {
             Player player = csPlayer.getPlayer();
@@ -832,6 +885,8 @@ public class CounterStrike extends JavaPlugin {
             }
             giveEquipment(csPlayer);
             csPlayer.settempMVP(0);
+
+            changeSkin(player, "ct" + i++);
         }
 
         //for everyone
@@ -926,6 +981,71 @@ public class CounterStrike extends JavaPlugin {
     }
 
 
+    private void CheckBalancedTeams() {
+        int ct = counterTerroristsTeam.getCsPlayers().size(), terr = terroristsTeam.getCsPlayers().size();
+
+        if (ct > terr + 1) {
+            Collection<CSPlayer> tmp = new ArrayList<CSPlayer>();
+
+            for (CSPlayer csPlayer : counterTerrorists) {
+                tmp.add(csPlayer);
+            }
+
+            for (CSPlayer csPlayer : tmp) {
+                Player player = csPlayer.getPlayer();
+
+                String corAdversaria = CounterStrike.i.getTerroristsTeam().getColour();
+
+                counterTerrorists.remove(csPlayer);
+                terrorists.add(csPlayer);
+
+                csPlayer.setTeam(TeamEnum.TERRORISTS);
+                csPlayer.setColourOpponent(corAdversaria);
+
+                player.sendMessage("You have been moved to " + csPlayer.getTeam().name() + " team in order to balance numbers");
+
+                Utils.debug(player.getName() + " has been moved to " + csPlayer.getTeam().name() + " team in order to balance numbers");
+
+                ct--;
+                terr++;
+
+                if (terr == ct || terr == ct + 1) {
+                    break;
+                }
+            }
+        } else if (terr > ct + 1) {
+            Collection<CSPlayer> tmp = new ArrayList<CSPlayer>();
+
+            for (CSPlayer csPlayer : terrorists) {
+                tmp.add(csPlayer);
+            }
+
+            for (CSPlayer csPlayer : tmp) {
+                Player player = csPlayer.getPlayer();
+
+                String corAdversaria = CounterStrike.i.getCounterTerroristsTeam().getColour();
+
+                terrorists.remove(csPlayer);
+                counterTerrorists.add(csPlayer);
+
+                csPlayer.setTeam(TeamEnum.COUNTER_TERRORISTS);
+                csPlayer.setColourOpponent(corAdversaria);
+
+                player.sendMessage("You have been moved to " + csPlayer.getTeam().name() + " team in order to balance numbers");
+
+                Utils.debug(player.getName() + " has been moved to " + csPlayer.getTeam().name() + " team in order to balance numbers");
+
+                ct++;
+                terr--;
+
+                if (ct == terr || ct == terr + 1) {
+                    break;
+                }
+            }
+        }
+    }
+
+
     public GameTimer getGameTimer() {
         return timer;
     }
@@ -937,7 +1057,7 @@ public class CounterStrike extends JavaPlugin {
     }
 
 
-    public CSPlayer getCSPlayer(Player player, boolean create, String colour) {
+    public synchronized CSPlayer getCSPlayer(Player player, boolean create, String colour) {
 
         for (CSPlayer csPlayer : csPlayers) {
             if (csPlayer.getPlayer().getUniqueId().equals(player.getUniqueId())) {
@@ -965,8 +1085,6 @@ public class CounterStrike extends JavaPlugin {
                     }
                 }
             }
-            //player.getClientBrandName() returns optifine on me
-            //player.getProtocolVersion() 769
 
             Utils.debug("Returning a new CSPlayer...");
             return csp;
@@ -1291,10 +1409,13 @@ public class CounterStrike extends JavaPlugin {
                     csplay.getPlayer().getInventory().setItem(TNT_SLOT, CSUtil.getBombItem());
                 }
             }
+
+            changeSkin(player, "terr1");
         }
 
         if (counterTerrorists.contains(csplay)) {
             csplay.setColourOpponent(terroristsTeam.getColour());
+            changeSkin(player, "ct1");
             //Coloca na base contra
             if (running) myBukkit.playerTeleport(player, getCounterTerroristSpawn(true));
         }

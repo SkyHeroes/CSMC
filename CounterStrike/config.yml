@@ -24,6 +24,8 @@ money-on-loss-reward: 2000
 bomb-block: OBSIDIAN
 # The amount of seconds it should take for the bomb to explode.
 bomb-timer: 45
+# The amount of seconds players have, to join a game after minimum selected.
+start-counter-duration: 40
 # The amount of seconds players have, to buy items from the shop in start of each round.
 shop-phase-duration: 15
 # The amount of seconds every round will take (Counter Terrorists win if this timer runs out, and the bomb stops the timer if planted).

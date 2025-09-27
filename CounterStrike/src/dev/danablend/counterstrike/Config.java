@@ -18,16 +18,17 @@ public class Config {
     private static final FileConfiguration config = CounterStrike.i.getConfig();
     public static final boolean GAME_ENABLED = config.getBoolean("enabled", true);
     public static final boolean DEBUGGING_ENABLED = config.getBoolean("debug", false);
-    public static  int MIN_PLAYERS = config.getInt("min-players", 5);
-    public static final int MAX_PLAYERS = config.getInt("max-players", 10);
+    public static int MIN_PLAYERS = config.getInt("min-players", 5);
+    public static int MAX_PLAYERS = config.getInt("max-players", 10);
     public static final int MAX_ROUNDS = config.getInt("max-rounds", 30);
     public static final int STARTING_MONEY = config.getInt("starting-money", 800);
     public static final int MONEY_ON_VICTORY = config.getInt("money-on-win-reward", 3000);
     public static final int MONEY_ON_LOSS = config.getInt("money-on-loss-reward", 2000);
     public static final int BOMB_TIMER = config.getInt("bomb-timer", 45);
+    public static final int START_COUNTER_DURATION = config.getInt("start-counter-duration", 40);
     public static final int SHOP_PHASE_DURATION = config.getInt("shop-phase-duration", 15);
     public static final int MATCH_DURATION = config.getInt("match-duration", 120);
-    public static final Material BOMB_MATERIAL = Material.getMaterial(config.getString("bomb-block", "BEDROCK"));
+    public static Material BOMB_MATERIAL = Material.getMaterial(config.getString("bomb-block", "BEDROCK"));
     public static final float BOMB_DEFUSE_TIME = (float) config.getDouble("bomb-defuse-time", 5f);
     public static final boolean FRIENDLY_FIRE_ENABLED = config.getBoolean("friendly-fire-enabled", false);
 

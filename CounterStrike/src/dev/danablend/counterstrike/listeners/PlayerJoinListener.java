@@ -1,5 +1,6 @@
 package dev.danablend.counterstrike.listeners;
 
+import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
@@ -24,7 +25,8 @@ import org.bukkit.event.player.*;
 import org.bukkit.event.server.ServerListPingEvent;
 
 import static dev.danablend.counterstrike.Config.*;
-import static org.bukkit.event.player.PlayerResourcePackStatusEvent.Status.*;
+import static org.bukkit.event.player.PlayerResourcePackStatusEvent.Status.ACCEPTED;
+import static org.bukkit.event.player.PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED;
 
 public class PlayerJoinListener implements Listener {
 
@@ -229,7 +231,7 @@ public class PlayerJoinListener implements Listener {
 
             if (plugin.VoteHash.size() > 0) {
                 event.setMotd(ChatColor.AQUA + "CSMC Game has map been voted...");
-            }else {
+            } else {
                 event.setMotd(ChatColor.AQUA + "CSMC Game is waiting for more players...");
             }
 
@@ -262,22 +264,29 @@ public class PlayerJoinListener implements Listener {
             maxPlayers = 16;
         }
 
-        CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
+        CSPlayer csplayer = plugin.getCSPlayer(player, false, null);
 
-        if (CounterStrike.i.getCSPlayers().size() > maxPlayers && csplayer == null) {
+        if (plugin.getCSPlayers().size() > maxPlayers && csplayer == null) {
             PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "We are sorry", ChatColor.GREEN + "The game is full, please try again later.", 1, 4, 1);
             return;
         }
 
         if (csplayer == null && event.getAction().equals(Action.LEFT_CLICK_BLOCK)) {
 
-            //configurable???
-//            if (CounterStrike.i.getGameState().equals(GameState.RUN)) {
-//                dev.danablend.counterstrike.csplayer.Team myTeam = CounterStrike.i.getTerroristsTeam();
-//
-//                PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "Wait for the end of the current round to join", ChatColor.GREEN + "Current round: " + (myTeam.getLosses() + myTeam.getWins() + 1) + " of " + MAX_ROUNDS + ". Estimated time for new " + CounterStrike.i.getGameTimer().returnTimetoEnd() + "secs", 1, 4, 1);
-//                return;
-//            }
+            if (!plugin.allowJoinRunningGame && (plugin.getGameState().equals(GameState.SHOP) || plugin.getGameState().equals(GameState.RUN) || plugin.getGameState().equals(GameState.PLANTED))) {
+                dev.danablend.counterstrike.csplayer.Team myTeam = plugin.getTerroristsTeam();
+
+                int remainTime;
+
+                if (CounterStrike.i.getGameTimer() == null) {
+                    remainTime = Config.MATCH_DURATION;
+                } else {
+                    remainTime = CounterStrike.i.getGameTimer().returnTimetoEnd();
+                }
+
+                PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "Wait for the end of the current round to join", ChatColor.GREEN + "Current round: " + (myTeam.getLosses() + myTeam.getWins() + 1) + " of " + MAX_ROUNDS + ". Estimated time for new " + remainTime + "secs", 1, 4, 1);
+                return;
+            }
 
             Block blockUnder = event.getClickedBlock();
 
@@ -302,28 +311,27 @@ public class PlayerJoinListener implements Listener {
                 return;
             }
 
-            csplayer = CounterStrike.i.getCSPlayer(player, true, materialColour);
-
-            String corAdversaria;
+            csplayer = plugin.getCSPlayer(player, true, materialColour);
 
             if (!csplayer.returStatus()) {
-                player.sendMessage("You have to choose another colour/team");
+                player.sendMessage("You have to choose one of the active colours/team in order to join, try  " + plugin.getTerroristsTeam().getColour() + "  or  " + plugin.getCounterTerroristsTeam().getColour());
                 csplayer.clear();
                 return;
             }
 
+            String corAdversaria;
+
             if (csplayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
-                corAdversaria = CounterStrike.i.getTerroristsTeam().getColour();
+                corAdversaria = plugin.getTerroristsTeam().getColour();
             } else {
-                corAdversaria = CounterStrike.i.getCounterTerroristsTeam().getColour();
+                corAdversaria = plugin.getCounterTerroristsTeam().getColour();
             }
 
             csplayer.setColourOpponent(corAdversaria);
 
             if ((plugin.getGameState().equals(GameState.LOBBY) || plugin.getGameState().equals(GameState.WAITING) || plugin.getGameState().equals(GameState.STARTING))) {
                 plugin.StartGameCounter(0);
-            }
-            else {
+            } else {
                 PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "Waiting for next round to join", ChatColor.GREEN + " please wait", 1, 10, 1);
 
                 //already runnig, will join next round
@@ -337,8 +345,7 @@ public class PlayerJoinListener implements Listener {
     }
 
 
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onPlayerMapVote(PlayerInteractEvent e) {
         if (!plugin.activated) return;
 
@@ -357,11 +364,17 @@ public class PlayerJoinListener implements Listener {
             }
         }
 
-        if ((plugin.getGameState().equals(GameState.LOBBY) || plugin.getGameState().equals(GameState.WAITING))) {
+        if ((plugin.getGameState().equals(GameState.LOBBY) || plugin.getGameState().equals(GameState.WAITING) || plugin.getGameState().equals(GameState.STARTING))) {
 
             if (e.getAction() == Action.LEFT_CLICK_BLOCK) {
 
                 if (e.getClickedBlock().getState() instanceof Sign) {
+
+                    if (plugin.getGameState().equals(GameState.STARTING)) {
+                        player.sendMessage("Game is already starting");
+                        e.setCancelled(true);
+                        return;
+                    }
 
                     Sign s = (Sign) e.getClickedBlock().getState();
 
@@ -381,13 +394,6 @@ public class PlayerJoinListener implements Listener {
                     e.setCancelled(true);
                 }
             }
-        } else {
-
-            CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
-
-            if (csplayer != null) return;
-
-            player.sendMessage("Game is already running");
         }
     }
 

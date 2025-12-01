@@ -21,6 +21,8 @@ public class PlayerDropItemListener implements Listener {
             if (md != null && !md.modoCs) {
                 return;
             }
+        } else {
+            return;
         }
 
         if (!event.getPlayer().isOp()) {

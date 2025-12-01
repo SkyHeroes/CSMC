@@ -11,9 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
-import static dev.danablend.counterstrike.Config.MAX_PLAYERS;
-import static dev.danablend.counterstrike.Config.MIN_PLAYERS;
-import static dev.danablend.counterstrike.Config.BOMB_MATERIAL;
+import static dev.danablend.counterstrike.Config.*;
 
 
 public class CounterStrikeCommand implements CommandExecutor {
@@ -38,7 +36,7 @@ public class CounterStrikeCommand implements CommandExecutor {
         Player player = (Player) sender;
 
         if (!player.hasPermission("cs.admin")) {
-            sender.sendMessage("You need permissions to execute this command.");
+            player.sendMessage("You need permissions to execute this command.");
             return true;
         }
 
@@ -76,8 +74,6 @@ public class CounterStrikeCommand implements CommandExecutor {
 
             plugin.SaveDBCOnfig(Map, "Lobby", location);
             player.sendMessage(ChatColor.GOLD + "Lobby location has been successfully set for map " + Map);
-
-            return true;
 
         } else if (args.length == 2 && args[0].equalsIgnoreCase("setspawn")) {
 
@@ -120,6 +116,7 @@ public class CounterStrikeCommand implements CommandExecutor {
             } else {
                 player.sendMessage(ChatColor.RED + "/counterstrike setspawn <counterterrorist/terrorist>");
             }
+
         } else if (args.length == 2 && args[0].equalsIgnoreCase("setbombsite")) {
 
             if (Map == null) {
@@ -135,7 +132,7 @@ public class CounterStrikeCommand implements CommandExecutor {
             String bombSiteName = args[1];
 
             if (!bombSiteName.equals("A") && !bombSiteName.equals("B")) {
-                sender.sendMessage("Bom site name needs to be A or B.");
+                player.sendMessage("Bom site name needs to be A or B.");
                 return true;
             }
 
@@ -161,11 +158,10 @@ public class CounterStrikeCommand implements CommandExecutor {
                 plugin.saveConfig();
                 plugin.loadConfigs();
 
-                sender.sendMessage(ChatColor.GOLD + "MinPlayers was set to " + args[1]);
+                player.sendMessage(ChatColor.GOLD + "MinPlayers was set to " + args[1]);
             } else {
-                sender.sendMessage(ChatColor.LIGHT_PURPLE + "Too late to change player min count ");
+                player.sendMessage(ChatColor.LIGHT_PURPLE + "Too late to change player min count ");
             }
-            return true;
 
         } else if (args.length == 2 && args[0].equalsIgnoreCase("setMaxPlayers")) {
 
@@ -177,11 +173,10 @@ public class CounterStrikeCommand implements CommandExecutor {
                 plugin.saveConfig();
                 plugin.loadConfigs();
 
-                sender.sendMessage(ChatColor.GOLD + "MaxPlayers was set to " + args[1]);
+                player.sendMessage(ChatColor.GOLD + "MaxPlayers was set to " + args[1]);
             } else {
-                sender.sendMessage(ChatColor.LIGHT_PURPLE + "Too late to change player max count ");
+                player.sendMessage(ChatColor.LIGHT_PURPLE + "Too late to change player max count ");
             }
-            return true;
 
         } else if (args.length == 2 && args[0].equalsIgnoreCase("setBombBlock")) {
 
@@ -190,7 +185,7 @@ public class CounterStrikeCommand implements CommandExecutor {
                 String block = args[1];
 
                 if (Material.getMaterial(block) == null) {
-                    sender.sendMessage(ChatColor.GOLD + "Material " + args[1] + " can't be used to plant bombs");
+                    player.sendMessage(ChatColor.GOLD + "Material " + args[1] + " can't be used to plant bombs");
                     return true;
                 }
 
@@ -201,39 +196,42 @@ public class CounterStrikeCommand implements CommandExecutor {
                 plugin.saveConfig();
                 plugin.loadConfigs();
 
-                sender.sendMessage(ChatColor.GOLD + "Material was set to " + args[1]);
+                player.sendMessage(ChatColor.GOLD + "Material was set to " + args[1]);
             } else {
-                sender.sendMessage(ChatColor.LIGHT_PURPLE + "Too late to change player max count ");
+                player.sendMessage(ChatColor.LIGHT_PURPLE + "Too late to change player max count ");
             }
-            return true;
 
         } else if (args.length == 1 && args[0].equalsIgnoreCase("stop")) {
 
             if (plugin.getGameState().equals(GameState.LOBBY) || plugin.getGameState().equals(GameState.WAITING) || plugin.getGameState().equals(GameState.STARTING) || plugin.getGameState().equals(GameState.SHOP)) {
-                sender.sendMessage(ChatColor.LIGHT_PURPLE + "Game hasn't start yet");
+                player.sendMessage(ChatColor.LIGHT_PURPLE + "Game hasn't start yet");
             } else {
                 plugin.getGameTimer().terminateTimer();
                 plugin.FinishGame(CounterStrike.i.getTerroristsTeam(), CounterStrike.i.getCounterTerroristsTeam());
             }
-            return true;
 
         } else if (args.length == 1 && args[0].equalsIgnoreCase("setRandMap")) {
 
             if (this.plugin.getGameState().equals(GameState.LOBBY) || this.plugin.getGameState().equals(GameState.WAITING) || this.plugin.getGameState().equals(GameState.STARTING)) {
                 this.plugin.LoadDBRandomMaps(0);
             } else {
-                sender.sendMessage(ChatColor.LIGHT_PURPLE + "Too late to change map " + this.plugin.getGameState());
+                player.sendMessage(ChatColor.LIGHT_PURPLE + "Too late to change map " + this.plugin.getGameState());
             }
-            return true;
+
+        } else if (args.length == 1 && args[0].equalsIgnoreCase("maintenance")) {
+
+            this.plugin.Maintenance(player);
 
         } else {
-            sender.sendMessage(ChatColor.GREEN + "/counterstrike setMap - " + ChatColor.GRAY + "Sets the current map been setup with next commands.");
-            sender.sendMessage(ChatColor.GREEN + "/counterstrike setlobby - " + ChatColor.GRAY + "Sets the spawn point for when the game is in lobby state.");
-            sender.sendMessage(ChatColor.GREEN + "/counterstrike setspawn <counterterrorist/terrorist> - " + ChatColor.GRAY + "Sets the spawn point for each team for when the game has started.");
-            sender.sendMessage(ChatColor.GREEN + "/counterstrike setbombsite <A/B> - " + ChatColor.GRAY + "Sets the bomb site for A or B (Required for AI).");
-            sender.sendMessage(ChatColor.GREEN + "/counterstrike delMap - " + ChatColor.GRAY + "To delete Map configuration from BD (You don't need this if you just want to fix a spawn).");
-            sender.sendMessage(ChatColor.GOLD + "Other commands setMinPlayers, setMaxPlayers, setRandMap, stop, setBombBlock.");
+            player.sendMessage(ChatColor.GREEN + "/counterstrike setMap - " + ChatColor.GRAY + "Sets the current map been setup with next commands.");
+            player.sendMessage(ChatColor.GREEN + "/counterstrike setlobby - " + ChatColor.GRAY + "Sets the spawn point for when the game is in lobby state.");
+            player.sendMessage(ChatColor.GREEN + "/counterstrike setspawn <counterterrorist/terrorist> - " + ChatColor.GRAY + "Sets the spawn point for each team for when the game has started.");
+            player.sendMessage(ChatColor.GREEN + "/counterstrike setbombsite <A/B> - " + ChatColor.GRAY + "Sets the bomb site for A or B (Required for AI).");
+            player.sendMessage(ChatColor.GREEN + "/counterstrike delMap - " + ChatColor.GRAY + "To delete Map configuration from BD (You don't need this if you just want to fix a spawn).");
+            player.sendMessage(ChatColor.GREEN + "/counterstrike maintenance - " + ChatColor.GRAY + "Set Maps on maintenance mode, so that you can change them.");
+            player.sendMessage(ChatColor.GOLD + "Other commands setMinPlayers, setMaxPlayers, setRandMap, stop, setBombBlock.");
         }
+
         return true;
     }
 

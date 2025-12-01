@@ -368,17 +368,22 @@ public class CSPlayer {
     }
 
 
-    public void setColourOpponent(String opponentcolour) {
-        this.opponentColour = opponentcolour;
+    public void setColour(String colour) {
+        this.colour = colour;
     }
 
     public String getColour() {
         return colour;
     }
 
+    public void setColourOpponent(String opponentcolour) {
+        this.opponentColour = opponentcolour;
+    }
+
     public String getOpponentColour() {
         return opponentColour;
     }
+
 
     public TeamEnum getTeam() {
         return team;

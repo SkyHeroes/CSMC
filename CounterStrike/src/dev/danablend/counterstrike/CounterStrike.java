@@ -532,7 +532,7 @@ public class CounterStrike extends JavaPlugin {
         standardTeamColours = getConfig().getBoolean("standardTeamColours", false);
         modeValorant = getConfig().getBoolean("modeValorant", false);
         modeRealms = getConfig().getBoolean("modeRealms", false);
-        allowJoinRunningGame= getConfig().getBoolean("allowJoinRunningGame", false);
+        allowJoinRunningGame = getConfig().getBoolean("allowJoinRunningGame", false);
 
         String key = getConfig().getString("upgradeKey");
         String decodedString = new String(Base64.decodeBase64("ZVc5MUlHdHVNSGNnZEdobElIUnlkWFJvUFE9PT0"));
@@ -765,6 +765,7 @@ public class CounterStrike extends JavaPlugin {
                 Player player = csplayer.getPlayer();
                 player.getInventory().clear();
             }
+
         }
 
         for (CSPlayer csplayer : getCSPlayers()) { //who ever is playing is teleported
@@ -984,6 +985,11 @@ public class CounterStrike extends JavaPlugin {
     private void CheckBalancedTeams() {
         int ct = counterTerroristsTeam.getCsPlayers().size(), terr = terroristsTeam.getCsPlayers().size();
 
+        String corTERR = CounterStrike.i.getTerroristsTeam().getColour();
+        String corCT = CounterStrike.i.getCounterTerroristsTeam().getColour();
+
+        Utils.debug(corCT + " corCT   Balanced   corTERR " + corTERR);
+
         if (ct > terr + 1) {
             Collection<CSPlayer> tmp = new ArrayList<CSPlayer>();
 
@@ -991,16 +997,16 @@ public class CounterStrike extends JavaPlugin {
                 tmp.add(csPlayer);
             }
 
+
             for (CSPlayer csPlayer : tmp) {
                 Player player = csPlayer.getPlayer();
-
-                String corAdversaria = CounterStrike.i.getTerroristsTeam().getColour();
 
                 counterTerrorists.remove(csPlayer);
                 terrorists.add(csPlayer);
 
                 csPlayer.setTeam(TeamEnum.TERRORISTS);
-                csPlayer.setColourOpponent(corAdversaria);
+                csPlayer.setColour(corTERR);
+                csPlayer.setColourOpponent(corCT);
 
                 player.sendMessage("You have been moved to " + csPlayer.getTeam().name() + " team in order to balance numbers");
 
@@ -1023,13 +1029,12 @@ public class CounterStrike extends JavaPlugin {
             for (CSPlayer csPlayer : tmp) {
                 Player player = csPlayer.getPlayer();
 
-                String corAdversaria = CounterStrike.i.getCounterTerroristsTeam().getColour();
-
                 terrorists.remove(csPlayer);
                 counterTerrorists.add(csPlayer);
 
                 csPlayer.setTeam(TeamEnum.COUNTER_TERRORISTS);
-                csPlayer.setColourOpponent(corAdversaria);
+                csPlayer.setColour(corCT);
+                csPlayer.setColourOpponent(corTERR);
 
                 player.sendMessage("You have been moved to " + csPlayer.getTeam().name() + " team in order to balance numbers");
 
@@ -1284,10 +1289,6 @@ public class CounterStrike extends JavaPlugin {
 
     private void giveEquipment(CSPlayer csPlayer) {
 
-        if (true) return;
-
-        Utils.debug("Giving equipment to csplayer...");
-
         Color mycolor;
 
         if (csPlayer.getColour().equals("RED")) {
@@ -1302,6 +1303,17 @@ public class CounterStrike extends JavaPlugin {
             mycolor = Color.YELLOW;
         }
 
+        ItemStack leggings = new ItemStack(Material.LEATHER_LEGGINGS);
+        LeatherArmorMeta leggingsMeta = (LeatherArmorMeta) leggings.getItemMeta();
+        leggingsMeta.setColor(mycolor);
+        leggings.setItemMeta(leggingsMeta);
+
+        Player player = csPlayer.getPlayer();
+        player.getInventory().setLeggings(leggings);
+        Utils.debug("Giving equipment to csplayer... " + mycolor);
+
+        if (true) return;
+
         ItemStack helmet = new ItemStack(Material.LEATHER_HELMET);
         LeatherArmorMeta helmetMeta = (LeatherArmorMeta) helmet.getItemMeta();
         helmetMeta.setColor(mycolor);
@@ -1312,20 +1324,13 @@ public class CounterStrike extends JavaPlugin {
         chestplateMeta.setColor(mycolor);
         chestplate.setItemMeta(chestplateMeta);
 
-        ItemStack leggings = new ItemStack(Material.LEATHER_LEGGINGS);
-        LeatherArmorMeta leggingsMeta = (LeatherArmorMeta) leggings.getItemMeta();
-        leggingsMeta.setColor(mycolor);
-        leggings.setItemMeta(leggingsMeta);
-
         ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
         LeatherArmorMeta bootsMeta = (LeatherArmorMeta) boots.getItemMeta();
         bootsMeta.setColor(mycolor);
         boots.setItemMeta(bootsMeta);
 
-        Player player = csPlayer.getPlayer();
         player.getInventory().setHelmet(helmet);
         player.getInventory().setChestplate(chestplate);
-        player.getInventory().setLeggings(leggings);
         player.getInventory().setBoots(boots);
     }
 
@@ -1565,6 +1570,37 @@ public class CounterStrike extends JavaPlugin {
                     botManager.terminateBots();
                 }, 20);
             }
+        }
+    }
+
+
+    public void Maintenance(Player player) {
+
+        if ((getGameState().equals(GameState.LOBBY))) {
+            HashWorlds = null;
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "You have now 200s to do your Map maintenance");
+
+            myBukkit.runTaskLater(null, null, null, () -> {
+                        try (Connection conn = sqlite.connect();
+                             Statement stmt = conn.createStatement();
+                             ResultSet rs = stmt.executeQuery("select id, nome, ifnull(modoCs,false) modoCs from mundos;")) {
+                            HashWorlds = new Hashtable();
+
+                            while (rs.next()) {
+                                String world = rs.getString("nome");
+                                Worlds md = new Worlds(rs.getInt("id"), world, Boolean.parseBoolean(rs.getString("modoCs")));
+                                HashWorlds.put(world, md);
+                            }
+
+                            player.sendMessage(ChatColor.LIGHT_PURPLE + "Map maintenance is now OFF");
+                        } catch (SQLException e) {
+                            Utils.debug("Exception loading maps " + e.getMessage());
+                        }
+                    }
+                    , 2000L);
+
+        } else {
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "Must be stopped on Lobby game state");
         }
     }
 

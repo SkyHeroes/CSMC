@@ -26,6 +26,8 @@ public class InventoryClickListener implements Listener {
             if (md != null && !md.modoCs) {
                 return;
             }
+        } else {
+            return;
         }
 
         e.setCancelled(true);

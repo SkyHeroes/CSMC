@@ -98,6 +98,7 @@ public class CounterStrike extends JavaPlugin {
 
     private static Object gameCounterTask;
     private IACenter botManager;
+    public int systemSet = -1;
 
     private boolean randomMaps = false;
     private boolean alwaysDay = false;
@@ -111,6 +112,10 @@ public class CounterStrike extends JavaPlugin {
 
     public void onEnable() {
         i = this;
+
+        if (!CounterStrike.i.usingQualityArmory()) {
+            Utils.debug("#####  QualityArmory not loaded, using compatibility mode... ");
+        }
 
         setup();
 
@@ -165,6 +170,13 @@ public class CounterStrike extends JavaPlugin {
             Utils.debug("Could not find PlaceholderAPI!");
         }
 
+        if (sqlite != null) {
+            String result = sqlite.select("select max(id) from CSMaps");
+
+            if (result == null || result.equals("")) systemSet = 0;
+            else systemSet = 8;
+        }
+
         myBukkit.UpdateChecker(true);
 
         Utils.debug("Enabled");
@@ -187,11 +199,6 @@ public class CounterStrike extends JavaPlugin {
     private void setup() {
 
         Utils.debug("Preparing maps for game...");
-
-        if (!CounterStrike.i.usingQualityArmory()) {
-            Utils.debug("#####  QualityArmory not loaded, aborting... ");
-            return;
-        }
 
         myBukkit = new MyBukkit(this);
 
@@ -375,6 +382,8 @@ public class CounterStrike extends JavaPlugin {
                     result1 = sqlite.select("select descr from CSMaps where id = " + Rand);
 
                     if (result1 != null && !result1.equals("")) {
+                        systemSet = 8;
+
                         Map = result1;
                         Utils.debug("#####  " + ChatColor.WHITE + "Map " + result1 + " was randomly chosen");
                         broadcastMessage(ChatColor.WHITE + "Map " + result1 + " was randomly chosen");
@@ -542,10 +551,18 @@ public class CounterStrike extends JavaPlugin {
 
         Utils.debug(activated + " trueTeamColours:" + standardTeamColours + "  informGameStatus:" + showGameStatusTitle);
 
-        if (!activated) {
-            getLogger().warning(" >>>>   Standard version detected, make sure you have QualityArmory config= 'useDefaultResourcepack: true'");
+        if (usingQualityArmory()) {
+            if (!activated) {
+                getLogger().warning(" >>>>   Standard version detected, make sure you have QualityArmory config= 'useDefaultResourcepack: true'");
+            } else {
+                getLogger().warning(" >>>>   Premium version detected, make sure you have QualityArmory config= 'useDefaultResourcepack: false'");
+            }
         } else {
-            getLogger().warning(" >>>>   Premium version detected, make sure you have QualityArmory config= 'useDefaultResourcepack: false'");
+            if (!activated) {
+                getLogger().warning(" >>>>   Standard version detected, without QualityArmory");
+            } else {
+                getLogger().warning(" >>>>   Premium version detected, without QualityArmory");
+            }
         }
     }
 
@@ -860,8 +877,10 @@ public class CounterStrike extends JavaPlugin {
             //put in base
             myBukkit.playerTeleport(player, getTerroristSpawn(true));
 
-            if (player.getInventory().getItem(PISTOL_SLOT) == null || csPlayer.getPistol() == null) {
-                player.getInventory().setItem(PISTOL_SLOT, Weapon.getBykeyName("t-pistol-default").getItem());
+            if (CounterStrike.i.usingQualityArmory() && !CounterStrike.i.modeRealms) {
+                if (player.getInventory().getItem(PISTOL_SLOT) == null || csPlayer.getPistol() == null) {
+                    player.getInventory().setItem(PISTOL_SLOT, Weapon.getBykeyName("t-pistol-default").getItem());
+                }
             }
             giveEquipment(csPlayer);
             csPlayer.settempMVP(0);
@@ -881,8 +900,10 @@ public class CounterStrike extends JavaPlugin {
             //put in base
             myBukkit.playerTeleport(player, getCounterTerroristSpawn(true));
 
-            if (player.getInventory().getItem(PISTOL_SLOT) == null || csPlayer.getPistol() == null) {
-                player.getInventory().setItem(PISTOL_SLOT, Weapon.getBykeyName("ct-pistol-default").getItem());
+            if (CounterStrike.i.usingQualityArmory() && !CounterStrike.i.modeRealms) {
+                if (player.getInventory().getItem(PISTOL_SLOT) == null || csPlayer.getPistol() == null) {
+                    player.getInventory().setItem(PISTOL_SLOT, Weapon.getBykeyName("ct-pistol-default").getItem());
+                }
             }
             giveEquipment(csPlayer);
             csPlayer.settempMVP(0);
@@ -1153,7 +1174,7 @@ public class CounterStrike extends JavaPlugin {
 
 
     public Location getLobbyLocation() {
-        if (Lobby == null) return null;
+        if (Lobby == null) LoadDBRandomMaps(0);
 
         String locRaw = Lobby;
         String[] locList = locRaw.split(",");
@@ -1310,7 +1331,7 @@ public class CounterStrike extends JavaPlugin {
 
         Player player = csPlayer.getPlayer();
         player.getInventory().setLeggings(leggings);
-        Utils.debug("Giving equipment to csplayer... " + mycolor);
+        Utils.debug("Giving equipment to csplayer... " + player.getName());
 
         if (true) return;
 

@@ -15,9 +15,12 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import static dev.danablend.counterstrike.CounterStrike.*;
 
@@ -27,27 +30,41 @@ public class Shop {
 
     private Collection<Weapon> terroristGuns;
     private Collection<Weapon> counterTerroristGuns;
+    private Collection<Material> minecraftGuns = new ArrayList<Material>();
+
 
     public Shop() {
         shop = this;
         this.terroristGuns = Weapon.getAllWeaponsByTeam(TeamEnum.TERRORISTS);
         this.counterTerroristGuns = Weapon.getAllWeaponsByTeam(TeamEnum.COUNTER_TERRORISTS);
+
+        // this.minecraftGuns.add(Material.LEATHER_LEGGINGS);
+        this.minecraftGuns.add(Material.LEATHER_HELMET);
+        this.minecraftGuns.add(Material.LEATHER_CHESTPLATE);
+        this.minecraftGuns.add(Material.CROSSBOW);
+        this.minecraftGuns.add(Material.BOW);
+        this.minecraftGuns.add(Material.MACE);
+        this.minecraftGuns.add(Material.TRIDENT);
+        this.minecraftGuns.add(Material.IRON_SWORD);
+        this.minecraftGuns.add(Material.DIAMOND_SWORD);
+        this.minecraftGuns.add(Material.NETHERITE_SWORD);
     }
+
 
     public static Shop getShop() {
         Utils.debug("Getting Shop...");
         return shop;
     }
 
+
     public void openCounterTerroristShop(Player player) {
-        Utils.debug("Opening Counter Terrorist Shop for " + player.getName());
         Inventory inv = Bukkit.createInventory(null, getInventorySize(counterTerroristGuns.size() + 2), Config.counterTerroristShopName);
 
-        if (!CounterStrike.i.usingQualityArmory() && false) {
-            inv.addItem(new ItemStack(Material.LEATHER_HELMET));
-            inv.addItem(new ItemStack(Material.LEATHER_CHESTPLATE));
-        } else {
+        Utils.debug("Opening Counter Terrorist Shop for " + player.getName());
 
+        if (!CounterStrike.i.usingQualityArmory() || CounterStrike.i.modeRealms) {
+            setRealmInventory(player, inv);
+        } else {
             for (Weapon gun : counterTerroristGuns) {
                 inv.addItem(gun.getShopItem());
             }
@@ -59,16 +76,15 @@ public class Shop {
         player.openInventory(inv);
     }
 
+
     public void openTerroristShop(Player player) {
-        Utils.debug("Opening Terrorist Shop for " + player.getName());
         Inventory inv = Bukkit.createInventory(null, getInventorySize(terroristGuns.size() + 2), Config.terroristShopName);
 
-        //will be new mode
-        if (!CounterStrike.i.usingQualityArmory() && false) {
-            inv.addItem(new ItemStack(Material.LEATHER_HELMET));
-            inv.addItem(new ItemStack(Material.LEATHER_CHESTPLATE));
-        } else {
+        Utils.debug("Opening Terrorist Shop for " + player.getName());
 
+        if (!CounterStrike.i.usingQualityArmory() || CounterStrike.i.modeRealms) {
+            setRealmInventory(player, inv);
+        } else {
             for (Weapon gun : terroristGuns) {
                 inv.addItem(gun.getShopItem());
             }
@@ -80,11 +96,150 @@ public class Shop {
         player.openInventory(inv);
     }
 
-    public void purchaseShopItem(Player player, ItemStack item) {
+
+    private void setRealmInventory(Player player, Inventory inv) {
+
+        if (player == null) return;
+
         CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
         if (csplayer == null) return;
+
+        Color mycolor;
+
+        if (csplayer.getColour().equals("RED")) {
+            mycolor = Color.RED;
+        } else if (csplayer.getColour().equals("BLUE")) {
+            mycolor = Color.BLUE;
+        } else if (csplayer.getColour().equals("GREEN")) {
+            mycolor = Color.GREEN;
+        } else if (csplayer.getColour().equals("AQUA")) {
+            mycolor = Color.AQUA;
+        } else {
+            mycolor = Color.YELLOW;
+        }
+
+        String shopname = "";
+
+        for (Material gun : minecraftGuns) {
+
+            ItemStack item = new ItemStack(gun);
+            int price = 0;
+
+            if (item.getType().equals(Material.LEATHER_HELMET)) {
+                price = 500;
+
+                LeatherArmorMeta helmetMeta = (LeatherArmorMeta) item.getItemMeta();
+                helmetMeta.setColor(mycolor);
+                helmetMeta.setLore(List.of(
+                        "§7Price: §a" + price,
+                        "§7Click to buy"
+                ));
+                item.setItemMeta(helmetMeta);
+
+            } else if (item.getType().equals(Material.LEATHER_CHESTPLATE)) {
+                price = 500;
+
+                LeatherArmorMeta ArmorMeta = (LeatherArmorMeta) item.getItemMeta();
+                ArmorMeta.setColor(mycolor);
+                ArmorMeta.setLore(List.of(
+                        "§7Price: §a" + price,
+                        "§7Click to buy"
+                ));
+
+                item.setItemMeta(ArmorMeta);
+
+            } else if (item.getType().equals(Material.CROSSBOW)) {
+                price = 700;
+
+                ItemMeta meta = item.getItemMeta();
+                meta.setLore(List.of(
+                        "§7Price: §a " + price,
+                        "§7Click to buy"
+                ));
+
+                item.setItemMeta(meta);
+
+            } else if (item.getType().equals(Material.BOW)) {
+                price = 600;
+
+                ItemMeta meta = item.getItemMeta();
+                meta.setLore(List.of(
+                        "§7Price: §a " + price,
+                        "§7Click to buy"
+                ));
+
+                item.setItemMeta(meta);
+
+            } else if (item.getType().equals(Material.MACE)) {
+                price = 1000;
+
+                ItemMeta meta = item.getItemMeta();
+                meta.setLore(List.of(
+                        "§7Price: §a " + price,
+                        "§7Click to buy"
+                ));
+
+                item.setItemMeta(meta);
+
+
+
+            } else if (item.getType().equals(Material.TRIDENT)) {
+                price = 1500;
+
+                ItemMeta meta = item.getItemMeta();
+                meta.setLore(List.of(
+                        "§7Price: §a " + price,
+                        "§7Click to buy"
+                ));
+
+                item.setItemMeta(meta);
+
+            } else if (item.getType().equals(Material.IRON_SWORD)) {
+                price = 1100;
+
+                ItemMeta meta = item.getItemMeta();
+                meta.setLore(List.of(
+                        "§7Price: §a " + price,
+                        "§7Click to buy"
+                ));
+
+                item.setItemMeta(meta);
+
+            } else if (item.getType().equals(Material.DIAMOND_SWORD)) {
+                price = 1800;
+
+                ItemMeta meta = item.getItemMeta();
+                meta.setLore(List.of(
+                        "§7Price: §a " + price,
+                        "§7Click to buy"
+                ));
+
+                item.setItemMeta(meta);
+
+            } else if (item.getType().equals(Material.NETHERITE_SWORD)) {
+                price = 2500;
+
+                ItemMeta meta = item.getItemMeta();
+                meta.setLore(List.of(
+                        "§7Price: §a " + price,
+                        "§7Click to buy"
+                ));
+
+                item.setItemMeta(meta);
+            }
+
+            inv.addItem(item);
+        }
+
+    }
+
+
+    public void purchaseShopItem(Player player, ItemStack item) {
         if (player == null) return;
+
+        CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
+        if (csplayer == null) return;
 
         Color mycolor;
 
@@ -101,11 +256,45 @@ public class Shop {
         }
 
         int money = csplayer.getMoney();
+        int price = 0;
         int slot = -1;
         String message = "";
 
         //will be new mode
-        if (!CounterStrike.i.usingQualityArmory() && false) {
+        if (!CounterStrike.i.usingQualityArmory() || CounterStrike.i.modeRealms) {
+
+            if (item.getType().equals(Material.LEATHER_HELMET)) {
+                price = 500;
+            } else if (item.getType().equals(Material.LEATHER_CHESTPLATE)) {
+                price = 500;
+            } else if (item.getType().equals(Material.CROSSBOW)) {
+                price = 700;
+                slot = GRENADE_SLOT;
+            } else if (item.getType().equals(Material.BOW)) {
+                price = 600;
+                slot = GRENADE_SLOT;
+            } else if (item.getType().equals(Material.MACE)) {
+                price = 1000;
+                slot = RIFLE_SLOT;
+            } else if (item.getType().equals(Material.TRIDENT)) {
+                price = 1500;
+                slot = RIFLE_SLOT;
+            } else if (item.getType().equals(Material.IRON_SWORD)) {
+                price = 1100;
+                slot = PISTOL_SLOT;
+            } else if (item.getType().equals(Material.DIAMOND_SWORD)) {
+                price = 1800;
+                slot = PISTOL_SLOT;
+            } else if (item.getType().equals(Material.NETHERITE_SWORD)) {
+                price = 2500;
+                slot = PISTOL_SLOT;
+            }
+
+            if (price > money) {
+                Utils.debug(" --> " + ChatColor.RED + "Sorry, but you cannot afford this item.");
+                player.sendMessage(ChatColor.RED + "Sorry, but you cannot afford this item.");
+                return;
+            }
 
             if (item.getType().equals(Material.LEATHER_HELMET)) {
 
@@ -113,14 +302,11 @@ public class Shop {
                     message = ChatColor.RED + "Fixing current helmet.";
                 }
 
-                try {
-                    LeatherArmorMeta helmetMeta = (LeatherArmorMeta) item.getItemMeta();
-                    helmetMeta.setColor(mycolor);
-                    ItemStack helm = item;
-                    helm.setItemMeta(helmetMeta);
-                    player.getInventory().setHelmet(helm);
-                } catch (Exception e) {
-                }
+                LeatherArmorMeta helmetMeta = (LeatherArmorMeta) item.getItemMeta();
+                helmetMeta.setColor(mycolor);
+                ItemStack helm = item;
+                helm.setItemMeta(helmetMeta);
+                player.getInventory().setHelmet(helm);
             }
 
             if (item.getType().equals(Material.LEATHER_CHESTPLATE)) {
@@ -129,22 +315,25 @@ public class Shop {
                     message = ChatColor.RED + "Fixing current armour.";
                 }
 
-                try {
-                    LeatherArmorMeta ArmorMeta = (LeatherArmorMeta) item.getItemMeta();
-                    ArmorMeta.setColor(mycolor);
-                    ItemStack Arm = item;
-                    Arm.setItemMeta(ArmorMeta);
+                LeatherArmorMeta ArmorMeta = (LeatherArmorMeta) item.getItemMeta();
+                ArmorMeta.setColor(mycolor);
+                ItemStack Arm = item;
+                Arm.setItemMeta(ArmorMeta);
 
-                    player.getInventory().setChestplate(Arm);
-                } catch (Exception e) {
-                }
+                player.getInventory().setChestplate(Arm);
             }
 
-            //axe position 0
-            //sword position 1
-            //mace position 3
-            //bow position 4
-            //trident position 5
+            if (slot > -1) {
+
+                if (player.getInventory().getItem(slot) != null) {
+                    player.sendMessage(ChatColor.RED + "Sorry, you cannot have two items of this type.");
+                    return;
+                }
+
+                player.getInventory().setItem(slot, item);
+            }
+
+            csplayer.setMoney(money - price);
 
             if (message.equals("")) player.sendMessage(ChatColor.GREEN + "You have purchased " + item.getType());
             else player.sendMessage(message);
@@ -152,7 +341,7 @@ public class Shop {
             return;
         }
 
-
+        //## from where only with QA
         Weapon gun = Weapon.getByItem(item);
 
         if (gun == null) {
@@ -255,6 +444,7 @@ public class Shop {
         player.sendMessage(ChatColor.GREEN + "You have purchased " + gun.getDisplayName());
         // Utils.debug("Purchase of an item has been completed...");
     }
+
 
     public int getInventorySize(int amountOfItems) {
         Utils.debug("Getting inventory size for shops...");

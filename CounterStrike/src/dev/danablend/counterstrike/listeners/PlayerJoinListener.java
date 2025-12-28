@@ -93,6 +93,13 @@ public class PlayerJoinListener implements Listener {
                     player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20);
                     player.setFoodLevel(20);
                     player.setHealth(20);
+
+                    if (plugin.systemSet == 0 && player.isOp()) {
+                        player.sendMessage("Game is still not set with maps, a dedicated World is required for this!");
+                        player.sendMessage("If you would like to start setting up, go to the world you have for it and type /csmc setMap  with the map name");
+                        plugin.systemSet = 1;
+                    }
+
                     return;
                 }
             }

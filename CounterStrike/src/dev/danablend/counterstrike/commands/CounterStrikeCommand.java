@@ -1,7 +1,9 @@
 package dev.danablend.counterstrike.commands;
 
+import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.enums.GameState;
+import dev.danablend.counterstrike.enums.Weapon;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -19,6 +21,7 @@ public class CounterStrikeCommand implements CommandExecutor {
     CounterStrike plugin;
     FileConfiguration config;
     String Map = null;
+    private boolean ctSet, terrSet;
 
     public CounterStrikeCommand(CounterStrike plugin) {
         this.plugin = plugin;
@@ -42,13 +45,24 @@ public class CounterStrikeCommand implements CommandExecutor {
 
         if (args.length == 2 && args[0].equalsIgnoreCase("setMap")) {
             Map = args[1];
-            player.sendMessage(ChatColor.GOLD + "Assuming map " + Map + " continue with the lobby and spawn configs or run again to change name");
+            player.sendMessage(ChatColor.GOLD + "Assuming map " + Map + ", continue with lobby and spawn configs or run again to change name");
+
+            if (plugin.systemSet ==1) {
+                player.sendMessage(ChatColor.GREEN + "Great, now lets set the lobby type /csmc setlobby");
+                plugin.systemSet =2;
+            }
 
         } else if (args.length == 2 && args[0].equalsIgnoreCase("delMap")) {
 
             Map = args[1];
             int linhas = plugin.DeleteDBConfig(Map);
             player.sendMessage(ChatColor.GOLD + "Deleting map " + Map + " was completed with " + linhas + " lines afetcted");
+
+            if (plugin.systemSet < 8) {
+                player.sendMessage(ChatColor.GOLD + "You deleted map " + Map + ", do you want to try again with /csmc setMap  with the map name?");
+                plugin.systemSet =1;
+            }
+
             Map = null;
 
         } else if (args.length == 1 && args[0].equalsIgnoreCase("setlobby")) {
@@ -75,6 +89,11 @@ public class CounterStrikeCommand implements CommandExecutor {
             plugin.SaveDBCOnfig(Map, "Lobby", location);
             player.sendMessage(ChatColor.GOLD + "Lobby location has been successfully set for map " + Map);
 
+            if (plugin.systemSet ==2) {
+                player.sendMessage(ChatColor.GREEN + "Good, now lets set spawns with /csmc setspawn (ct or terrorist)");
+                plugin.systemSet =3;
+            }
+
         } else if (args.length == 2 && args[0].equalsIgnoreCase("setspawn")) {
 
             if (Map == null) {
@@ -99,6 +118,8 @@ public class CounterStrikeCommand implements CommandExecutor {
 
                 plugin.SaveDBCOnfig(Map, "Counter", location);
                 player.sendMessage(ChatColor.GOLD + "Counter Terrorist spawn has been successfully set for map " + Map);
+                plugin.systemSet++;
+                terrSet=true;
 
             } else if (args[1].equalsIgnoreCase("t") || args[1].equalsIgnoreCase("terrorist")) {
                 Location loc = player.getLocation();
@@ -112,9 +133,17 @@ public class CounterStrikeCommand implements CommandExecutor {
 
                 plugin.SaveDBCOnfig(Map, "Terrorist", location);
                 player.sendMessage(ChatColor.GOLD + "Terrorist spawn has been successfully set for map " + Map);
+                plugin.systemSet++;
+                ctSet=true;
 
             } else {
                 player.sendMessage(ChatColor.RED + "/counterstrike setspawn <counterterrorist/terrorist>");
+            }
+
+            if (plugin.systemSet >=5 && terrSet && ctSet) {
+                player.sendMessage(ChatColor.GREEN + "Congrats! Basic tutorial is now finished, you can also add different maps to this world! Enjoy!");
+                plugin.LoadDBRandomMaps(0);
+                plugin.systemSet = 8;
             }
 
         } else if (args.length == 2 && args[0].equalsIgnoreCase("setbombsite")) {
@@ -222,14 +251,28 @@ public class CounterStrikeCommand implements CommandExecutor {
 
             this.plugin.Maintenance(player);
 
+        } else if (args.length == 1 && args[0].equalsIgnoreCase("reloadConfig")) {
+
+            if (this.plugin.getGameState().equals(GameState.LOBBY)) {
+                Weapon.resetWeapons();
+
+                Config c = new Config();
+                c.loadWeapons();
+
+                this.plugin.loadConfigs();
+                player.sendMessage(ChatColor.GREEN + "CSMC Configs reloaded");
+            } else {
+                player.sendMessage(ChatColor.LIGHT_PURPLE + "You can only reload configs on lobby state, now is " + this.plugin.getGameState());
+            }
+
         } else {
-            player.sendMessage(ChatColor.GREEN + "/counterstrike setMap - " + ChatColor.GRAY + "Sets the current map been setup with next commands.");
+            player.sendMessage(ChatColor.GREEN + "/counterstrike setMap - " + ChatColor.GRAY + "Sets the current map Name been setup with next commands.");
             player.sendMessage(ChatColor.GREEN + "/counterstrike setlobby - " + ChatColor.GRAY + "Sets the spawn point for when the game is in lobby state.");
             player.sendMessage(ChatColor.GREEN + "/counterstrike setspawn <counterterrorist/terrorist> - " + ChatColor.GRAY + "Sets the spawn point for each team for when the game has started.");
             player.sendMessage(ChatColor.GREEN + "/counterstrike setbombsite <A/B> - " + ChatColor.GRAY + "Sets the bomb site for A or B (Required for AI).");
             player.sendMessage(ChatColor.GREEN + "/counterstrike delMap - " + ChatColor.GRAY + "To delete Map configuration from BD (You don't need this if you just want to fix a spawn).");
             player.sendMessage(ChatColor.GREEN + "/counterstrike maintenance - " + ChatColor.GRAY + "Set Maps on maintenance mode, so that you can change them.");
-            player.sendMessage(ChatColor.GOLD + "Other commands setMinPlayers, setMaxPlayers, setRandMap, stop, setBombBlock.");
+            player.sendMessage(ChatColor.GOLD + "Other commands setMinPlayers, setMaxPlayers, setRandMap, stop, setBombBlock, reloadConfig.");
         }
 
         return true;

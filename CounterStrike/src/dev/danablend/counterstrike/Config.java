@@ -37,7 +37,11 @@ public class Config {
 
 
     public void loadWeapons() {
+        if (!CounterStrike.i.usingQualityArmory() || CounterStrike.i.modeRealms) return;
+
         ConfigurationSection weapons = config.getConfigurationSection("weapons");
+
+        Weapon.resetWeapons();
 
         for (String weaponId : weapons.getValues(false).keySet()) {
             ConfigurationSection weapon = weapons.getConfigurationSection(weaponId);

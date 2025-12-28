@@ -80,6 +80,11 @@ public class Weapon {
         auxweapons.put(weapon.getDisplayName(), weapon);
     }
 
+    public static void resetWeapons()    {
+        weapons.clear();
+        auxweapons.clear();
+    }
+
     public static boolean isWeapon(ItemStack item) {
         return getByItem(item) != null;
     }

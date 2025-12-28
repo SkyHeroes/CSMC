@@ -77,6 +77,8 @@ public class EntityDamageByEntityListener implements Listener {
                     }
                 } else {
 
+                    if (!CounterStrike.i.usingQualityArmory() || CounterStrike.i.modeRealms) return;
+
                     Weapon gun = Weapon.getByItem(gunItem);
 
                     //no IronSights

@@ -16,6 +16,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerResourcePackStatusEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Team;
@@ -63,14 +64,14 @@ public class MyBukkit {
         if (isPaperBased) {
             isLegacy = (Bukkit.getMinecraftVersion().equals("1.20") || Bukkit.getMinecraftVersion().equals("1.20.1") || Bukkit.getMinecraftVersion().equals("1.20.2"));
         } else {
-            isLegacy = (Bukkit.getMinecraftVersion().equals("1.20") || Bukkit.getBukkitVersion().startsWith("1.20.1") || Bukkit.getBukkitVersion().startsWith("1.20.2"));
+            isLegacy = (Bukkit.getBukkitVersion().startsWith("1.20") || Bukkit.getBukkitVersion().startsWith("1.20.1") || Bukkit.getBukkitVersion().startsWith("1.20.2")); //spigot doesnt have Bukkit.getMinecraftVersion() on 1.21.8
         }
 
         if (isPaperBased) myBukkitPaper = new MyBukkitPaper();
 
         if (!isLegacy) myBukkitPaperNotLegacy = new MyBukkitPaperNotLegacy();
 
-        Utils.debug("Enabled    Paper:"+isPaperBased+"   Folia:"+isFoliaBased+ "   Legacy:"+ isLegacy + "   " +Bukkit.getBukkitVersion());
+        Utils.debug("Enabled    Paper:" + isPaperBased + "   Folia:" + isFoliaBased + "   Legacy:" + isLegacy + "   " + Bukkit.getBukkitVersion());
     }
 
 
@@ -188,7 +189,7 @@ public class MyBukkit {
             }
         } else {
             if (hologram != null) {
-               // Utils.debug("    Limpa ArmorStand ");
+                // Utils.debug("    Limpa ArmorStand ");
 
                 if (!main.isEnabled()) {
                     hologram.remove();
@@ -281,6 +282,31 @@ public class MyBukkit {
     }
 
 
+    public int getProtocolVersion(Player player) {
+        if (isPaperBased) {
+            return player.getProtocolVersion();
+        } else {
+            if (Bukkit.getBukkitVersion().startsWith("1.21.2") || Bukkit.getBukkitVersion().startsWith("1.21.3")) {
+                return 768;
+            }
+            else if (Bukkit.getBukkitVersion().startsWith("1.20") || Bukkit.getBukkitVersion().equals("1.21") || Bukkit.getBukkitVersion().startsWith("1.21.1")) {
+                return 767;
+            } else {
+                return 769;
+            }
+        }
+    }
+
+
+    public String getNameFromItemStack(ItemStack item) {
+        if (isPaper()) {
+            return item.getItemMeta().displayName().toString();
+        } else {
+            return item.getItemMeta().getDisplayName();
+        }
+    }
+
+
     public boolean isDownloded(PlayerResourcePackStatusEvent event) {
 
         if (!isLegacy) return myBukkitPaperNotLegacy.isDownloded(event);
@@ -322,7 +348,7 @@ public class MyBukkit {
             }
         } catch (Exception e) {
             String versionMessage = "[" + projectName + "] Connection exception: " + e.getMessage();
-            String intColor ="RED";
+            String intColor = "RED";
 
             consoleSendMessage("[" + projectName + "]", versionMessage, intColor);
         }

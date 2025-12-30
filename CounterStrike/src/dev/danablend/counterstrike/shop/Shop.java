@@ -42,7 +42,9 @@ public class Shop {
         this.minecraftGuns.add(Material.LEATHER_HELMET);
         this.minecraftGuns.add(Material.LEATHER_CHESTPLATE);
         this.minecraftGuns.add(Material.CROSSBOW);
-        this.minecraftGuns.add(Material.BOW);
+        this.minecraftGuns.add(Material.BOW); //level IIBow
+        this.minecraftGuns.add(Material.BOW); //level II Bow
+        // this.minecraftGuns.add(Material.BOW); //level III Bow
         this.minecraftGuns.add(Material.MACE);
         this.minecraftGuns.add(Material.TRIDENT);
         this.minecraftGuns.add(Material.IRON_SWORD);
@@ -131,10 +133,10 @@ public class Shop {
 
                 LeatherArmorMeta helmetMeta = (LeatherArmorMeta) item.getItemMeta();
                 helmetMeta.setColor(mycolor);
-                helmetMeta.setLore(List.of(
-                        "§7Price: §a" + price,
-                        "§7Click to buy"
-                ));
+                ArrayList<String> lore = new ArrayList<String>();
+                lore.add(ChatColor.YELLOW + "Cost: " + ChatColor.GREEN + "$" + price);
+                lore.add(ChatColor.YELLOW + "Click to buy");
+                helmetMeta.setLore(lore);
                 item.setItemMeta(helmetMeta);
 
             } else if (item.getType().equals(Material.LEATHER_CHESTPLATE)) {
@@ -142,32 +144,49 @@ public class Shop {
 
                 LeatherArmorMeta ArmorMeta = (LeatherArmorMeta) item.getItemMeta();
                 ArmorMeta.setColor(mycolor);
-                ArmorMeta.setLore(List.of(
-                        "§7Price: §a" + price,
-                        "§7Click to buy"
-                ));
-
+                ArrayList<String> lore = new ArrayList<String>();
+                lore.add(ChatColor.YELLOW + "Cost: " + ChatColor.GREEN + "$" + price);
+                lore.add(ChatColor.YELLOW + "Click to buy");
+                ArmorMeta.setLore(lore);
                 item.setItemMeta(ArmorMeta);
 
             } else if (item.getType().equals(Material.CROSSBOW)) {
-                price = 700;
+                price = 500;
 
                 ItemMeta meta = item.getItemMeta();
-                meta.setLore(List.of(
-                        "§7Price: §a " + price,
-                        "§7Click to buy"
-                ));
-
+                ArrayList<String> lore = new ArrayList<String>();
+                lore.add(ChatColor.YELLOW + "Cost: " + ChatColor.GREEN + "$" + price);
+                lore.add(ChatColor.YELLOW + "Click to buy");
+                lore.add(ChatColor.YELLOW + "Ammunition: " + ChatColor.GREEN + "50");
+                meta.setLore(lore);
                 item.setItemMeta(meta);
 
             } else if (item.getType().equals(Material.BOW)) {
-                price = 600;
 
                 ItemMeta meta = item.getItemMeta();
-                meta.setLore(List.of(
-                        "§7Price: §a " + price,
-                        "§7Click to buy"
-                ));
+
+                if (!inv.contains(Material.BOW)) { //Level I bow
+                    price = 1200;
+
+                    ArrayList<String> lore = new ArrayList<String>();
+                    lore.add(ChatColor.YELLOW + "Cost: " + ChatColor.GREEN + "$" + price);
+                    lore.add(ChatColor.YELLOW + "Click to buy");
+                    lore.add(ChatColor.YELLOW + "Ammunition: " + ChatColor.GREEN + "60");
+                    meta.setLore(lore);
+
+                    CounterStrike.i.myBukkit.setMeta(meta, ChatColor.YELLOW+"Normal Bow");
+
+                } else { //Level II bow
+                    price = 3000;
+
+                    ArrayList<String> lore = new ArrayList<String>();
+                    lore.add(ChatColor.YELLOW + "Cost: " + ChatColor.GREEN + "$" + price);
+                    lore.add(ChatColor.YELLOW + "Click to buy");
+                    lore.add(ChatColor.YELLOW + "Ammunition: " + ChatColor.GREEN + "30");
+                    meta.setLore(lore);
+
+                    CounterStrike.i.myBukkit.setMeta(meta, ChatColor.YELLOW+"Laser Bow");
+                }
 
                 item.setItemMeta(meta);
 
@@ -175,58 +194,53 @@ public class Shop {
                 price = 1000;
 
                 ItemMeta meta = item.getItemMeta();
-                meta.setLore(List.of(
-                        "§7Price: §a " + price,
-                        "§7Click to buy"
-                ));
-
+                ArrayList<String> lore = new ArrayList<String>();
+                lore.add(ChatColor.YELLOW + "Cost: " + ChatColor.GREEN + "$" + price);
+                lore.add(ChatColor.YELLOW + "Click to buy");
+                meta.setLore(lore);
                 item.setItemMeta(meta);
-
-
 
             } else if (item.getType().equals(Material.TRIDENT)) {
                 price = 1500;
 
                 ItemMeta meta = item.getItemMeta();
-                meta.setLore(List.of(
-                        "§7Price: §a " + price,
-                        "§7Click to buy"
-                ));
-
+                ArrayList<String> lore = new ArrayList<String>();
+                lore.add(ChatColor.YELLOW + "Cost: " + ChatColor.GREEN + "$" + price);
+                lore.add(ChatColor.YELLOW + "Click to buy");
+                meta.setLore(lore);
                 item.setItemMeta(meta);
 
             } else if (item.getType().equals(Material.IRON_SWORD)) {
                 price = 1100;
 
                 ItemMeta meta = item.getItemMeta();
-                meta.setLore(List.of(
-                        "§7Price: §a " + price,
-                        "§7Click to buy"
-                ));
-
+                ArrayList<String> lore = new ArrayList<String>();
+                lore.add(ChatColor.YELLOW + "Cost: " + ChatColor.GREEN + "$" + price);
+                lore.add(ChatColor.YELLOW + "Click to buy");
+                //   lore.add(ChatColor.YELLOW + "Damage: " + ChatColor.GREEN + item.getItemMeta().getAttributeModifiers(GENERIC_ATTACK_DAMAGE));
+                meta.setLore(lore);
                 item.setItemMeta(meta);
 
             } else if (item.getType().equals(Material.DIAMOND_SWORD)) {
                 price = 1800;
 
                 ItemMeta meta = item.getItemMeta();
-                meta.setLore(List.of(
-                        "§7Price: §a " + price,
-                        "§7Click to buy"
-                ));
-
+                ArrayList<String> lore = new ArrayList<String>();
+                lore.add(ChatColor.YELLOW + "Cost: " + ChatColor.GREEN + "$" + price);
+                lore.add(ChatColor.YELLOW + "Click to buy");
+                meta.setLore(lore);
                 item.setItemMeta(meta);
 
             } else if (item.getType().equals(Material.NETHERITE_SWORD)) {
                 price = 2500;
 
                 ItemMeta meta = item.getItemMeta();
-                meta.setLore(List.of(
-                        "§7Price: §a " + price,
-                        "§7Click to buy"
-                ));
-
+                ArrayList<String> lore = new ArrayList<String>();
+                lore.add(ChatColor.YELLOW + "Cost: " + ChatColor.GREEN + "$" + price);
+                lore.add(ChatColor.YELLOW + "Click to buy");
+                meta.setLore(lore);
                 item.setItemMeta(meta);
+
             }
 
             inv.addItem(item);
@@ -258,35 +272,45 @@ public class Shop {
         int money = csplayer.getMoney();
         int price = 0;
         int slot = -1;
+        int ammoamount = 0;
         String message = "";
 
         //will be new mode
         if (!CounterStrike.i.usingQualityArmory() || CounterStrike.i.modeRealms) {
 
-            if (item.getType().equals(Material.LEATHER_HELMET)) {
-                price = 500;
-            } else if (item.getType().equals(Material.LEATHER_CHESTPLATE)) {
-                price = 500;
-            } else if (item.getType().equals(Material.CROSSBOW)) {
-                price = 700;
-                slot = GRENADE_SLOT;
+            ItemStack clone = item.clone();
+            ItemMeta meta = clone.getItemMeta();
+            List<String> lore = meta.getLore();
+
+            for (int i = 0; i < lore.size(); i++) {
+                String loreVal = lore.get(i).trim();
+
+                if (loreVal.contains(ChatColor.YELLOW + "Ammunition: ")) {
+                    ammoamount = Integer.parseInt(loreVal.substring(16));
+                }
+
+                if (loreVal.contains(ChatColor.YELLOW + "Cost: ")) {
+                    price = Integer.parseInt(loreVal.substring(11));
+                }
+            }
+
+            lore.remove(ChatColor.YELLOW + "Click to buy");
+            meta.setLore(lore);
+            clone.setItemMeta(meta);
+
+            if (item.getType().equals(Material.CROSSBOW)) {
+                slot = RIFLE_SLOT;
             } else if (item.getType().equals(Material.BOW)) {
-                price = 600;
-                slot = GRENADE_SLOT;
+                slot = RIFLE_SLOT;
             } else if (item.getType().equals(Material.MACE)) {
-                price = 1000;
                 slot = RIFLE_SLOT;
             } else if (item.getType().equals(Material.TRIDENT)) {
-                price = 1500;
                 slot = RIFLE_SLOT;
             } else if (item.getType().equals(Material.IRON_SWORD)) {
-                price = 1100;
                 slot = PISTOL_SLOT;
             } else if (item.getType().equals(Material.DIAMOND_SWORD)) {
-                price = 1800;
                 slot = PISTOL_SLOT;
             } else if (item.getType().equals(Material.NETHERITE_SWORD)) {
-                price = 2500;
                 slot = PISTOL_SLOT;
             }
 
@@ -302,7 +326,7 @@ public class Shop {
                     message = ChatColor.RED + "Fixing current helmet.";
                 }
 
-                LeatherArmorMeta helmetMeta = (LeatherArmorMeta) item.getItemMeta();
+                LeatherArmorMeta helmetMeta = (LeatherArmorMeta) clone.getItemMeta();
                 helmetMeta.setColor(mycolor);
                 ItemStack helm = item;
                 helm.setItemMeta(helmetMeta);
@@ -315,7 +339,7 @@ public class Shop {
                     message = ChatColor.RED + "Fixing current armour.";
                 }
 
-                LeatherArmorMeta ArmorMeta = (LeatherArmorMeta) item.getItemMeta();
+                LeatherArmorMeta ArmorMeta = (LeatherArmorMeta) clone.getItemMeta();
                 ArmorMeta.setColor(mycolor);
                 ItemStack Arm = item;
                 Arm.setItemMeta(ArmorMeta);
@@ -330,7 +354,12 @@ public class Shop {
                     return;
                 }
 
-                player.getInventory().setItem(slot, item);
+                player.getInventory().setItem(slot, clone);
+
+                if (slot == RIFLE_SLOT && ammoamount > 0) {
+                    ItemStack ammo = new ItemStack(Material.ARROW, ammoamount);
+                    player.getInventory().setItem(RIFLE_AMO_SLOT, ammo);
+                }
             }
 
             csplayer.setMoney(money - price);

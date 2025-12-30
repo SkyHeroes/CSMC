@@ -8,6 +8,7 @@ import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.runnables.Bomb;
 import dev.danablend.counterstrike.utils.PacketUtils;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -27,90 +28,7 @@ public class PlayerInteractListener implements Listener {
     }
 
 
-    @EventHandler(ignoreCancelled = true)
-    public void onPlayerJoinGame(PlayerInteractEvent event) {
-
-        Player player = event.getPlayer();
-        String world = player.getWorld().getName();
-
-        if (plugin.HashWorlds != null) {
-            Worlds md = (Worlds) plugin.HashWorlds.get(world);
-
-            if (md != null && !md.modoCs) {
-                return;
-            }
-        }
-
-        int maxPlayers = MAX_PLAYERS;
-
-        if (maxPlayers > 16) {
-            maxPlayers = 16;
-        }
-
-        CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
-
-        if (CounterStrike.i.getCSPlayers().size() > maxPlayers && csplayer == null) {
-            PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "We are sorry", ChatColor.GREEN + "The game is full, please try again later.", 1, 4, 1);
-            return;
-        }
-
-        if (csplayer == null && event.getAction().equals(Action.LEFT_CLICK_BLOCK)) {
-
-            if (CounterStrike.i.getGameState().equals(GameState.RUN)) {
-                dev.danablend.counterstrike.csplayer.Team myTeam = CounterStrike.i.getTerroristsTeam();
-
-                PacketUtils.sendTitleAndSubtitle(player, ChatColor.YELLOW + "Wait for the end of the current round to join", ChatColor.GREEN + "Current round: " + (myTeam.getLosses() + myTeam.getWins() + 1) + " of " + MAX_ROUNDS + ". Estimated time for new " + CounterStrike.i.getGameTimer().returnTimetoEnd() + "secs", 1, 4, 1);
-                return;
-            }
-
-            Block blockUnder = event.getClickedBlock();
-
-            String materialColour = blockUnder.getBlockData().getMaterial().toString();
-
-            if (materialColour.contains("CYAN") || materialColour.contains("BLUE")) {
-                materialColour = "BLUE";
-            } else if (materialColour.contains("RED") || materialColour.contains("PINK")) {
-                materialColour = "RED";
-            } else if (materialColour.contains("GREEN") || materialColour.contains("LIME")) {
-                materialColour = "GREEN";
-            } else if (materialColour.contains("YELLOW")) {
-                materialColour = "YELLOW";
-
-            } else if (materialColour.contains("GOLD")) {
-                materialColour = "GOLD";
-            } else if (materialColour.contains("AQUA")) {
-                materialColour = "AQUA";
-
-            } else {
-                player.sendMessage("You have to choose one of the floors with colour");
-                return;
-            }
-
-            csplayer = CounterStrike.i.getCSPlayer(player, true, materialColour);
-
-            String corAdversaria;
-
-            if (!csplayer.returStatus()) {
-                player.sendMessage("You have to choose another colour/team");
-                csplayer.clear();
-                return;
-            }
-
-            if (csplayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
-                corAdversaria = CounterStrike.i.getTerroristsTeam().getColour();
-            } else {
-                corAdversaria = CounterStrike.i.getCounterTerroristsTeam().getColour();
-            }
-
-            csplayer.setColourOpponent(corAdversaria);
-
-            plugin.StartGameCounter(0);
-
-        }
-    }
-
-
-    @EventHandler(ignoreCancelled = true)
+     @EventHandler(ignoreCancelled = true)
     public void onPlayerDefuseEvent(PlayerInteractEvent event) {
 
         Player player = event.getPlayer();

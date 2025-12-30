@@ -31,6 +31,8 @@ public class EntityPickupItemListener implements Listener {
             if (md != null && !md.modoCs) {
                 return;
             }
+        } else {
+            return;
         }
 
         ItemStack item = e.getItem().getItemStack();

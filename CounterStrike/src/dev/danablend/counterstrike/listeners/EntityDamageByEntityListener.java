@@ -7,8 +7,10 @@ import dev.danablend.counterstrike.database.Worlds;
 import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.enums.Weapon;
 import dev.danablend.counterstrike.utils.PlayerUtils;
-import org.bukkit.Material;
+import dev.danablend.counterstrike.utils.Utils;
+import me.zombie_striker.qg.guns.Gun;
 import org.bukkit.entity.Chicken;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -16,15 +18,17 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 
+import static me.zombie_striker.qg.api.QualityArmory.getGunInHand;
+
 public class EntityDamageByEntityListener implements Listener {
 
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void entityDamageByEntityEvent(EntityDamageByEntityEvent event) {
 
-        if (event.getEntity() instanceof Player) {
-            Player victim = (Player) event.getEntity();
-            String world = victim.getWorld().getName();
+        if (event.getDamager() instanceof Player) {
+            Player damager = (Player) event.getDamager();
+            String world = damager.getWorld().getName();
 
             if (CounterStrike.i.HashWorlds != null) {
                 Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
@@ -39,8 +43,8 @@ public class EntityDamageByEntityListener implements Listener {
                 return;
             }
 
-            if (event.getDamager() instanceof Player && event.getEntity() instanceof Player) {
-                Player damager = (Player) event.getDamager();
+            if (event.getEntity() instanceof Player) {
+                Player victim = (Player) event.getEntity();
 
                 CSPlayer csShooter = CounterStrike.i.getCSPlayer(damager, false, null);
                 CSPlayer csVictim = CounterStrike.i.getCSPlayer(victim, false, null);
@@ -73,29 +77,42 @@ public class EntityDamageByEntityListener implements Listener {
                     }
                 } else {
 
+                    if (!CounterStrike.i.usingQualityArmory() || CounterStrike.i.modeRealms) return;
+
                     Weapon gun = Weapon.getByItem(gunItem);
 
+                    //no IronSights
                     if (gun != null) {
-                      //  System.out.println(gun.getName() + "  111     >>>>>>>>>>>>  " + event.getDamage() + "   adjusted to    " + gun.getDamage());
                         event.setDamage(gun.getDamage());
+                        Utils.debug("  NORMAL   >>>>>>>>>>>>  " + event.getDamage() + "     "+gun.getName());
                     } else {
-                        //guns with zoom at least 8
-                        event.setDamage(8d);
+
+                        Gun mygun = getGunInHand((HumanEntity) event.getDamager());
+
+                        if (mygun != null && mygun.hasIronSights()) {
+
+                            gunItem = damager.getInventory().getItemInOffHand();
+
+                            if (gunItem != null) {
+                                Weapon mygun1 = Weapon.getByName(gunItem.getItemMeta().getDisplayName());
+
+                                Utils.debug(mygun1.getDisplayName() + "    "+ mygun1.getName() + "  debug shift damage   >>>>>>>>>>>>  " + event.getDamage() + "   to: " + mygun1.getDamage());
+                                event.setDamage(mygun1.getDamage());
+                            }
+
+                        } else {
+                            Utils.debug("  WTF   >>>>>>>>>>>>  " + event.getDamage() + "   with no gun1 or gun2");
+                        }
                     }
                 }
             }
 
-            if (event.getDamager() instanceof Player && event.getEntity() instanceof Chicken && event.getEntity().isDead()) {
-                Player damager = (Player) event.getDamager();
+            if (event.getEntity() instanceof Chicken && event.getEntity().isDead()) {
                 CSPlayer csShooter = CounterStrike.i.getCSPlayer(damager, false, null);
                 csShooter.setChickenKills(csShooter.getKills() + 1);
             }
-
         }
-        //Animals
-        else {
 
-        }
     }
 
 }

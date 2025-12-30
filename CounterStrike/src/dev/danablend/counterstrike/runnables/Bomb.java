@@ -58,7 +58,7 @@ public class Bomb {
 
         if (!CounterStrike.i.getGameState().equals(GameState.PLANTED)) return;
 
-        cleaning = true;
+        cleaning = true; //stops bomb timmer
         bomb = null;
         detonated = false;
 
@@ -115,6 +115,7 @@ public class Bomb {
 
             location.getWorld().playSound(location, Sound.UI_BUTTON_CLICK, 2f, 1f);
             location.getWorld().playEffect(location, Effect.CLICK1, 0);
+
             PacketUtils.sendActionBarToInGame(ChatColor.RED + "The bomb will explode in " + countdown + " seconds.");
         }
     }
@@ -145,8 +146,6 @@ public class Bomb {
                 HandlerList.unregisterAll(defuseChecker);
                 defuseTimeLeft = Config.BOMB_DEFUSE_TIME;
 
-                CounterStrike.i.myBukkit.showLabel(hologram, ChatColor.GRAY + "(Right click to defuse)", true);
-
                 CounterStrike.i.myBukkit.cancelTask(defuseTask);
                 return;
             }
@@ -155,7 +154,7 @@ public class Bomb {
                 HandlerList.unregisterAll(defuseChecker);
                 defuseTimeLeft = Config.BOMB_DEFUSE_TIME;
 
-                CounterStrike.i.myBukkit.showLabel(hologram, ChatColor.GRAY + "(Right click to defuse)", true);
+                CounterStrike.i.myBukkit.showLabel(hologram, ChatColor.GRAY + "(Get nearby and Right click AXE to defuse)", true);
 
                 removeDefuser();
                 CounterStrike.i.myBukkit.cancelTask(defuseTask);
@@ -176,7 +175,7 @@ public class Bomb {
                 return;
             }
 
-            CounterStrike.i.myBukkit.showLabel(hologram, ChatColor.GREEN + "DEFUSING: " + (new DecimalFormat("##.##").format(defuseTimeLeft)) + " s.", true);
+            CounterStrike.i.myBukkit.showLabel(hologram, ChatColor.WHITE + "DEFUSING: " + (new DecimalFormat("##.##").format(defuseTimeLeft)) + " s.", true);
 
             defuseTimeLeft -= 5.0D / 20.0D;
         }, 1, 5);
@@ -206,6 +205,7 @@ public class Bomb {
         }, 1L, 1L);
 
     }
+
 
     private void removeDefuser() {
         this.defuser = null;

@@ -25,6 +25,8 @@ public class BlockPlaceListener implements Listener {
             if (md != null && !md.modoCs) {
                 return;
             }
+        } else {
+            return;
         }
 
         Block block = event.getBlock();

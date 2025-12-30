@@ -61,9 +61,9 @@ public class MyBukkit {
         isPaperBased = (classCheck != null);
 
         if (isPaperBased) {
-            isLegacy = (Bukkit.getMinecraftVersion().equals("1.20.1") || Bukkit.getMinecraftVersion().equals("1.20.2"));
+            isLegacy = (Bukkit.getMinecraftVersion().equals("1.20") || Bukkit.getMinecraftVersion().equals("1.20.1") || Bukkit.getMinecraftVersion().equals("1.20.2"));
         } else {
-            isLegacy = (Bukkit.getBukkitVersion().startsWith("1.20.1") || Bukkit.getBukkitVersion().startsWith("1.20.2"));
+            isLegacy = (Bukkit.getMinecraftVersion().equals("1.20") || Bukkit.getBukkitVersion().startsWith("1.20.1") || Bukkit.getBukkitVersion().startsWith("1.20.2"));
         }
 
         if (isPaperBased) myBukkitPaper = new MyBukkitPaper();
@@ -160,11 +160,11 @@ public class MyBukkit {
     public static ArmorStand startLabel(Location location) {
 
         Location loc = location.clone();
+        loc.add(0, -0.75, 0);
         ArmorStand hologram = (ArmorStand) loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
         hologram.setVisible(false);
         hologram.setCustomNameVisible(true);
         hologram.setGravity(false);
-        loc.add(0, 2, 0);
 
         return hologram;
     }
@@ -176,30 +176,35 @@ public class MyBukkit {
 
         if (visible) {
 
-            if (isPaperBased) {
-                myBukkitPaper.hologramCustomName(hologram, message);
+            if (isPaperBased) { //Paper or Folia
+
+                ArmorStand finalHologram = hologram;
+                main.myBukkit.runTaskLater(null, null, hologram, () -> {
+                    myBukkitPaper.hologramCustomName(finalHologram, message);
+                }, 1);
+
             } else {
                 hologram.setCustomName(message);
             }
         } else {
             if (hologram != null) {
+               // Utils.debug("    Limpa ArmorStand ");
 
-                Utils.debug("    Limpa ArmorStand ");
-
-                if (!CounterStrike.i.isEnabled()) {
+                if (!main.isEnabled()) {
                     hologram.remove();
                     hologram = null;
                     return;
                 }
 
                 ArmorStand finalA = hologram;
-                CounterStrike.i.myBukkit.runTaskLater(null, null, hologram, () -> {
+                main.myBukkit.runTaskLater(null, null, hologram, () -> {
                     finalA.remove();
                 }, 1);
 
                 hologram = null;
             }
         }
+
     }
 
 

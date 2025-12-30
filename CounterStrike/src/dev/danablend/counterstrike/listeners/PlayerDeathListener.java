@@ -63,15 +63,21 @@ public class PlayerDeathListener implements Listener {
 
         if ((plugin.getGameState().equals(PLANTED) || plugin.getGameState().equals(RUN))) {
 
+            //0 game not ending yet
+            //1 winner= getTerroristsTeam
+            //2 winner = getCounterTerroristsTeam
+            int checkForDeath = CSUtil.checkForAllTeamDead2();
+
+
             victim.sendMessage(ChatColor.RED + "Wait until next round for a respawn.");
-            PacketUtils.sendTitleAndSubtitle(victim, ChatColor.RED + "You are dead.", ChatColor.YELLOW + "You will respawn in the next round.", 0, 3, 1);
+            PacketUtils.sendTitleAndSubtitle(victim, ChatColor.RED + "You are eliminated.", ChatColor.YELLOW + "You will respawn in the next round.", 0, 3, 1);
 
             try {
                 Player killer = victim.getKiller();
 
                 if (killer == null) {
                     csplayerVictim.setDeaths(csplayerVictim.getDeaths() + 1);
-                    event.setDeathMessage(deadPlayerName + ChatColor.YELLOW + " was killed...");
+                    event.setDeathMessage(deadPlayerName + ChatColor.YELLOW + " was eliminated...");
                 } else {
 
                     CSPlayer csplayerKiller = CounterStrike.i.getCSPlayer(killer, false, null);
@@ -92,17 +98,22 @@ public class PlayerDeathListener implements Listener {
                         });
                     }
 
-                    event.setDeathMessage(ChatColor.valueOf(csplayerVictim.getColour()) + deadPlayerName + ChatColor.GRAY + " was killed by " + ChatColor.valueOf(csplayerKiller.getColour()) + killerName);
+                    event.setDeathMessage(ChatColor.valueOf(csplayerVictim.getColour()) + deadPlayerName + ChatColor.GRAY + " was eliminated by " + ChatColor.valueOf(csplayerKiller.getColour()) + killerName);
                 }
+
             } catch (Exception e) {
                 Utils.debug(" --> Death exception " + e.getMessage());
 
                 csplayerVictim.setDeaths(csplayerVictim.getDeaths() + 1);
-                event.setDeathMessage(deadPlayerName + ChatColor.YELLOW + " was killed..");
+                event.setDeathMessage(deadPlayerName + ChatColor.YELLOW + " was eliminated..");
             }
 
-            // Check if every player on dead player team is dead
-            CSUtil.checkForDead();
+            if (checkForDeath == 1) {
+                CounterStrike.i.restartGame(CounterStrike.i.getTerroristsTeam());
+            } else if (checkForDeath == 2) {
+                CounterStrike.i.restartGame(CounterStrike.i.getCounterTerroristsTeam());
+            }
+
         }
     }
 

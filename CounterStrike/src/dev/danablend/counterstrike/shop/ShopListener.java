@@ -2,11 +2,10 @@ package dev.danablend.counterstrike.shop;
 
 import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
-import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
 import dev.danablend.counterstrike.database.Worlds;
-import dev.danablend.counterstrike.enums.Weapon;
+import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.utils.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -135,19 +134,12 @@ public class ShopListener implements Listener {
             if (event.getView().getTitle().equals(Config.terroristShopName)) {
                 event.setCancelled(true);
 
-                Weapon gun = Weapon.getByItem(clicked);
-
-                if (gun != null) {
-                    Shop.getShop().purchaseShopItem(player, gun);
-                }
+                Shop.getShop().purchaseShopItem(player, clicked);
 
             } else if (event.getView().getTitle().equals(Config.counterTerroristShopName)) {
                 event.setCancelled(true);
 
-                Weapon gun = Weapon.getByItem(clicked);
-                if (gun != null) {
-                    Shop.getShop().purchaseShopItem(player, gun);
-                }
+                Shop.getShop().purchaseShopItem(player, clicked);
             }
         }
     }
@@ -155,9 +147,10 @@ public class ShopListener implements Listener {
     @EventHandler
     public void playerMove(PlayerMoveEvent e) {
 
-        if (!CounterStrike.i.getGameState().equals(GameState.SHOP)) return;
-
         Player player = e.getPlayer();
+
+        if (!CounterStrike.i.getGameState().equals(GameState.SHOP) || player.getGameMode().equals(GameMode.SPECTATOR))
+            return;
 
         String world = player.getWorld().getName();
 
@@ -173,17 +166,16 @@ public class ShopListener implements Listener {
         CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
         if (csplayer == null) {
-            Utils.debug("Not a player, aborting");
             return;
         }
 
         final Location from = csplayer.getSpawnLocation();
         final Location to = e.getTo();
 
-        if (from.getBlockX() > to.getBlockX() +4 || from.getBlockX() < to.getBlockX() -4) {
+        if (from.getBlockX() > to.getBlockX() + 4 || from.getBlockX() < to.getBlockX() - 4) {
             e.setTo(e.getFrom());
         }
-        if (from.getBlockZ() > to.getBlockZ() +4 || from.getBlockZ() < to.getBlockZ() -4) {
+        if (from.getBlockZ() > to.getBlockZ() + 4 || from.getBlockZ() < to.getBlockZ() - 4) {
             e.setTo(e.getFrom());
         }
     }

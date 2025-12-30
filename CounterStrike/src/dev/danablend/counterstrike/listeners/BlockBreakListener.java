@@ -23,6 +23,8 @@ public class BlockBreakListener implements Listener {
             if (md != null && !md.modoCs) {
                 return;
             }
+        } else {
+            return;
         }
 
         CSPlayer csplayer = CounterStrike.i.getCSPlayer(event.getPlayer(), false, null);

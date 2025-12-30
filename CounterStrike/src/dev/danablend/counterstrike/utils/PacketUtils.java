@@ -3,8 +3,9 @@ package dev.danablend.counterstrike.utils;
 import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
+
+import static dev.danablend.counterstrike.utils.PlayerUtils.isInLobbyLocation;
 
 
 public class PacketUtils {
@@ -83,25 +84,5 @@ public class PacketUtils {
         CounterStrike.i.myBukkit.sendActionBar(player, text1);
     }
 
-
-    private static Boolean isInLobbyLocation(Player p) {
-        if (CounterStrike.i.getLobbyLocation() == null) return false;
-
-        Location locRaw = CounterStrike.i.getLobbyLocation();
-
-        Integer xx = locRaw.getBlockX();
-        Integer zz = locRaw.getBlockZ();
-        Location loc = p.getLocation();
-        Integer x = loc.getBlockX();
-        Integer z = loc.getBlockZ();
-
-        if (x > (xx - 20) && x < (xx + 20)) {
-            if (z > (zz - 20) && z < (zz + 20)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 
 }

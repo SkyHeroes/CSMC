@@ -8,7 +8,7 @@
       <element id="module-output" name="CSMC" />
       <element id="file-copy" path="$PROJECT_DIR$/CounterStrike/plugin.yml" />
       <element id="file-copy" path="$PROJECT_DIR$/CounterStrike/config.yml" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/fr/mrmicky/fastboard/2.1.2/fastboard-2.1.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/fr/mrmicky/fastboard/2.1.5/fastboard-2.1.5.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

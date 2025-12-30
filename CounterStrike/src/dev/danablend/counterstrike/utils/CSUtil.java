@@ -47,7 +47,7 @@ public class CSUtil {
     }
 
 
-    public static void checkForDead() {
+    public static boolean checkForAllTeamDead() {
         int dead = 0;
         for (CSPlayer csplayer : CounterStrike.i.getCounterTerrorists()) {
             if (csplayer.getPlayer().isDead() || csplayer.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
@@ -55,9 +55,9 @@ public class CSUtil {
             }
         }
 
-        if (dead >= CounterStrike.i.getCounterTerrorists().size() && Bomb.detonated == false) { //was launching twice
+        if (dead >= CounterStrike.i.getCounterTerrorists().size() && Bomb.detonated == false) { //was launching twice so bomb detonation will do its restartGame
             CounterStrike.i.restartGame(CounterStrike.i.getTerroristsTeam());
-            return;
+            return true;
         }
 
         dead = 0;
@@ -67,9 +67,39 @@ public class CSUtil {
             }
         }
         if (dead >= CounterStrike.i.getTerrorists().size()) {
-            if (Bomb.bomb == null)
+            if (Bomb.bomb == null) {
                 CounterStrike.i.restartGame(CounterStrike.i.getCounterTerroristsTeam());
+                return true;
+            }
         }
+        return false;
+    }
+
+    //same without restarting the game
+    public static int checkForAllTeamDead2() {
+        int dead = 0;
+        for (CSPlayer csplayer : CounterStrike.i.getCounterTerrorists()) {
+            if (csplayer.getPlayer().isDead() || csplayer.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
+                dead++;
+            }
+        }
+
+        if (dead >= CounterStrike.i.getCounterTerrorists().size() && Bomb.detonated == false) { //was launching twice so bomb detonation will do its restartGame
+            return 1;
+        }
+
+        dead = 0;
+        for (CSPlayer csplayer : CounterStrike.i.getTerrorists()) {
+            if (csplayer.getPlayer().isDead() || csplayer.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
+                dead++;
+            }
+        }
+        if (dead >= CounterStrike.i.getTerrorists().size()) {
+            if (Bomb.bomb == null) {
+                return 2;
+            }
+        }
+        return 0;
     }
 
 
@@ -92,6 +122,31 @@ public class CSUtil {
             }
         }
         return true;
+    }
+
+
+    public static boolean isBombZone(Player player) {
+
+        Location from = CounterStrike.i.bombSiteA();
+        Location to = player.getLocation();
+
+        if (Math.abs(from.getBlockX() - to.getBlockX()) < 4) {
+            return true;
+        }
+        if (Math.abs(from.getBlockZ() - to.getBlockZ()) < 4) {
+            return true;
+        }
+
+        from = CounterStrike.i.bombSiteB();
+
+        if (Math.abs(from.getBlockX() - to.getBlockX()) < 4) {
+            return true;
+        }
+        if (Math.abs(from.getBlockZ() - to.getBlockZ()) < 4) {
+            return true;
+        }
+
+        return false;
     }
 
 

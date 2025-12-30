@@ -9,6 +9,8 @@ import org.bukkit.ChatColor;
 
 import java.util.Collection;
 
+import static dev.danablend.counterstrike.Config.START_COUNTER_DURATION;
+
 
 public class GameStarter {
 
@@ -22,7 +24,7 @@ public class GameStarter {
         csPlayers = plugin.getCSPlayers();
 
         if (plugin.getTerroristsTeam().getWins() + plugin.getTerroristsTeam().getLosses() == 0) {
-            timeToStart = (Config.SHOP_PHASE_DURATION / 2);
+            timeToStart = START_COUNTER_DURATION;
         } else {
             timeToStart = 6;
         }
@@ -36,13 +38,13 @@ public class GameStarter {
 
     public void run() {
 
-        int serverSize = CounterStrike.i.getCSPlayers().size();
+        int serverSize = plugin.getCSPlayers().size();
 
         if ((serverSize == 0 || plugin.getServer().getOnlinePlayers().size() == 0) && plugin.quitExitGame ) {
             Utils.debug("Aborting start counter, no players left");
 
             plugin.myBukkit.cancelTask(task);
-            CounterStrike.i.FinishGame(CounterStrike.i.getTerroristsTeam(),CounterStrike.i.getCounterTerroristsTeam());
+            plugin.FinishGame(plugin.getTerroristsTeam(),plugin.getCounterTerroristsTeam());
 
             return;
         }

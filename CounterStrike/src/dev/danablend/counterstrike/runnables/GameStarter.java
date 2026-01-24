@@ -1,6 +1,5 @@
 package dev.danablend.counterstrike.runnables;
 
-import dev.danablend.counterstrike.Config;
 import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.utils.PacketUtils;

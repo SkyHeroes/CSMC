@@ -35,15 +35,10 @@ public class CSUtil {
 
 
     public static boolean isHeadShot(Projectile bullet, Player player) {
-        double projectile_height = bullet.getLocation().getY();
-        double player_bodyheight = player.getLocation().getY() + 1.60;
-        System.out.println("Body height = " + player_bodyheight);
-        System.out.println("Projectile height = " + projectile_height);
+        double arrowY = bullet.getLocation().getY();
+        double playerEyeY = player.getEyeLocation().getY();
 
-        if (projectile_height > player_bodyheight) {
-            return true;
-        }
-        return false;
+        return Math.abs(arrowY - playerEyeY) <= 0.3D;
     }
 
 

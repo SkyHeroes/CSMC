@@ -13,9 +13,10 @@ import org.bukkit.util.Vector;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
 
-import static java.lang.Math.*;
+import static java.lang.Math.abs;
 
 public class PlayerUtils {
 
@@ -29,11 +30,11 @@ public class PlayerUtils {
 
         //make sure it is not me
         if (testy.getX() != 0 && testy.getZ() != 0) {
-            float PlayerBehind  = playerBehind.getLocation().getYaw();
+            float PlayerBehind = playerBehind.getLocation().getYaw();
             float playerTnFront = playerNotBehind.getLocation().getYaw();
 
             //view range
-            if (abs(PlayerBehind - playerTnFront) < 15 ) {
+            if (abs(PlayerBehind - playerTnFront) < 15) {
                 return true;
             }
         }
@@ -97,24 +98,36 @@ public class PlayerUtils {
     //REGION SKINS
     public static void changeSkin(Player player, String targetName) {
 
-        String[] result = CounterStrike.i.LoadDBSkins(targetName);
+        if (!CounterStrike.i.myBukkit.isPaper()) return;
 
-        if (result == null) {
-            System.out.println("Saca " + targetName);
+        try {
+            String[] result = CounterStrike.i.LoadDBSkins(targetName);
 
-            if (targetName.startsWith("ct") || targetName.startsWith("terr")) {
-                result = getSkin2(targetName);
-            } else {
-                result = getSkin(targetName);
+            if (result == null) {
+                Utils.debug("Downloading skin for " + targetName);
+
+                if (targetName.startsWith("ct") || targetName.startsWith("terr")) {
+                    result = getSkin2(targetName);
+                } else {
+                    result = getSkin(targetName);
+                }
+
+                if (result == null) return; //skin doesn't exist
             }
 
-            if (result == null) return; //skin doesn't exist
+            CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
+
+            if (!csplayer.isNPC()) {
+                Utils.debug(" Loading skin for player " + player.getName() + " with profile " + targetName);
+                PlayerProfile playerProfile = player.getPlayerProfile();
+                playerProfile.setProperty(new ProfileProperty("textures", result[0], result[1]));
+                player.setPlayerProfile(playerProfile);
+            } else {
+               // CounterStrike.i.changeBotSkin(player);
+            }
+        } catch (Exception exception) {
+            Utils.debug("Exception " + exception);
         }
-
-        PlayerProfile playerProfile = player.getPlayerProfile();
-        playerProfile.setProperty(new ProfileProperty("textures", result[0], result[1]));
-        player.setPlayerProfile(playerProfile);
-
     }
 
 
@@ -151,37 +164,47 @@ public class PlayerUtils {
         return null;
     }
 
+
     private static String[] getSkin2(String username) {
 
         try {
             String uuid = "";
-            if (username.equals("terr1")) uuid = "9479ec26-246a-41e6-9672-877caa63ec16";
-            if (username.equals("terr2")) uuid = "6ba92452-d9af-499d-89ee-81d2e0db6344";
-            if (username.equals("terr3")) uuid = "5fa17a45-aeb0-44f2-9b69-c70915d7296c";
-            if (username.equals("terr4")) uuid = "cac1b575-710e-4b5f-be53-7e3e612227c4";
-            if (username.equals("terr5")) uuid = "fd7e8112-132d-432a-a9a4-3062c54b0b1c";
-            if (username.equals("terr6")) uuid = "57f67d13-4dd8-4a8a-a9dc-62d42cbd3260";
-            if (username.equals("terr7")) uuid = "9c655158-d3f6-4bd5-a853-7b74c5293b3b";
-            if (username.equals("terr8")) uuid = "7efd0ba7-450c-4c11-9a9b-79e3a2c2e683";
+            if (username.equals("terr1")) uuid = "9aa86445570145c89436277e9233bdb1";
+            if (username.equals("terr2")) uuid = "b6945799b5ec4d54b8e9575bc3d9b427";
+            if (username.equals("terr3")) uuid = "a3d17eb6ee1c4056a85d625e9c71bc05";
+            if (username.equals("terr4")) uuid = "8845f15e656e47c9a2d3aa83488cd65d";
+            if (username.equals("terr5")) uuid = "a9fd04ea5692415f967acf57c217901e";
+            if (username.equals("terr6")) uuid = "fea6feb3618145a1bd54eab404d899a6";
+            if (username.equals("terr7")) uuid = "e6be8d3c135b4c2ab3cb7463000e5db6";
+            if (username.equals("terr8")) uuid = "1d90a71ec6244450929ba7236ce27157";
 
-            if (username.equals("ct1")) uuid = "4c012de0-5feb-4889-be1c-8244cba68466";
-            if (username.equals("ct2")) uuid = "ae7f30c3-a5da-49a3-b592-9afb1913b440";
-            if (username.equals("ct3")) uuid = "22cd54e0-7494-4b7a-8362-6a4fe65900a9";
-            if (username.equals("ct4")) uuid = "1fb235b8-7e35-4b54-bcc8-97eaa2ba3c1c";
-            if (username.equals("ct5")) uuid = "7d828bdc-b1d1-44ab-a27c-b4d36ece31c1";
-            if (username.equals("ct6")) uuid = "b5df4f39-5b1a-4526-96f4-83c734cc8b2a";
-            if (username.equals("ct7")) uuid = "4773ed21-3eeb-4b41-9c9b-2bc31bbd5880";
-            if (username.equals("ct8")) uuid = "7d828bdc-b1d1-44ab-a27c-b4d36ece31c1";
+            if (username.equals("ct1")) uuid = "54630329364d4392b0e94a4721e31b6f";
+            if (username.equals("ct2")) uuid = "a89ed82b9e334f49a0e99aeec00abc2f";
+            if (username.equals("ct3")) uuid = "aba204c3cecc4254bd2a29e4334068d7";
+            if (username.equals("ct4")) uuid = "66e1f89e914c44daaf15a01c14736fad";
+            if (username.equals("ct5")) uuid = "afbc35f2ec2f43729619372d66f684c8";
+            if (username.equals("ct6")) uuid = "3362b00a33514d5896e110e0af77c373";
+            if (username.equals("ct7")) uuid = "5bafb79adcfd442b9131bed828cc897f";
+            if (username.equals("ct8")) uuid = "28ff74cc430c4bff872114f8741d5a14";
 
 
-            URL url_1 = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid + "?unsigned=false");
+            URL url = new URL("https://api.mineskin.org/v2/skins/" + uuid);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+       //     con.setRequestProperty("User-Agent", "MineSkin-User-Agent");
+       //     con.setRequestProperty("Authorization", "Bearer msk_lkIUtF8N_Adz5cgIACTKMlDeKDCADqaSl4I7Ej5gib4Min-4XrtjT_p1OYuYxRdSkvoFOz3hh");
 
-            InputStreamReader reader_1 = new InputStreamReader(url_1.openStream());
+            InputStreamReader reader_1 = new InputStreamReader(con.getInputStream());
 
-            JsonObject properties = JsonParser.parseReader(reader_1).getAsJsonObject().get("properties").getAsJsonArray().get(0).getAsJsonObject();
+            JsonObject root = JsonParser.parseReader(reader_1).getAsJsonObject();
 
-            String value = properties.get("value").getAsString();
-            String signature = properties.get("signature").getAsString();
+            JsonObject texture = root
+                    .getAsJsonObject("skin")
+                    .getAsJsonObject("texture")
+                    .getAsJsonObject("data");
+
+            String value = texture.get("value").getAsString();
+            String signature = texture.get("signature").getAsString();
 
             String[] object = new String[2];
             object[0] = value;
@@ -189,13 +212,12 @@ public class PlayerUtils {
 
             int check = CounterStrike.i.UpdateStoredSkin(username, object);
 
-            System.out.println("Atualizacao devolveu " + check);
-
             if (check <= 0) CounterStrike.i.StoreSkin(username, object);
 
             return object;
 
         } catch (IllegalStateException | IOException | NullPointerException exception) {
+            CounterStrike.i.getLogger().warning("exception " + exception);
         }
         return null;
     }

@@ -6,7 +6,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerDropItemEvent;
 
-import static dev.danablend.counterstrike.CounterStrike.*;
+import static dev.danablend.counterstrike.CounterStrike.KNIFE_SLOT;
+import static dev.danablend.counterstrike.CounterStrike.SHOP_SLOT;
 
 public class PlayerDropItemListener implements Listener {
 

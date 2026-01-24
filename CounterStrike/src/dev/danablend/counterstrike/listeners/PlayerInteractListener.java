@@ -4,20 +4,12 @@ import dev.danablend.counterstrike.CounterStrike;
 import dev.danablend.counterstrike.csplayer.CSPlayer;
 import dev.danablend.counterstrike.csplayer.TeamEnum;
 import dev.danablend.counterstrike.database.Worlds;
-import dev.danablend.counterstrike.enums.GameState;
 import dev.danablend.counterstrike.runnables.Bomb;
-import dev.danablend.counterstrike.utils.PacketUtils;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-
-import static dev.danablend.counterstrike.Config.MAX_PLAYERS;
-import static dev.danablend.counterstrike.Config.MAX_ROUNDS;
 
 public class PlayerInteractListener implements Listener {
 

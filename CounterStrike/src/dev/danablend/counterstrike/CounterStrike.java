@@ -113,7 +113,7 @@ public class CounterStrike extends JavaPlugin {
     public void onEnable() {
         i = this;
 
-        if (!CounterStrike.i.usingQualityArmory()) {
+        if (!usingQualityArmory()) {
             Utils.debug("#####  QualityArmory not loaded, using compatibility mode... ");
         }
 
@@ -138,7 +138,7 @@ public class CounterStrike extends JavaPlugin {
                 metrics.addCustomChart(new Metrics.SingleLineChart("playing_players", new Callable<Integer>() {
                     @Override
                     public Integer call() throws Exception {
-                        return CounterStrike.i.getCSPlayers().size();
+                        return getCSPlayers().size();
                     }
                 }));
             }, 5);
@@ -326,7 +326,7 @@ public class CounterStrike extends JavaPlugin {
             if (result == null || result.equals("")) {
                 sqlite.checkLock("update mundos set modocs = 'true' where nome = '" + location.split(",")[0] + "'");
 
-                Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(location.split(",")[0]);
+                Worlds md = (Worlds) HashWorlds.get(location.split(",")[0]);
 
                 if (md != null && !md.modoCs) {
                     md.modoCs = true;
@@ -549,7 +549,7 @@ public class CounterStrike extends JavaPlugin {
         decodedString = decodedString.substring(0, decodedString.length() - 1);
         if (key != null && key.equals(decodedString)) activated = true;
 
-        Utils.debug(activated + " trueTeamColours:" + standardTeamColours + "  informGameStatus:" + showGameStatusTitle);
+        Utils.debug("activated: " + activated + "  trueTeamColours:" + standardTeamColours + "  informGameStatus:" + showGameStatusTitle);
 
         if (usingQualityArmory()) {
             if (!activated) {
@@ -792,8 +792,8 @@ public class CounterStrike extends JavaPlugin {
             if (player.isOnline() || csplayer.isNPC()) {
                 String world1 = player.getWorld().getName();
 
-                if (CounterStrike.i.HashWorlds != null) {
-                    Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world1);
+                if (HashWorlds != null) {
+                    Worlds md = (Worlds) HashWorlds.get(world1);
 
                     if (md != null && !md.modoCs) {
                         continue;
@@ -842,8 +842,8 @@ public class CounterStrike extends JavaPlugin {
 
                 String world = player.getWorld().getName();
 
-                if (CounterStrike.i.HashWorlds != null) {
-                    Worlds md = (Worlds) CounterStrike.i.HashWorlds.get(world);
+                if (HashWorlds != null) {
+                    Worlds md = (Worlds) HashWorlds.get(world);
                     if (md != null && !md.modoCs) continue;
                 }
 
@@ -877,7 +877,7 @@ public class CounterStrike extends JavaPlugin {
             //put in base
             myBukkit.playerTeleport(player, getTerroristSpawn(true));
 
-            if (CounterStrike.i.usingQualityArmory() && !CounterStrike.i.modeRealms) {
+            if (usingQualityArmory() && !modeRealms) {
                 if (player.getInventory().getItem(PISTOL_SLOT) == null || csPlayer.getPistol() == null) {
                     player.getInventory().setItem(PISTOL_SLOT, Weapon.getBykeyName("t-pistol-default").getItem());
                 }
@@ -900,7 +900,7 @@ public class CounterStrike extends JavaPlugin {
             //put in base
             myBukkit.playerTeleport(player, getCounterTerroristSpawn(true));
 
-            if (CounterStrike.i.usingQualityArmory() && !CounterStrike.i.modeRealms) {
+            if (usingQualityArmory() && !modeRealms) {
                 if (player.getInventory().getItem(PISTOL_SLOT) == null || csPlayer.getPistol() == null) {
                     player.getInventory().setItem(PISTOL_SLOT, Weapon.getBykeyName("ct-pistol-default").getItem());
                 }
@@ -932,25 +932,50 @@ public class CounterStrike extends JavaPlugin {
 
 
             CSPlayer cp = this.getCSPlayer(player, false, null);
-            Weapon rifle = cp.getRifle();
-            Weapon pistol = cp.getPistol();
 
-            if (rifle != null) {
-                Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(rifle.getName());
-                Gun.updateAmmo(gun, player.getInventory().getItem(RIFLE_SLOT), rifle.getMagazineCapacity());
+            if (usingQualityArmory() && !modeRealms) {
+                Weapon rifle = cp.getRifle();
+                Weapon pistol = cp.getPistol();
 
-                ItemStack ammo = gun.getAmmoType().getItemStack().clone();
-                ammo.setAmount((rifle.getMagazines() - 1) * rifle.getMagazineCapacity());
-                player.getInventory().setItem(RIFLE_AMO_SLOT, ammo);
-            }
+                if (rifle != null) {
+                    Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(rifle.getName());
+                    Gun.updateAmmo(gun, player.getInventory().getItem(RIFLE_SLOT), rifle.getMagazineCapacity());
 
-            if (pistol != null) {
-                Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(pistol.getName());
-                Gun.updateAmmo(gun, player.getInventory().getItem(PISTOL_SLOT), pistol.getMagazineCapacity());
+                    ItemStack ammo = gun.getAmmoType().getItemStack().clone();
+                    ammo.setAmount((rifle.getMagazines() - 1) * rifle.getMagazineCapacity());
+                    player.getInventory().setItem(RIFLE_AMO_SLOT, ammo);
+                }
 
-                ItemStack ammo = gun.getAmmoType().getItemStack().clone();
-                ammo.setAmount((pistol.getMagazines() - 1) * pistol.getMagazineCapacity());
-                player.getInventory().setItem(PISTOL_AMO_SLOT, ammo);
+                if (pistol != null) {
+                    Gun gun = me.zombie_striker.qg.api.QualityArmory.getGunByName(pistol.getName());
+                    Gun.updateAmmo(gun, player.getInventory().getItem(PISTOL_SLOT), pistol.getMagazineCapacity());
+
+                    ItemStack ammo = gun.getAmmoType().getItemStack().clone();
+                    ammo.setAmount((pistol.getMagazines() - 1) * pistol.getMagazineCapacity());
+                    player.getInventory().setItem(PISTOL_AMO_SLOT, ammo);
+                }
+            } else {
+                ItemStack item = player.getInventory().getItem(RIFLE_SLOT);
+                int ammoamount = 0;
+
+                if (item != null) {
+
+                    ItemMeta meta = item.getItemMeta();
+                    List<String> lore = meta.getLore();
+
+                    for (int j = 0; j < lore.size(); j++) {
+                        String loreVal = lore.get(j).trim();
+
+                        if (loreVal.contains(ChatColor.YELLOW + "Ammunition: ")) {
+                            ammoamount = Integer.parseInt(loreVal.substring(16));
+                        }
+                    }
+
+                    if (player.getInventory().getItem(RIFLE_SLOT) != null && ammoamount > 0) {
+                        ItemStack ammo = new ItemStack(Material.ARROW, ammoamount);
+                        player.getInventory().setItem(RIFLE_AMO_SLOT, ammo);
+                    }
+                }
             }
 
             player.getInventory().remove(Material.TNT);
@@ -969,7 +994,7 @@ public class CounterStrike extends JavaPlugin {
             Player player = csplayer.getPlayer();
 
             //check after one second
-            CounterStrike.i.myBukkit.runTaskLater(player, null, null, () -> {
+            myBukkit.runTaskLater(player, null, null, () -> {
 
                 if (!isInSpawn(csplayer)) {
                     Utils.debug(" #####################  ------> Fixing player spawn position @" + getGameState());
@@ -1006,10 +1031,8 @@ public class CounterStrike extends JavaPlugin {
     private void CheckBalancedTeams() {
         int ct = counterTerroristsTeam.getCsPlayers().size(), terr = terroristsTeam.getCsPlayers().size();
 
-        String corTERR = CounterStrike.i.getTerroristsTeam().getColour();
-        String corCT = CounterStrike.i.getCounterTerroristsTeam().getColour();
-
-        Utils.debug(corCT + " corCT   Balanced   corTERR " + corTERR);
+        String corTERR = getTerroristsTeam().getColour();
+        String corCT = getCounterTerroristsTeam().getColour();
 
         if (ct > terr + 1) {
             Collection<CSPlayer> tmp = new ArrayList<CSPlayer>();
@@ -1095,24 +1118,25 @@ public class CounterStrike extends JavaPlugin {
             CSPlayer csp = new CSPlayer(this, player, colour);
             String resPackName = player.getName() + "RES";
 
-            //online filters NPCs
-            if (player.isOnline() && (ResourceHash.get(resPackName) == null || ResourceHash.get(resPackName).equals("DEFAULT"))) {
-                ResourceHash.put(resPackName, "QUALITY");
+            if (usingQualityArmory() && !modeRealms) {
+                //online filters NPCs
+                if (player.isOnline() && (ResourceHash.get(resPackName) == null || ResourceHash.get(resPackName).equals("DEFAULT"))) {
+                    ResourceHash.put(resPackName, "QUALITY");
 
-                if (activated && !modeRealms) {
-                    if (player.getProtocolVersion() == 768) {
-                        loadResourcePack(player, "https://cld.pt/dl/download/61b7e2c1-95f5-403b-9e64-92e4a2ebd033/Quality1.21.3.zip?download=true", "612c9d93902818d4a9c4e50561c75870f8534058");
+                    if (activated && !modeRealms) {
+                        if (myBukkit.getProtocolVersion(player) == 768) {
+                            loadResourcePack(player, "https://cld.pt/dl/download/61b7e2c1-95f5-403b-9e64-92e4a2ebd033/Quality1.21.3.zip?download=true", "612c9d93902818d4a9c4e50561c75870f8534058");
 
-                    } else if (player.getProtocolVersion() <= 767) {
-                        loadResourcePack(player, "https://cld.pt/dl/download/bf174949-2d73-4de9-ba80-589441e54d7f/Quality1.20.1.zip?download=true", "3a34fc09dcc6f009aa05741f8ab487dd17b13eaf");
+                        } else if (myBukkit.getProtocolVersion(player) <= 767) {
+                            loadResourcePack(player, "https://cld.pt/dl/download/bf174949-2d73-4de9-ba80-589441e54d7f/Quality1.20.1.zip?download=true", "3a34fc09dcc6f009aa05741f8ab487dd17b13eaf");
 
-                    } else {
-                        loadResourcePack(player, "https://cld.pt/dl/download/3b3085b1-91c4-457e-b91c-d36c2bddc152/Quality1.21.4.zip?download=true", "3a2d248860719674412cf60ae0f2a30de60ddd57");
+                        } else {
+                            loadResourcePack(player, "https://cld.pt/dl/download/3b3085b1-91c4-457e-b91c-d36c2bddc152/Quality1.21.4.zip?download=true", "3a2d248860719674412cf60ae0f2a30de60ddd57");
+                        }
                     }
                 }
             }
 
-            Utils.debug("Returning a new CSPlayer...");
             return csp;
         } else {
             return null;
@@ -1362,7 +1386,7 @@ public class CounterStrike extends JavaPlugin {
 
     //Broadcast to current players
     public void broadcastMessage(String message) {
-        for (CSPlayer csplayer : CounterStrike.i.getCSPlayers()) {
+        for (CSPlayer csplayer : getCSPlayers()) {
             csplayer.getPlayer().sendMessage(message);
         }
     }
@@ -1382,26 +1406,28 @@ public class CounterStrike extends JavaPlugin {
 
         boolean running = true;
 
-        if ((CounterStrike.i.getGameState().equals(GameState.LOBBY) || CounterStrike.i.getGameState().equals(GameState.WAITING))) {
+        if ((getGameState().equals(GameState.LOBBY) || getGameState().equals(GameState.WAITING))) {
             running = false;
         }
 
         Player player = csplay.getPlayer();
         String resPackName = player.getName() + "RES";
 
-        //isOnline filters NPCs
-        if (player.isOnline() && (ResourceHash.get(resPackName) == null || ResourceHash.get(resPackName).equals("DEFAULT"))) {
-            ResourceHash.put(resPackName, "QUALITY");
+        if (usingQualityArmory() && !modeRealms) {
+            //isOnline filters NPCs
+            if (player.isOnline() && (ResourceHash.get(resPackName) == null || ResourceHash.get(resPackName).equals("DEFAULT"))) {
+                ResourceHash.put(resPackName, "QUALITY");
 
-            if (activated && !modeRealms) {
-                if (player.getProtocolVersion() == 768) {
-                    loadResourcePack(player, "https://cld.pt/dl/download/61b7e2c1-95f5-403b-9e64-92e4a2ebd033/Quality1.21.3.zip?download=true", "612c9d93902818d4a9c4e50561c75870f8534058");
+                if (activated && !modeRealms) {
+                    if (myBukkit.getProtocolVersion(player) == 768) {
+                        loadResourcePack(player, "https://cld.pt/dl/download/61b7e2c1-95f5-403b-9e64-92e4a2ebd033/Quality1.21.3.zip?download=true", "612c9d93902818d4a9c4e50561c75870f8534058");
 
-                } else if (player.getProtocolVersion() <= 767) {
-                    loadResourcePack(player, "https://cld.pt/dl/download/bf174949-2d73-4de9-ba80-589441e54d7f/Quality1.20.1.zip?download=true", "3a34fc09dcc6f009aa05741f8ab487dd17b13eaf");
+                    } else if (myBukkit.getProtocolVersion(player) <= 767) {
+                        loadResourcePack(player, "https://cld.pt/dl/download/bf174949-2d73-4de9-ba80-589441e54d7f/Quality1.20.1.zip?download=true", "3a34fc09dcc6f009aa05741f8ab487dd17b13eaf");
 
-                } else {
-                    loadResourcePack(player, "https://cld.pt/dl/download/3b3085b1-91c4-457e-b91c-d36c2bddc152/Quality1.21.4.zip?download=true", "3a2d248860719674412cf60ae0f2a30de60ddd57");
+                    } else {
+                        loadResourcePack(player, "https://cld.pt/dl/download/3b3085b1-91c4-457e-b91c-d36c2bddc152/Quality1.21.4.zip?download=true", "3a2d248860719674412cf60ae0f2a30de60ddd57");
+                    }
                 }
             }
         }
@@ -1420,7 +1446,7 @@ public class CounterStrike extends JavaPlugin {
 
             if (running) myBukkit.playerTeleport(player, getTerroristSpawn(true));
 
-            if (CounterStrike.i.gameState == GameState.SHOP) {
+            if (getGameState().equals(SHOP)) {
                 boolean noOneHasTNT = false;
 
                 for (CSPlayer csPlayer : terrorists) {
@@ -1470,7 +1496,7 @@ public class CounterStrike extends JavaPlugin {
             if (delay == 0) delay = 1; //default delay
             if (gameCount == null) gameCount = new GameCounter(this);
 
-            gameCounterTask = CounterStrike.i.myBukkit.runTaskTimer(null, null, null, () -> gameCount.run(), delay * 20L, 20L);
+            gameCounterTask = myBukkit.runTaskTimer(null, null, null, () -> gameCount.run(), delay * 20L, 20L);
             gameState = GameState.WAITING;
         }
     }
@@ -1582,7 +1608,7 @@ public class CounterStrike extends JavaPlugin {
             }
         }
 
-        int serverSize = CounterStrike.i.getCSPlayers().size();
+        int serverSize = getCSPlayers().size();
 
         if ((serverSize == 0 || getServer().getOnlinePlayers().size() == 0) && quitExitGame) {
 
@@ -1594,6 +1620,10 @@ public class CounterStrike extends JavaPlugin {
         }
     }
 
+
+    public void changeBotSkin(Player player) {
+        //   botManager.
+    }
 
     public void Maintenance(Player player) {
 

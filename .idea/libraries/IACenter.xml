@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="IACenter">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../iACenter/out/artifacts/iACenter_jar/IACenter.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

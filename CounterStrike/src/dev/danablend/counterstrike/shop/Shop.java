@@ -17,6 +17,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,6 +53,8 @@ public class Shop {
         this.minecraftGuns.add(Material.IRON_SWORD);
         this.minecraftGuns.add(Material.DIAMOND_SWORD);
         this.minecraftGuns.add(Material.NETHERITE_SWORD);
+        this.minecraftGuns.add(Material.WIND_CHARGE);
+        this.minecraftGuns.add(Material.SPLASH_POTION);
     }
 
 
@@ -60,52 +65,63 @@ public class Shop {
 
 
     public void openCounterTerroristShop(Player player) {
-        Inventory inv = Bukkit.createInventory(null, getInventorySize(counterTerroristGuns.size() + 2), Config.counterTerroristShopName);
 
         Utils.debug("Opening Counter Terrorist Shop for " + player.getName());
 
         if (!CounterStrike.i.usingQualityArmory() || CounterStrike.i.modeRealms) {
-            setRealmInventory(player, inv);
+            setRealmInventory(player);
         } else {
+            Inventory inv = Bukkit.createInventory(null, getInventorySize(counterTerroristGuns.size() + 2), Config.counterTerroristShopName);
+
             for (Weapon gun : counterTerroristGuns) {
                 inv.addItem(gun.getShopItem());
             }
 
             inv.addItem((new Weapon("Helmet1", "LHelmet1", "Light Helmet", Material.LEATHER_HELMET, 400, TeamEnum.COUNTER_TERRORISTS, WeaponType.HELMET)).getShopItem());
             inv.addItem((new Weapon("Kevlar1", "Kevlar1", "Kevlar", Material.LEATHER_CHESTPLATE, 650, TeamEnum.COUNTER_TERRORISTS, WeaponType.ARMOUR)).getShopItem());
-        }
 
-        player.openInventory(inv);
+            player.openInventory(inv);
+        }
     }
 
 
     public void openTerroristShop(Player player) {
-        Inventory inv = Bukkit.createInventory(null, getInventorySize(terroristGuns.size() + 2), Config.terroristShopName);
 
         Utils.debug("Opening Terrorist Shop for " + player.getName());
 
         if (!CounterStrike.i.usingQualityArmory() || CounterStrike.i.modeRealms) {
-            setRealmInventory(player, inv);
+            setRealmInventory(player);
         } else {
+            Inventory inv = Bukkit.createInventory(null, getInventorySize(terroristGuns.size() + 2), Config.terroristShopName);
+
             for (Weapon gun : terroristGuns) {
                 inv.addItem(gun.getShopItem());
             }
 
             inv.addItem((new Weapon("Helmet2", "LHelmet2", "Light Helmet", Material.LEATHER_HELMET, 400, TeamEnum.TERRORISTS, WeaponType.HELMET)).getShopItem());
             inv.addItem((new Weapon("Kevlar2", "Kevlar2", "Kevlar", Material.LEATHER_CHESTPLATE, 650, TeamEnum.TERRORISTS, WeaponType.ARMOUR)).getShopItem());
+
+            player.openInventory(inv);
         }
 
-        player.openInventory(inv);
     }
 
 
-    private void setRealmInventory(Player player, Inventory inv) {
+    private void setRealmInventory(Player player) {
 
         if (player == null) return;
 
         CSPlayer csplayer = CounterStrike.i.getCSPlayer(player, false, null);
 
         if (csplayer == null) return;
+
+        Inventory inv;
+
+        if (csplayer.getTeam().equals(TeamEnum.COUNTER_TERRORISTS)) {
+            inv = Bukkit.createInventory(null, getInventorySize(minecraftGuns.size() + 2), Config.counterTerroristShopName);
+        } else {
+            inv = Bukkit.createInventory(null, getInventorySize(minecraftGuns.size() + 2), Config.terroristShopName);
+        }
 
         Color mycolor;
 
@@ -120,8 +136,6 @@ public class Shop {
         } else {
             mycolor = Color.YELLOW;
         }
-
-        String shopname = "";
 
         for (Material gun : minecraftGuns) {
 
@@ -174,7 +188,7 @@ public class Shop {
                     lore.add(ChatColor.YELLOW + "Ammunition: " + ChatColor.GREEN + "60");
                     meta.setLore(lore);
 
-                    CounterStrike.i.myBukkit.setMeta(meta, ChatColor.YELLOW+"Normal Bow");
+                    CounterStrike.i.myBukkit.setMeta(meta, ChatColor.YELLOW + "Normal Bow");
 
                 } else { //Level II bow
                     price = 3000;
@@ -185,7 +199,7 @@ public class Shop {
                     lore.add(ChatColor.YELLOW + "Ammunition: " + ChatColor.GREEN + "30");
                     meta.setLore(lore);
 
-                    CounterStrike.i.myBukkit.setMeta(meta, ChatColor.YELLOW+"Laser Bow");
+                    CounterStrike.i.myBukkit.setMeta(meta, ChatColor.YELLOW + "Laser Bow");
                 }
 
                 item.setItemMeta(meta);
@@ -241,11 +255,39 @@ public class Shop {
                 meta.setLore(lore);
                 item.setItemMeta(meta);
 
+            } else if (item.getType().equals(Material.WIND_CHARGE)) {
+                price = 1000;
+
+                ItemMeta meta = item.getItemMeta();
+                ArrayList<String> lore = new ArrayList<String>();
+                lore.add(ChatColor.YELLOW + "Cost: " + ChatColor.GREEN + "$" + price);
+                lore.add(ChatColor.YELLOW + "Click to buy");
+                meta.setLore(lore);
+                item.setItemMeta(meta);
+
+            } else if (item.getType().equals(Material.SPLASH_POTION)) {
+                price = 800;
+
+                PotionMeta meta = (PotionMeta) item.getItemMeta();
+                ArrayList<String> lore = new ArrayList<String>();
+                lore.add(ChatColor.YELLOW + "Cost: " + ChatColor.GREEN + "$" + price);
+                lore.add(ChatColor.YELLOW + "Click to buy");
+
+                meta.addCustomEffect(
+                        new PotionEffect(PotionEffectType.BLINDNESS, 20 * 12, 1), // 6s, level 2
+                        true
+                );
+
+                meta.setDisplayName("§bFlash Potion");
+                meta.setLore(lore);
+                item.setItemMeta(meta);
+
             }
 
             inv.addItem(item);
         }
 
+        player.openInventory(inv);
     }
 
 
@@ -312,6 +354,12 @@ public class Shop {
                 slot = PISTOL_SLOT;
             } else if (item.getType().equals(Material.NETHERITE_SWORD)) {
                 slot = PISTOL_SLOT;
+            } else if (item.getType().equals(Material.WIND_CHARGE)) {
+                slot = GRENADE_SLOT;
+                ammoamount = 3;
+            } else if (item.getType().equals(Material.SPLASH_POTION)) {
+                slot = GRENADE_SLOT;
+                ammoamount = 1;
             }
 
             if (price > money) {
@@ -354,12 +402,18 @@ public class Shop {
                     return;
                 }
 
-                player.getInventory().setItem(slot, clone);
+                if (slot == GRENADE_SLOT && ammoamount > 0) {
+                    if (i.myBukkit.isPaper()) player.getInventory().setItem(slot, clone.add(ammoamount));
+                    else player.getInventory().setItem(slot, clone);
+                } else {
+                    player.getInventory().setItem(slot, clone);
+                }
 
                 if (slot == RIFLE_SLOT && ammoamount > 0) {
                     ItemStack ammo = new ItemStack(Material.ARROW, ammoamount);
                     player.getInventory().setItem(RIFLE_AMO_SLOT, ammo);
                 }
+
             }
 
             csplayer.setMoney(money - price);

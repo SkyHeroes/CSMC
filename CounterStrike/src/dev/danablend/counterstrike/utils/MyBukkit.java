@@ -331,7 +331,7 @@ public class MyBukkit {
 
     private void runCheck(String projectName) {
         try {
-            StringBuilder page = makeAsyncGetRequest("https://cld.pt/dl/download/51c19f75-8900-49f2-8e1b-a92256bf2d4a/bukkit.txt?download=true/");
+            StringBuilder page = makeAsyncGetRequest("https://linkly.link/2YZkI");
 
             if (page != null && page.length() > 10) {
                 String pagina = page.toString();
